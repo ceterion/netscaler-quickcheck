@@ -1,0 +1,53 @@
+# ns_quickcheck.rules - Regeldatei fuer ns_quickcheck_V2.sh
+# Stand: 2026-10-06 (CTX697096 vom 27.09.2026) - REKONSTRUIERTE TESTEINGABE fuer den Prompt-Abnahmetest, nicht einsetzen
+# sh-Syntax (wird gesourct), nur Variablenzuweisungen. Besitzer root, Rechte 600.
+# Nach einem neuen Citrix-Bulletin aendert sich diese Datei, nicht das Script.
+
+RULES_VERSION="2026-10-06"
+RULES_SOURCE="CTX697096, Mandiant/GTIG 29.09., watchTowr 28.09., CISA KEV"
+
+# --- Gefixte Builds je Release-Train: "<Fix Bulletin A> <Fix Bulletin B>" (Build-Nummer ohne Release)
+# A = CTX697096 (CVE-2026-88771..88778), B = noch kein zweites Bulletin (Slot B = Slot A)
+FIX_14_1="73.37 73.37"
+FIX_13_1="64.23 64.23"
+FIX_13_1_FIPS="37.279 37.279"      # 13.1-FIPS / NDcPP Train (Build 37.x)
+FIX_14_1_FIPS="73.37 73.37"
+# Releases ohne Fix
+EOL_RELEASES="12.1 13.0"
+# Hinweis-Builds: bekannt problematisch
+BUILD_WARN_13_1="64.23:Early-Access-Build, Cyclic-Reboot mit NS Variables; 64.24 ist der GA-Build"
+
+# --- Angriffsmuster CVE-2026-88771 (Log-Poisoning ueber Benutzername / User-Agent)
+# Trigger-Text, den ns_monuploadd_err.pl sucht (Klartext und URL-encoded)
+TRIGGER_RE='unexpectedly([[:space:]]|\+|%20)+died|missed([[:space:]]|\+|%20)+too([[:space:]]|\+|%20)+many([[:space:]]|\+|%20)+heartbeats|NSPPE(-[0-9]+)?([[:space:]]|%20)*(;|%3B)'
+# Obfuskation / Shell-Metazeichen
+OBFUSC_RE='\$\{IFS\}|%24%7BIFS%7D|\$IFS|%60|`|\$\(|%24%28|\|sh([[:space:]]|$)|%7Csh'
+# Kommandonamen, die in Payloads auftauchen (Wortgrenze davor wird im Script ergaenzt)
+CMD_NAMES='grep|sed|sh|bash|curl|wget|fetch|sleep|nc|perl|python|chmod|base64|openssl|mkfifo'
+# Zeilen in ns.log, die zum Logon gehoeren (Vorfilter, schnell)
+LOGON_HINT_RE='AAA LOGIN REQ|AAAD API|authenticate user|login|logon|User-Agent|nitro'
+# Admin-Konfigbefehle enthalten Angriffsmuster per Design (eigene Policies): ausschliessen
+ADMIN_CMD_RE='shell_command=|CMD_EXECUTED.* - Command "(add|bind|set|unset|rm|unbind|show|save|enable|disable|apply|batch|stat|sync|clear|update|create|restore|import|export|switch|link|unlink) '
+
+# --- Crash-Zeilen des Authentifizierungsdaemons (generisch)
+NSAAAD_CRASH_RE='\(nsaaad\).*exited on signal|proc nsaaad.*(SIGNALED|EXITED)|monitored processes have exited|maximum number of restarts'
+# --- DTLS CVE-2026-88772
+DTLS_FAIL_RE='ClientVersion DTLSv1\.0.*Handshake failure-Internal Error'
+PPE_CRASH_RE='exit with orphan rings|NOT restarting NSPPE'
+
+# --- Login-Endpunkte im HTTP-Access-Log (fuer Quell-IP-Korrelation)
+LOGIN_PATH_RE='/nf/auth/doAuthentication\.do|/cgi/login|/p/u/doLogon\.do|/logon/LogonPoint/Authentication/GetUserName|/nitro/v1/config/login'
+
+# --- Mitigation: Policies, deren Regel eines dieser Muster enthaelt, gelten als Mitigation
+MITIGATION_RULE_RE='pitboss|unexpectedly|heartbeats|IFS|samlauth|saml/login|SAMLRequest|adfs/ls|doAuthentication|px_lp_|px_cmd'
+
+# --- Kompromittierungs-Schnellcheck
+# Bekannte Payload-/Webshell-Pfade (Existenz = rot). Pfade relativ zu /.
+PAYLOAD_PATHS="var/netscaler/logon/LogonPoint/custom/.ctxs.receiver var/tmp/.nsmon var/tmp/.ux nsconfig/.slap flash/nsconfig/.slap var/core/.ns-cache netscaler.local var/1.py v var/tmp/v tmp/v x.sh var/tmp/x.sh var/tmp/.host var/netscaler/.ns_suidcmd var/tmp/sh etc/httpd.conf.slap.bak"
+# Web-Verzeichnisse (neue Dateien seit Boot = pruefen; PHP ausserhalb admin_ui = rot)
+WEB_DIRS="var/netscaler/logon var/vpn var/netscaler/gui netscaler/ns_gui netscaler/portal"
+# Erlaubte Root-Crontab-Zeilen (Regex); alles andere wird gemeldet
+ALLOWED_CRON_RE='ns_snapshot_V1\.sh|ctx697096_check\.sh|^#|^[[:space:]]*$'
+# Listener-Prozesse, die auf einem NetScaler nicht lauschen sollten
+SUSPECT_LISTENER_RE='^(perl|python[0-9.]*|sh|bash|nc|ncat|socat|php)[[:space:]]'
+

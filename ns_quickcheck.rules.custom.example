@@ -1,0 +1,14 @@
+# ns_quickcheck.rules.custom - eigene Indikatoren des Betreibers (Format 2, gleicher Aufbau wie der IOC-Abschnitt der
+# Regeldatei). Wird vom Script zusaetzlich geladen, Treffer erscheinen mit dem Zusatz "custom". Diese Datei wird nicht mit
+# dem Toolset verteilt und nicht beim Update ersetzt. Inhalt: Feldbefunde, interne Beobachtungen und Werte aus Quellen,
+# die der Betreiber selbst nutzen darf. Keine Daten Dritter ohne deren Erlaubnis; ceterion liefert keine Werte fuer diese Datei.
+# IOC-Zeile: typ <TAB> wert <TAB> quelle <TAB> datum <TAB> klasse <TAB> fundstelle <TAB> stand   (PRUEFEN/ENTFERNEN = inaktiv)
+# CVE-Block: Zeilen im Format der CVE_TABLE (CTX::CVE::train::fix::bedingung::text); werden zusaetzlich zur Regeldatei
+# geprueft, identische Zeilen einmal, abweichende beide, das strengere Ergebnis zaehlt. Bedingung: all, conf:<ERE>, tcpparam:<flag>.
+CUSTOM_VERSION="<betreiber>-<datum>"
+: <<'IOC'
+# typ	wert	quelle	datum	klasse	fundstelle	regelstand
+IOC
+: <<'CVE'
+# CTX697xxx::CVE-2026-xxxxx::14.1::73.50::all::Beschreibung, Quelle
+CVE

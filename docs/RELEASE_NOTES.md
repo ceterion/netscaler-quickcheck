@@ -1,0 +1,35 @@
+# netscaler-quickcheck v17.29
+
+First public release after the rework of October 2026. Rules stand 2026-10-22b.
+
+## What it is
+
+One run on a NetScaler ADC or Gateway appliance, one verdict: build against the Citrix bulletins (CTX697096, CTX697174, CTX697191), attack traces, compromise quick check, account attacks on the gateway, address lists, anonymized reports. Rule-driven, offline-capable, no network access, nothing changed on the appliance. Details in `ns_quickcheck_README.md` (German) and `README.md`.
+
+## Since the last public stand (v15.1)
+
+- Rules file format 2 with per-indicator provenance (type, value, source, date, class, reference, stand); every indicator traced to its primary publisher; third-party collections excluded by principle.
+- Operator files that survive updates: custom rules (`ns_quickcheck.rules.custom`, IOC and CVE blocks), block list (`ns_quickcheck.blocked_ips`, orange tier "covered"), whitelist, config with thresholds.
+- Verdicts `OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_FIRST`; `coverage=partial` when a core check had no data (never `OK`).
+- Block 4 reads syslog, access, error, auth and cron logs: injection source from responder lines, webshell probing with sources, webshells that answered, management and SSH access from outside, and gateway account attacks: spraying, brute force, sleepers, internal addresses, hits after failure series (red).
+- Finding blocks with fixed labels (when, log, result, source, networks, to do), per-run and cumulative address lists by category, anonymized reports with a per-appliance mapping table (`--anon` also for log excerpts and `ns.conf`).
+- Platform fixes for the FreeBSD tool set on the appliance (sed, awk, sh), work directory outside `/tmp`, lints in `docs/release.sh`.
+
+## Rules stand 2026-10-22b
+
+Adds the FIPS rows for CVE-2026-88772 and CVE-2026-88778 (CTX697096) and the indicators from Zscaler ThreatLabz (2026-10-16): payload path `var/kw2s11`, download server `209.141.43.95`, the `Nx_7508` webshell, CGI and fingerprint files in six directories, and 27 source addresses of the exploitation wave. Details and SHA-256 in `ns_quickcheck.rules.changelog.md`.
+
+## Requirements
+
+NetScaler 13.1 or 14.1, root shell; optional read-only service user for the CLI layer (README 3.1). Validated on 14.1-73.41 and 14.1-73.46; 13.1 and FIPS trains are beta.
+
+## Assets
+
+| File | SHA-256 |
+|---|---|
+| `ns_quickcheck.sh` | `033a3802f0dab55702164580e7175e31e3d1491b5a021ab71210707fd80b40df` |
+| `ns_quickcheck.rules` | `0ab860a7ca2269d26148ea29960669eddff20b63e552f1efdd8fddf925dcde48` |
+
+## Known limits
+
+Shell logs (`bash.log`, `sh.log`) are not evaluated yet; `--compare` compares web files by mtime and size, not by hash; thresholds in block 4 are calibrated on one lab gateway and are configurable (README 4.3). Report and finding texts are German by design, built with and for operators in the DACH region (field names and verdicts are language-neutral, see `docs/report-format.md`); English output is planned for V18. Webshell names with a variable number (`Nx_<n>.*`, Zscaler 2026-10-16) are matched by exact path only until `WEBSHELL_NAME_RE` arrives in V18; the `.php` variants are caught by the generic "PHP outside admin_ui" check. Not a replacement for the official Citrix IoC scan.

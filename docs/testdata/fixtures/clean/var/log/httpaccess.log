@@ -1,0 +1,2 @@
+198.51.100.40 - - [05/Oct/2026:09:01:10 +0000] "POST /nf/auth/doAuthentication.do HTTP/1.1" 302 0 "-" "Mozilla/5.0"
+198.51.100.40 - - [05/Oct/2026:09:01:12 +0000] "GET /vpn/index.html HTTP/1.1" 200 2048 "-" "Mozilla/5.0"

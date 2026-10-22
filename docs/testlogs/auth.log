@@ -1,0 +1,6 @@
+Oct 19 14:59:01 gw-01 sshd[1201]: Accepted password for nsroot from 198.51.100.21 port 51000 ssh2
+Oct 19 15:00:01 gw-01 sshd[1202]: Accepted publickey for ns-snapshot from 10.0.0.5 port 51001 ssh2
+Oct 19 15:01:01 gw-01 sshd[1203]: Failed password for invalid user admin from 203.0.113.50 port 51002 ssh2
+Oct 19 15:01:02 gw-01 sshd[1204]: Failed password for root from 203.0.113.50 port 51003 ssh2
+Oct 19 15:01:03 gw-01 sshd[1205]: Invalid user test from 203.0.113.50 port 51004
+Oct 19 15:02:00 gw-01 login: login on ttyv0 as nsroot

@@ -1,0 +1,14 @@
+netscaler-quickcheck (NetScaler Integrity Baseline, part 1)
+Copyright 2026 ceterion AG
+Author: Jens Miltenberger, ceterion AG
+
+This product includes software developed by ceterion AG (https://www.ceterion.com).
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+The indicator data in ns_quickcheck.rules consists of facts published by vendors, authorities and
+security researchers; every line names its original publisher, publication date and reference, and
+ns_quickcheck.rules.provenance.md lists them all. See CREDITS.md for the reference tool and the sources.
+No source code was taken from any third-party tool; the scripts in this repository were written from scratch.
+
+"NetScaler" and "Citrix" are trademarks of their respective owners; this project is not affiliated with
+or endorsed by the vendor.

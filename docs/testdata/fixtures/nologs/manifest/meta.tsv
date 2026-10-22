@@ -1,0 +1,5 @@
+key	value
+hostname	gw-01
+build	14.1-73.41
+bootfile	/flash/ns-14.1-73.41.gz
+boottime_epoch	1791291358

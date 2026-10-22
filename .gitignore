@@ -1,0 +1,42 @@
+# Laufzeitdaten der Appliance und des Collectors, nie ins Repository
+*.secret
+ns_snapshot.secret
+/out/
+/log/
+/run/
+/quickcheck/
+ki_bundle_*.txt
+anon_*
+*.tgz
+*.sha256
+*_index.txt
+/store/
+/inbox/
+NSCollector.config.json
+*.map
+# Betreiberdateien, nur als .example im Repo
+ns_quickcheck.conf
+ns_quickcheck.whitelist
+ns_quickcheck.rules.custom
+ns_quickcheck.blocked_ips
+*.custom
+*.bak_*
+*.apply.*
+# Lauf-Ausgaben und Bundles
+*_ips.tsv
+ns_quickcheck_observed_ips.tsv
+*.zip
+/tmp/
+ns_quickcheck_*_20*.txt
+ns_quickcheck_*_20*.json
+*.ki-bundle*
+# Betriebssystem und Editoren
+.DS_Store
+Thumbs.db
+*.swp
+# versionierte Arbeitsfassungen bleiben am Arbeitsplatz; im Repo nur die unversionierten Namen
+*_v[0-9]*.md
+*_V[0-9]*.sh
+# Fixtures duerfen Betreiberdateien enthalten (Testdaten, RFC-5737-Adressen)
+!docs/testdata/fixtures/**/ns_quickcheck.rules.custom
+!docs/testdata/fixtures/**/ns_quickcheck.blocked_ips

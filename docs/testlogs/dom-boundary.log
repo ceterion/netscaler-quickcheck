@@ -1,0 +1,5 @@
+Oct 19 12:00:00 gw-01 ns: resolving pylrk.cc now
+Oct 19 12:00:01 gw-01 ns: resolving notpylrk.cc now
+Oct 19 12:00:02 gw-01 ns: resolving pylrk.cc.evil.test now
+Oct 19 12:00:03 gw-01 ns: resolving PYLRK.CC now
+Oct 19 12:00:04 gw-01 ns: resolving sub.pylrk.cc now

@@ -1,0 +1,402 @@
+# ns_quickcheck.rules - Regeldatei fuer ns_quickcheck.sh ab Script-V16 (Format 2: Indikatoren als Zeilen mit Herkunft)
+# RULES_FORMAT=2. Listenwerte (ip, dom, hash, path) stehen als je eine Zeile im Abschnitt IOC unten; das Script baut
+# ATTACKER_IP_RE, ATTACKER_DOM_RE, PAYLOAD_HASHES und PAYLOAD_PATHS beim Laden daraus. Regex-Variablen (Trigger,
+# Injection, Dropper, Listener) und die CVE-Tabelle bleiben wie in Format 1.
+# Jede IOC-Zeile: typ <TAB> wert <TAB> quelle <TAB> datum <TAB> klasse <TAB> fundstelle <TAB> regelstand (Aufnahme)
+#   typ: ip | dom | hash | path      klasse: c (Artefakt, auch aus Sekundaerquelle mit genannter Primaerquelle)
+#   fundstelle: URL oder Abschnitt der Primaerveroeffentlichung. "PRUEFEN" = Primaerfundstelle noch nicht verifiziert,
+#   Zeile bleibt bis zur Pruefung inaktiv (Script V16 ignoriert Zeilen mit PRUEFEN oder ENTFERNEN). "ENTFERNEN" = keine
+#   Primaerquelle, wird beim naechsten Regelstand geloescht.
+# Entfernen nach Quelle: grep -v "<TAB>quelle<TAB>". Zaehlen: grep -c "^ip<TAB>".
+# Copyright 2026 ceterion AG
+# SPDX-License-Identifier: Apache-2.0
+#
+# Bereitgestellt "AS IS", ohne Gewaehrleistung oder Garantie irgendeiner Art, ausdruecklich oder
+# stillschweigend, einschliesslich Marktgaengigkeit und Eignung fuer einen bestimmten Zweck. Nutzung
+# auf eigene Verantwortung. Ein Verdict dieses Werkzeugs ersetzt keine forensische Untersuchung und
+# keine Aussage des Herstellers. Haftung im gesetzlich zulaessigen Umfang ausgeschlossen.
+# Siehe LICENSE und DISCLAIMER.md im Repository.
+#
+# Provided "AS IS", without warranty of any kind, express or implied, including merchantability and
+# fitness for a particular purpose. Use at your own risk. A verdict of this tool does not replace a
+# forensic investigation or a vendor statement. Liability excluded to the extent permitted by law.
+# Stand: 2026-10-14 (CTX697096 vom 27.09.2026, CTX697174 vom 03.10.2026, CTX697191 vom 08.10.2026, CISA SIGMA vom 29.09.2026)
+# sh-Syntax (wird gesourct), nur Variablenzuweisungen. Besitzer root, Rechte 600.
+# Nach einem neuen Citrix-Bulletin aendert sich diese Datei, nicht das Script.
+#
+# Herkunftskommentare: ueber jeder Variable steht, aus welchem Bulletin oder Bericht der Wert stammt,
+# Form "# +<datum> <quelle>: <was>". Erweiterungen haengen an und bekommen eine eigene Zeile.
+# Bestehende Werte werden nie gekuerzt oder ersetzt (Ausnahme FIX_*), damit alte Vektoren pruefbar bleiben.
+# Aenderungshistorie mit Belegen: ns_quickcheck.rules.changelog.md
+
+RULES_VERSION="2026-10-22b"
+RULES_FORMAT="2"
+RULES_SOURCE="CTX697096, CTX697174, CTX697191, CISA KEV, CISA SIGMA 261399 r1, CERT-EU 28.09., Mandiant/GTIG 29.09., watchTowr 28.09. und 07.10., Unit 42 30.09., LevelBlue 02.10., Sygnia 01.10., SOCRadar 07.10. (Daten nur mit Fundstelle beim Erstautor; Zusammenstellungen Dritter sind Verweise), Zscaler ThreatLabz 16.10."
+
+# --- CVE-Tabelle (ab Script-V3): eine Zeile je CVE und Train, Felder durch :: getrennt
+#   Bulletin :: CVE :: Train (14.1, 13.1, 14.1-FIPS, 13.1-FIPS) :: Fix-Build :: Bedingung :: Text   (Trenner ist ::, weil Regex | enthalten darf)
+#   Bedingung: all = jede Appliance; conf:<ERE gegen ns.conf> = nur wenn Treffer; tcpparam:<Param Wert> = gilt
+#   fuer alle, und auf gefixtem Build bleibt der Konfigurationsschritt offen, bis "set ns tcpParam -<Param Wert>" steht.
+#   Neues Bulletin = neue Zeilen anhaengen. Bestehende Zeilen bleiben, auch wenn ein neuerer Fix sie einschliesst.
+# +2026-09-27 CTX697096: CVE-2026-88771 (RCE 9.5, exploited), CVE-2026-88772 (DTLS), CVE-2026-88778 (ISN, Konfigschritt)
+# +2026-10-03 CTX697174: CVE-2026-88779 (SAML DoS 8.7, CISA KEV 04.10.)
+# +2026-10-09 CTX697191 (08.10.): CVE-2026-107406, SAML Memory Overflow, RCE oder DoS, CVSS 9.5, kein Workaround.
+#   Zwei Rollen, zwei Fix-Builds: SAML SP (samlAction) gefixt ab 73.37/64.23/37.279, SAML IdP (samlIdPProfile)
+#   erst ab 73.46/64.29/37.283 ("For the following versions: Applicable only when configured as a SAML IdP:
+#   between 14.1-73.37 and 14.1-73.41, inclusive"). Builds 73.42 bis 73.45 nennt das Bulletin nicht;
+#   die Tabelle behandelt sie konservativ als betroffen.
+# Hinweis: CTX697096 umfasst acht CVEs (88771 bis 88778); seit 2026-10-15c alle in der Tabelle, 88773 bis 88777 mit
+# ihren Konfigurationsbedingungen aus "Steps to determine". Gleicher Fix-Build wie 88771, das Verdict aendert sich nicht.
+# +2026-10-15c CTX697096 (Direktabruf 15.10., "Steps to determine"): CVE-2026-88773 bis 88777 mit Konfigurationsbedingungen; gleicher Fix-Build wie 88771. Zitate im Changelog
+# +2026-10-22 CTX697096 (27.09., Direktabruf 22.10.): CVE-2026-88772 und 88778 fuer 13.1-FIPS und 14.1-FIPS ergaenzt; Fix-Builds gelten laut "What Customers Should Do" fuer alle CVEs des Bulletins
+CVE_TABLE='
+CTX697096::CVE-2026-88771::14.1::73.37::all::Pre-Auth RCE CVSS 9.5, aktiv ausgenutzt, oeffentliches Tooling
+CTX697096::CVE-2026-88771::13.1::64.23::all::Pre-Auth RCE CVSS 9.5, aktiv ausgenutzt, oeffentliches Tooling
+CTX697096::CVE-2026-88771::13.1-FIPS::37.279::all::Pre-Auth RCE CVSS 9.5, aktiv ausgenutzt, oeffentliches Tooling
+CTX697096::CVE-2026-88771::14.1-FIPS::73.37::all::Pre-Auth RCE CVSS 9.5, aktiv ausgenutzt, oeffentliches Tooling
+CTX697096::CVE-2026-88772::14.1::73.37::conf:^add vpn vserver [^ ]+ (SSL|DTLS) ::DTLS RCE CVSS 9.5, seit Anfang September ausgenutzt
+CTX697096::CVE-2026-88772::13.1::64.23::conf:^add vpn vserver [^ ]+ (SSL|DTLS) ::DTLS RCE CVSS 9.5, seit Anfang September ausgenutzt
+CTX697096::CVE-2026-88778::14.1::73.37::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
+CTX697096::CVE-2026-88778::13.1::64.23::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
+CTX697174::CVE-2026-88779::14.1::73.41::conf:^add authentication saml(Action|IdPProfile) ::SAML DoS CVSS 8.7, CISA KEV
+CTX697174::CVE-2026-88779::13.1::64.28::conf:^add authentication saml(Action|IdPProfile) ::SAML DoS CVSS 8.7, CISA KEV
+CTX697174::CVE-2026-88779::13.1-FIPS::37.282::conf:^add authentication saml(Action|IdPProfile) ::SAML DoS CVSS 8.7, CISA KEV
+CTX697174::CVE-2026-88779::14.1-FIPS::73.41::conf:^add authentication saml(Action|IdPProfile) ::SAML DoS CVSS 8.7, CISA KEV
+CTX697191::CVE-2026-107406::14.1::73.37::conf:^add authentication samlAction ::SAML-SP Memory Overflow RCE/DoS CVSS 9.5, SP-Rolle ab 73.37 gefixt
+CTX697191::CVE-2026-107406::13.1::64.23::conf:^add authentication samlAction ::SAML-SP Memory Overflow RCE/DoS CVSS 9.5, SP-Rolle ab 64.23 gefixt
+CTX697191::CVE-2026-107406::13.1-FIPS::37.279::conf:^add authentication samlAction ::SAML-SP Memory Overflow RCE/DoS CVSS 9.5, SP-Rolle ab 37.279 gefixt
+CTX697191::CVE-2026-107406::14.1-FIPS::73.37::conf:^add authentication samlAction ::SAML-SP Memory Overflow RCE/DoS CVSS 9.5, SP-Rolle ab 73.37 gefixt
+CTX697191::CVE-2026-107406::14.1::73.46::conf:^add authentication samlIdPProfile ::SAML-IdP Memory Overflow RCE/DoS CVSS 9.5, kein Workaround, IdP-Rolle erst ab 73.46 gefixt
+CTX697191::CVE-2026-107406::13.1::64.29::conf:^add authentication samlIdPProfile ::SAML-IdP Memory Overflow RCE/DoS CVSS 9.5, kein Workaround, IdP-Rolle erst ab 64.29 gefixt
+CTX697191::CVE-2026-107406::13.1-FIPS::37.283::conf:^add authentication samlIdPProfile ::SAML-IdP Memory Overflow RCE/DoS CVSS 9.5, kein Workaround, IdP-Rolle erst ab 37.283 gefixt
+CTX697191::CVE-2026-107406::14.1-FIPS::73.46::conf:^add authentication samlIdPProfile ::SAML-IdP Memory Overflow RCE/DoS CVSS 9.5, kein Workaround, IdP-Rolle erst ab 73.46 gefixt
+CTX697096::CVE-2026-88773::14.1::73.37::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::HTTP Request Smuggling CWE-444 CVSS 9.3, vServer Typ HTTP oder SSL
+CTX697096::CVE-2026-88773::13.1::64.23::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::HTTP Request Smuggling CWE-444 CVSS 9.3, vServer Typ HTTP oder SSL
+CTX697096::CVE-2026-88773::13.1-FIPS::37.279::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::HTTP Request Smuggling CWE-444 CVSS 9.3, vServer Typ HTTP oder SSL
+CTX697096::CVE-2026-88773::14.1-FIPS::73.37::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::HTTP Request Smuggling CWE-444 CVSS 9.3, vServer Typ HTTP oder SSL
+CTX697096::CVE-2026-88774::14.1::73.37::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::Policy Bypass bei HTTP-URL-Expressions CWE-16 CVSS 7.0 (Citrix prueft wie 88773: HTTP/SSL-vServer)
+CTX697096::CVE-2026-88774::13.1::64.23::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::Policy Bypass bei HTTP-URL-Expressions CWE-16 CVSS 7.0 (Citrix prueft wie 88773: HTTP/SSL-vServer)
+CTX697096::CVE-2026-88774::13.1-FIPS::37.279::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::Policy Bypass bei HTTP-URL-Expressions CWE-16 CVSS 7.0 (Citrix prueft wie 88773: HTTP/SSL-vServer)
+CTX697096::CVE-2026-88774::14.1-FIPS::73.37::conf:^add (lb|cs|vpn|authentication) vserver [^ ]+ (HTTP|SSL) ::Policy Bypass bei HTTP-URL-Expressions CWE-16 CVSS 7.0 (Citrix prueft wie 88773: HTTP/SSL-vServer)
+CTX697096::CVE-2026-88775::14.1::73.37::conf:^add (vpn|authentication) vserver ::Memory Overflow CWE-119 CVSS 8.8, VPN- oder AAA-vServer
+CTX697096::CVE-2026-88775::13.1::64.23::conf:^add (vpn|authentication) vserver ::Memory Overflow CWE-119 CVSS 8.8, VPN- oder AAA-vServer
+CTX697096::CVE-2026-88775::13.1-FIPS::37.279::conf:^add (vpn|authentication) vserver ::Memory Overflow CWE-119 CVSS 8.8, VPN- oder AAA-vServer
+CTX697096::CVE-2026-88775::14.1-FIPS::73.37::conf:^add (vpn|authentication) vserver ::Memory Overflow CWE-119 CVSS 8.8, VPN- oder AAA-vServer
+CTX697096::CVE-2026-88776::14.1::73.37::conf:^add lb vserver.*ORACLE::Memory Overflow CWE-119 CVSS 8.8, LB vServer Typ ORACLE
+CTX697096::CVE-2026-88776::13.1::64.23::conf:^add lb vserver.*ORACLE::Memory Overflow CWE-119 CVSS 8.8, LB vServer Typ ORACLE
+CTX697096::CVE-2026-88776::13.1-FIPS::37.279::conf:^add lb vserver.*ORACLE::Memory Overflow CWE-119 CVSS 8.8, LB vServer Typ ORACLE
+CTX697096::CVE-2026-88776::14.1-FIPS::73.37::conf:^add lb vserver.*ORACLE::Memory Overflow CWE-119 CVSS 8.8, LB vServer Typ ORACLE
+CTX697096::CVE-2026-88777::14.1::73.37::conf:^add (lb|cs) vserver .* FTP|^add service .* FTP|^add lb monitor .* FTP|^add lsn group|-rtspalg ENABLED|-dns64 ENABLED|^add dns policy64|^add nat64::Memory Overflow CWE-119 CVSS 8.8, FTP, LSN-ALG, RTSP-ALG, DNS64, NAT64
+CTX697096::CVE-2026-88777::13.1::64.23::conf:^add (lb|cs) vserver .* FTP|^add service .* FTP|^add lb monitor .* FTP|^add lsn group|-rtspalg ENABLED|-dns64 ENABLED|^add dns policy64|^add nat64::Memory Overflow CWE-119 CVSS 8.8, FTP, LSN-ALG, RTSP-ALG, DNS64, NAT64
+CTX697096::CVE-2026-88777::13.1-FIPS::37.279::conf:^add (lb|cs) vserver .* FTP|^add service .* FTP|^add lb monitor .* FTP|^add lsn group|-rtspalg ENABLED|-dns64 ENABLED|^add dns policy64|^add nat64::Memory Overflow CWE-119 CVSS 8.8, FTP, LSN-ALG, RTSP-ALG, DNS64, NAT64
+CTX697096::CVE-2026-88777::14.1-FIPS::73.37::conf:^add (lb|cs) vserver .* FTP|^add service .* FTP|^add lb monitor .* FTP|^add lsn group|-rtspalg ENABLED|-dns64 ENABLED|^add dns policy64|^add nat64::Memory Overflow CWE-119 CVSS 8.8, FTP, LSN-ALG, RTSP-ALG, DNS64, NAT64
+CTX697096::CVE-2026-88772::13.1-FIPS::37.279::conf:^add vpn vserver [^ ]+ (SSL|DTLS) ::DTLS RCE CVSS 9.5, seit Anfang September ausgenutzt
+CTX697096::CVE-2026-88772::14.1-FIPS::73.37::conf:^add vpn vserver [^ ]+ (SSL|DTLS) ::DTLS RCE CVSS 9.5, seit Anfang September ausgenutzt
+CTX697096::CVE-2026-88778::13.1-FIPS::37.279::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
+CTX697096::CVE-2026-88778::14.1-FIPS::73.37::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
+'
+
+# --- Gefixte Builds je Release-Train (Fallback fuer Script-V2 und wenn CVE_TABLE leer ist): "<Slot A> <Slot B>"
+# A = CTX697096 (CVE-2026-88771..88778), B = CTX697174 (CVE-2026-88779, nur bei SAML relevant)
+# +2026-09-27 CTX697096: Slot A 14.1-73.37, 13.1-64.23, 13.1-FIPS 37.279
+# +2026-10-03 CTX697174: Slot B 14.1-73.41, 13.1-64.28, 13.1-FIPS 37.282
+# +2026-10-09 CTX697191: Slot B (SAML) 14.1-73.46, 13.1-64.29, 13.1-FIPS 37.283, 14.1-FIPS 73.46 (Fallback kennt keine Rollen)
+FIX_14_1="73.37 73.46"
+FIX_13_1="64.23 64.29"
+FIX_13_1_FIPS="37.279 37.283"      # 13.1-FIPS / NDcPP Train (Build 37.x)
+FIX_14_1_FIPS="73.37 73.46"
+# Releases ohne Fix
+# +2026-09-27 CTX697096: 12.1 und 13.0 End-of-Life, kein Fix
+EOL_RELEASES="12.1 13.0"
+# Hinweis-Builds: bekannt problematisch
+# +2026-10-05 Community-Beobachtung: 13.1-64.23 Early-Access, Cyclic Reboot mit NS Variables
+BUILD_WARN_13_1="64.23:Early-Access-Build, Cyclic-Reboot mit NS Variables; 64.24 ist der GA-Build"
+
+# --- Angriffsmuster CVE-2026-88771 (Log-Poisoning ueber Benutzername / User-Agent)
+# Trigger-Text, den ns_monuploadd_err.pl sucht (Klartext und URL-encoded)
+# +2026-09-28 watchTowr: "unexpectedly died", "missed too many heartbeats", "NSPPE-n ;" als Trigger des Monitor-Scripts
+TRIGGER_RE='unexpectedly([[:space:]]|\+|%20)+died|missed([[:space:]]|\+|%20)+too([[:space:]]|\+|%20)+many([[:space:]]|\+|%20)+heartbeats|NSPPE(-[0-9]+)?([[:space:]]|%20)*(;|%3B)'
+# Obfuskation / Shell-Metazeichen
+# +2026-09-29 Mandiant/GTIG: ${IFS}-Obfuskation und Backtick-Subshells in beobachteten Payloads
+# +2026-10-14 CISA SIGMA 29.09. (S9, S10): Extraktionsfragment des Droppers grep INDEX: / sed s/.*INDEX://
+OBFUSC_RE='\$\{IFS\}|%24%7BIFS%7D|\$IFS|%60|`|\$\(|%24%28|\|sh([[:space:]]|$)|%7Csh|INDEX:'
+# Kommandonamen, die in Payloads auftauchen (Wortgrenze davor wird im Script ergaenzt)
+# +2026-09-29 Mandiant/GTIG, +2026-10-07 CISA 261399 r1: fetch/curl/wget-Downloader, perl/python-Listener, mkfifo-Reverse-Shells (generische Techniken)
+# +2026-10-14 CISA SIGMA 29.09. (S8): b64decode -r, FreeBSD-Werkzeug im Dropper
+CMD_NAMES='grep|sed|sh|bash|curl|wget|fetch|sleep|nc|perl|python|chmod|base64|openssl|mkfifo|b64decode'
+# Zeilen in ns.log, die zum Logon gehoeren (Vorfilter, schnell)
+# +2026-10-06 ceterion: Vorfilter, keine Angriffslogik
+LOGON_HINT_RE='AAA LOGIN REQ|AAAD API|authenticate user|login|logon|User-Agent|nitro'
+# Admin-Konfigbefehle enthalten Angriffsmuster per Design (eigene Policies): ausschliessen
+# +2026-10-05 Community-Beobachtung (false-positive-Fix fuer CMD_EXECUTED)
+# +2026-10-08 Lab 14.1-73.41: sh_command= (Shell-Audit nach local6, enthaelt eigene nscli-Aufrufe) und
+#   nsprofmon_mgmt.pl (schreibt komplette ps-Ausgabe mit sed/Pipe ins Log) sind Systemquellen, keine Logons
+ADMIN_CMD_RE='shell_command=|sh_command=|nsprofmon_mgmt\.pl|CMD_EXECUTED.* - Command "(add|bind|set|unset|rm|unbind|show|save|enable|disable|apply|batch|stat|sync|clear|update|create|restore|import|export|switch|link|unlink) '
+
+# --- SAML-Angriff CVE-2026-88779: Crash-Zeilen des Authentifizierungsdaemons
+# +2026-10-03 CTX697174 und Community-Berichte 04.10.: nsaaad-Neustarts und Pitboss-Meldungen bei SAML-Angriff
+NSAAAD_CRASH_RE='\(nsaaad\).*exited on signal|proc nsaaad.*(SIGNALED|EXITED)|monitored processes have exited|maximum number of restarts|nsaaad unexpectedly died|Pitboss declaring system failure'
+# --- DTLS CVE-2026-88772
+# +2026-09-29 Mandiant/GTIG: DTLSv1.0-Handshake-Fehler vor Packet-Engine-Neustart
+DTLS_FAIL_RE='ClientVersion DTLSv1\.0.*Handshake failure-Internal Error'
+PPE_CRASH_RE='exit with orphan rings|NOT restarting NSPPE'
+
+# --- Login-Endpunkte im HTTP-Access-Log (fuer Quell-IP-Korrelation)
+# +2026-09-27 CTX697096 (betroffene Endpunkte) und +2026-10-03 CTX697174 (SAML-Endpunkte)
+LOGIN_PATH_RE='/nf/auth/doAuthentication\.do|/cgi/login|/p/u/doLogon\.do|/logon/LogonPoint/Authentication/GetUserName|/nitro/v1/config/login|/cgi/samlauth|/saml/login'
+
+# --- Mitigation: Policies, deren Regel eines dieser Muster enthaelt, gelten als Mitigation.
+# Nur Muster, die jede Log-Poisoning- oder SAML-Mitigation enthaelt, weil sie aus dem Angriff selbst stammen.
+# Namen und Ausdruecke der eigenen Policies gehoeren in ns_quickcheck.whitelist (mitigation:...).
+# +2026-10-05 Bulletins und Community-Mitigationen (Trigger-Texte, IFS, SAML-Endpunkte, Logon-Endpunkt)
+# +2026-10-08 Betreiberspezifische Muster (Policy-Expression-Namen, ADFS-Pfade) entfernt, siehe Changelog 2026-10-08e
+MITIGATION_RULE_RE='pitboss|unexpectedly|heartbeats|IFS|samlauth|saml/login|doAuthentication'
+
+# --- Kompromittierungs-Schnellcheck
+# Bekannte Payload-/Webshell-Pfade (Existenz = rot). Pfade relativ zu /.
+# +2026-09-29 Mandiant/GTIG (WHIPSHOT/SLAPSHOT: .ctxs.receiver, .slap, .nsmon, .ux); .host, x.sh, v seit 2026-10-19 inaktiv bis zur Fundstellenpruefung
+# +2026-10-14 Sygnia Advisory 01.10. (Appendix 2, investigation-derived): c88771.json unter ns_gui/vpn
+# +2026-10-15b Recherche voll (CERT-EU Blog 28.09., LevelBlue SpiderLabs 02.10., watchTowr via PitScaler 07.10., SOCRadar 07.10., Community-Feldbericht): Post-Exploitation-Dateien unter LogonPoint, Polling-Agent, trojanisiertes Dropbear, C2 mit DNS-OOB, weitere Dropper-Namen
+# +2026-10-16 Huntback.io (Fundstellenpruefung ausstehend, Werte inaktiv in Custom): ns_helper unter /var/vpn und /nsconfig, /tmp/.p; LevelBlue: ersetztes customsnmpd (Platypus)
+# +2026-10-19 Entfernt auf Verlangen der Rechteinhaber (19.10.): alle Indikatoren, die ausschliesslich ueber Bloecke Dritter mit
+# eingeschraenkter Erlaubnis in einem Community-Checker vorlagen (128 Adressen inkl. Scanner-Liste, 18 Hashes). Was aus Unit 42, CISA 261399 r1 oder eigenen Primaerquellen belegt ist, bleibt mit dieser Herkunft.
+# +2026-10-16b cisagov/SIGMA_Rules Regel 261399 r1 (CISA Code and Media Analysis, modified 2026-10-07; Datei am 13.10. umbenannt, alte raw-URL 404): Behoerdenquelle, 209 Keywords gegen Regelstand geprueft; 56 Adressen und 22 Domains bereits enthalten; neu: 4 Hashes, 7 Pfade, Dropper nsgtrust.deb
+# Web-Verzeichnisse (neue Dateien seit Boot = pruefen; PHP ausserhalb admin_ui = rot)
+# +2026-10-06 ceterion: Verzeichnisse, in denen Webshells dieser Kampagne lagen
+WEB_DIRS="var/netscaler/logon var/vpn var/netscaler/gui netscaler/ns_gui netscaler/portal"
+# Erlaubte Root-Crontab-Zeilen (Regex); alles andere wird gemeldet
+# +2026-10-06 ceterion: eigene Scripts. +2026-10-08: ns_snapshot_V[0-9]+ statt V1, nach Umstellung auf V5
+# +2026-10-09 Repo liefert zusaetzlich unversionierte Kopien (ns_snapshot.sh, ns_quickcheck.sh); Versionssuffix optional
+ALLOWED_CRON_RE='ns_snapshot_V[0-9]+\.sh|ns_quickcheck_V[0-9]+\.sh|ctx697096_check\.sh|^#|^[[:space:]]*$|ns_snapshot\.sh|ns_quickcheck\.sh'
+# Listener-Prozesse, die auf einem NetScaler nicht lauschen sollten
+# +2026-09-29 Mandiant/GTIG, CISA 261399 r1: perl/python-Listener der Implants; socat/php vorsorglich
+SUSPECT_LISTENER_RE='^(perl|python[0-9.]*|sh|bash|nc|ncat|socat|php)[[:space:]]|^walk[[:space:]]'
+# Verdaechtige Prozesse in der Prozessliste (ab Script-V12; ab V14 mit dreistufiger Parent-Bewertung).
+# +2026-10-14 CISA SIGMA 29.09. (S7): ns_monuploadd_err.pl mit -WR ausserhalb des Stock-Mechanismus.
+# +2026-10-14b Lab 14.1-73.46: das Script laeuft NICHT per Cron, sondern wird vom Daemon /netscaler/monuploadd (Pitboss-Watch,
+#   Start mit -P) bei Bedarf aufgerufen; Optionen -HDDCF, -WR, -MA, -MAWO, -NSAPPS_CORES, genau eine. Legitimer Parent ist
+#   monuploadd (Info), cron ist nicht der Stock-Mechanismus (gelb), alles andere rot. Kindprozesse des Scripts, die Shell oder
+#   Downloader sind, sind die Ausfuehrung der Injection (rot).
+SUSPECT_PROC_RE='ns_monuploadd_err\.pl[[:space:]]+-WR'
+SUSPECT_PROC_PARENT_OK_RE='monuploadd'
+SUSPECT_PROC_CHILD_RE='(^|/)(sh|bash|csh|perl|python[0-9.]*|curl|wget|fetch|nc)([[:space:]]|$)'
+# Request-Pfade, die nur im Angriffskontext interessant sind (ab Script-V12: Zaehlung je Quell-IP in httpaccess; gelb,
+# rot bei Quell-IP mit Injection-Zeile). Nicht in LOGIN_PATH_RE, weil es legitime Downloads sind.
+# +2026-10-14 CISA SIGMA 29.09. (S6): Linux-Client-Pakete als Dropper-Transport
+DROPPER_PATH_RE='/vpn/scripts/linux/nsgclient18(_32)?\.deb|/vpn/scripts/linux/(nsgser18|nsgsupport|nsgpackage64|nsgbuild|nsg64)\.deb|/vpn/scripts/linux/nsginstaller[^ "]*\.deb|/vpn/scripts/linux/[^ "]*\.php|/vpn/scripts/linux/nsgtrust\.deb'
+
+# +2026-10-21 Webserver-Fehlerlog (httperror.log, httperror-vpn.log). Zwei Muster:
+#   HTTPERR_EXEC_RE: der Interpreter hat etwas ausgefuehrt oder versucht (PHP-Fehler, Script nicht gefunden); Rot ausserhalb admin_ui.
+#   HTTPERR_PROBE_RE: "File does not exist" fuer Webshell-Namen, PHP-Varianten und Scanner-Pfade; Gelb "Sondierung", die Dateien
+#   existieren nicht (sonst meldet Block 5). Dateinamen aus PAYLOAD_PATHS nimmt das Script zusaetzlich. Alle anderen
+#   "File does not exist" (CSS, Icons, JS eines Themes) sind kein Befund. Quellen: Apache-Standardmeldungen; Webshell-Namen
+#   aus CTX697096, Unit 42 30.09., LevelBlue 02.10., CISA 261399 r1. Lab-Lauf 21.10.: Sondierung von .ctxs.receiver in allen Theme-Ordnern.
+HTTPERR_EXEC_RE='PHP (Parse|Fatal|Warning|Notice) error|PHP Warning|Premature end of script headers|script not found or unable to stat'
+HTTPERR_PROBE_RE='File does not exist: .*(/\.ctxs[^/ ]*|/\.local_journal|/\.slap[^/ ]*|/\.nsmon|/\.ux|\.[Pp][Hh][Pp]$|/vpns/cfg/|/vpns/.*\.php|/\.\./|/\.\.$)'
+# +2026-10-21 SSH- und Konsolenanmeldungen (auth.log): Standardmeldungen von sshd und login (OpenSSH, FreeBSD PAM).
+AUTH_LOGIN_RE='sshd\[[0-9]+\]: Accepted (password|publickey|keyboard-interactive/pam) for [^ ]+ from [0-9.]+|login: login on .* as [^ ]+'
+AUTH_FAIL_RE='sshd\[[0-9]+\]: (Failed password for (invalid user )?[^ ]+ from [0-9.]+|Invalid user [^ ]+ from [0-9.]+|error: maximum authentication attempts exceeded)'
+# +2026-10-21 Management-Ebene (httpaccess.log der NSIP): NITRO- und GUI-Pfade; Zugriffe von Adressen ausserhalb RFC 1918 und ausserhalb
+#   MGMT_NET_RE (Betreiber-Config) sind einzuordnen. Pfade aus der NetScaler-Dokumentation (NITRO v1, GUI /menu/).
+MGMT_PATH_RE='"(GET|POST|PUT|DELETE) /(nitro/v1|menu|admin_ui|rapi)/'
+
+# +2026-10-21 Gateway-Anmeldefehler (ns.log, AAA): Credential Stuffing und Password Spraying; Schwellen AAA_FAIL_IP und AAA_FAIL_USERS
+#   in ns_quickcheck.conf. Quelle: NetScaler-Syslog-Format AAA LOGIN_FAILED / authenticate user failed (Citrix-Dokumentation Audit-Logging).
+AAA_FAIL_RE='AAA (LOGIN_FAILED|Message [0-9]+ 0 :  "authenticate user: failed)|AAA LOGIN_FAILED|SSLVPN LOGIN_FAILED'
+# +2026-10-21 Erfolgreiche Gateway-Anmeldungen (ns.log, AAA): fuer die Paarung "Fehlserie, dann Erfolg" je Adresse und Konto.
+AAA_OK_RE='AAA (LOGIN|Message [0-9]+ 0 :  "authenticate user: succeeded)|SSLVPN LOGIN [0-9]+ 0 :  Context|AAA LOGIN [0-9]+ 0 :  Context'
+# Stock-Hashes von Systemdateien je Build (ab Script-V12): '<pfad relativ zu />::<sha256>::<build>' je Zeile, leer = nur Ausgabe
+# des Ist-Hashes im Report ohne Bewertung. Erster Kandidat: netscaler/ns_monuploadd_err.pl (Mechanismus von CVE-2026-88771).
+# +2026-10-14b Lab 14.1-73.46, Erstinstallation 2026-10-14, kein SAML, keine Spuren. FIPS-Builds: Wert nicht bekannt (dann nur Info).
+STOCK_FILE_HASHES='netscaler/ns_monuploadd_err.pl::02b24a9923a6cee1fbee48137b7f81b7e0f5169246728b7368fc3a066c43a708::14.1-73.46'
+STOCK_HASH_FILES='netscaler/ns_monuploadd_err.pl'
+# Bekannte Payload- und Webshell-Hashes (SHA-256) fuer die Pruefung neuer Dateien in Web- und Temp-Pfaden (ab Script-V16).
+# Werte und Herkunft je Hash im IOC-Abschnitt (Unit 42 30.09., CISA 261399 r1 07.10.).
+# Bekannte Stock-Listener dieser Interpreter (Format "COMMAND USER ADRESSE:PORT", wie im Report). Treffer = kein Befund.
+# Unbekannte Interpreter-Listener: auf Loopback Gelb, auf anderen Adressen Rot.
+# +2026-10-08 Lab 14.1-73.41 Stock: php-fpm (Admin-UI) auf 127.0.0.1:9999, Management-Dienst python3 auf 127.0.0.1:29000
+KNOWN_LISTENER_RE='^php root 127\.0\.0\.1:9999$|^python[0-9.]* root 127\.0\.0\.1:29000$'
+# Verzeichniswurzeln, aus denen der NetScaler-Apache regulaer Webinhalte liefert. Ein Alias in Gateway-Pfade
+# (/vpns, /logon, /epa) mit Ziel ausserhalb dieser Wurzeln ist Rot (Technik: Alias auf beschreibbares Verzeichnis).
+# +2026-10-08 Lab 14.1-73.41 Stock: elf Aliase auf /var/ns_gui/support und /netscaler/portal/...
+STOCK_ALIAS_ROOTS='/netscaler/ /var/ns_gui/ /var/netscaler/ /var/vpn/ /var/python/ /var/nsinstall/'
+
+# --- Bekannte Accounts und Infrastruktur (v2) ---------------------------------
+# Der Service-User des Verfahrens kommt aus CLI_USER (ns_snapshot.conf) und ist automatisch erlaubt.
+# Hier nur betreiberuebergreifend bekannte Konten, in der Regel keine. Betreiberkonten: ns_quickcheck.whitelist (user:...).
+# +2026-10-08 leer; der Lab-Service-User wurde entfernt, Regeldatei ist betreiberneutral
+ALLOWED_SYSTEM_USERS=''
+# Bekannte Angreifer-Adressen fuer den Abgleich ausgehender Verbindungen (Regex, Punkte escaped).
+# Bewusst kurz: die vollstaendige Liste pflegt der Collector. Adressen und Domains duerfen aus Sekundaerquellen kommen
+# (markiert), weil sie nur auf ausgehende Verbindungen und Download-Hosts wirken; Logmuster, Pfade, Hashes und
+# Build-Nummern nur aus Primaerquellen.
+# +2026-09-29 Mandiant/GTIG, +2026-09-30 Unit 42, +2026-10-07 CISA 261399 r1: Scan- und C2-Adressen der Kampagne (je Wert im IOC-Abschnitt)
+# +2026-10-15 Unit 42 Threat Brief "NetScaler Zero Days CVE-2026-88771 and CVE-2026-88772" (publiziert 30.09., Stand 08.10.): IoC-Liste 9 Adressen, 9 weitere nur im Fliesstext (geringere Gewichtung), Dropper-Transportnamen
+# +2026-10-15e CTX697096 Wortlaut gegengelesen (Direktabruf 15.10.): 88774 Bedingung auf Citrix-Pruefmuster (HTTP/SSL-vServer) korrigiert, 88776 und 88777 auf Bulletin-Regex
+# Download-/C2-Domains (Regex) fuer denselben Abgleich
+# +2026-09-29 Mandiant/GTIG (pylrk.cc), +2026-10-07 CISA 261399 r1 (gsocket, webhook.site, dnshook.site)
+
+
+# ===== IOC (Format 2) =====
+# Die Zeilen stehen in einem Here-Document (kein Shell-Code); das Script liest sie mit awk zwischen den Marken.
+: <<'IOC'
+# typ	wert	quelle	datum	klasse	fundstelle	regelstand
+ip	143.198.7.94	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	157.254.167.12	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	23.27.143.20	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	45.61.136.143	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	66.227.183.84	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	77.83.199.39	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	104.28.215.137	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	104.248.244.66	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	104.28.247.136	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	162.33.178.9	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	193.149.176.207	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	216.245.184.164	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	78.47.24.217	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	139.180.152.138	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	66.135.19.18	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	167.99.111.203	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	142.93.85.227	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	104.248.74.206	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	137.184.91.207	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	104.28.215.136	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	104.28.247.137	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+ip	45.143.130.195	socradar	2026-10-07	c	SOCRadar NetScaler C2 analysis, via pitscaler.com	2026-10-19
+ip	149.104.78.141	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	82.167.14.7	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	154.217.251.226	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	70.172.58.168	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	45.141.21.130	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	162.243.36.88	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	173.40.135.209	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	47.230.224.154	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	92.118.204.229	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	87.224.84.82	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	31.56.197.72	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	62.133.62.80	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	64.94.85.67	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	158.94.209.12	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	68.178.160.183	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	5.188.206.226	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	149.28.29.221	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	194.26.29.88	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	34.90.151.231	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	144.172.108.78	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	185.156.46.162	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	153.75.82.220	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	216.203.21.233	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	185.243.41.247	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	195.123.233.245	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	38.180.81.157	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	95.133.231.109	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	104.200.67.56	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	199.233.217.13	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	130.94.20.222	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	45.76.34.141	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	209.250.236.77	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	138.68.21.29	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	170.64.176.26	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+ip	149.104.78.208	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	pylrk.cc	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	gsocket.io	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	webhook.site	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	dnshook.site	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	.oob.45.143.130.195	socradar	2026-10-07	c	SOCRadar DNS-OOB <bid>.p1.oob.<ip>	2026-10-19
+dom	entretiensol.com	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	white-guard.pro	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	garyvard.com	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	hickoryusedauto.com	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	gurerasfalt.com	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	rockinroyaltykids.com	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+dom	currydownsrvpark.com	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	6f5a2a452a7901323abd21879c6cecccb47c06aeeaccb1b467212f3b11e4b1e7	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	5ea5ea61e9062822bee3f66ef5ff47c217178d9e31936ad6daf10c5dfae44d12	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	7add390ceee4a1373211b3e340451b34f08965fc4d805f94c9b8cebdc0775774	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	57f9f30c50240fd48d761de7961a430cdebf2c084a36bc76d376a1ce8e6dfa9d	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	974b69782fdf5d67b97cfd508465939e44ee10798dbcc1e82b92d78776bad938	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	ae22ef2517b5c0fb47f78745b9cb5260acee0e751b89bcd354640ff8bc8d29ec	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+hash	1bd314b661396c7086f6367fbbb48025e03ca2de69c073d53a8b0a38aa5fbb7d	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+hash	79c65fa04541032e251fa4796b97800374b63c7982593dd1a2e0db605d429186	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+hash	e9fe43968c6c0955300e3bc4d7fb0b05a18570b4733aaf4f5c6f7f09be5a242c	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	89b64bd45478e53299f9c422cbba40fac3ac0712b551b85185e38203f7f984c6	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	be5832f3993ff63a36100b2f7b89c8d385e20dd9d72876700e7ade9fb9e6d4cb	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	0dcac605a3a0c37001552369a6a77003226b35ddee7710b554fcd0e6809a76d1	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	04db3fc44c81886844ef47949d7f352953a6bf1be4866be1fb3e7e12c452e3ac	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	2d2c2f6842982f7e1cb894ce915d39f2a9861009c7ecb1b90da803f2c3c608f4	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	38b7c597c3f33f2caa2b2de9873f15cf9cb9984b0eacb801ef4b654a96ba9bd0	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	b30cade420a761371c1fa7f67a8b35a5ad2fd5aecd382c460849c5eaf82dc542	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	e8e7a154961c68ba4f3781df40dfe676f168f5cf9184836a07df171992c3e87b	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+hash	f9a7f2a585cc9b5138be417dd2b546dcf39ab4853e143525b1405c2c56ecd757	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+path	var/netscaler/logon/LogonPoint/custom/.ctxs.receiver	unit42	2026-09-30	c	https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/	2026-10-19
+path	var/tmp/.nsmon	gtig-mandiant	2026-09-29	c	GTIG blog 29.09. (SLAPSHOT/WHIPSHOT)	2026-10-19
+path	var/tmp/.ux	gtig-mandiant	2026-09-29	c	GTIG blog 29.09.	2026-10-19
+path	nsconfig/.slap	gtig-mandiant	2026-09-29	c	GTIG blog 29.09.	2026-10-19
+path	flash/nsconfig/.slap	gtig-mandiant	2026-09-29	c	GTIG blog 29.09.	2026-10-19
+path	var/1.py	levelblue	2026-10-02	c	LevelBlue blog; auch CISA 261399 r1	2026-10-19
+path	var/netscaler/.ns_suidcmd	unit42	2026-09-30	c	Stock-SUID-Binary, Unit 42; nur Kontext	2026-10-19
+path	netscaler/ns_gui/vpn/c88771.json	sygnia	2026-10-01	c	Sygnia Advisory 01.10. Appendix 2; auch CISA 261399 r1	2026-10-19
+path	var/netscaler/logon/LogonPoint/.local_journal	levelblue	2026-10-02	c	LevelBlue blog; auch CISA 261399 r1	2026-10-19
+path	var/netscaler/logon/insight-new.js	levelblue	2026-10-02	c	LevelBlue blog; auch CISA 261399 r1	2026-10-19
+path	var/netscaler/logon/LogonPoint/xua.html	levelblue	2026-10-02	c	LevelBlue blog; auch CISA 261399 r1	2026-10-19
+path	tmp/.nsagent	socradar	2026-10-07	c	SOCRadar via pitscaler.com	2026-10-19
+path	var/walk	watchtowr	2026-10-07	c	watchTowr Intel via pitscaler.com	2026-10-19
+path	usr/bin/walk	watchtowr	2026-10-07	c	watchTowr Intel via pitscaler.com	2026-10-19
+path	tmp/update_result_3567cs.tgz	levelblue	2026-10-02	c	LevelBlue/Arctic Wolf via orjanj; auch CISA 261399 r1	2026-10-19
+path	var/netscaler/gui/vpn/scripts/linux/1bd8a664.sig	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+path	var/netscaler/gui/vpn/scripts/linux/80974ca9.sig	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+path	netscaler/ns_gui/vpn/scripts/linux/1bd8a664.sig	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+path	netscaler/ns_gui/vpn/scripts/linux/80974ca9.sig	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+path	var/vpn/theme/x.php	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+path	var/netscaler/gui/vpn/scripts/linux/nsgtrust.deb	cisa-261399-r1	2026-10-07	c	https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CMA_SIGMA_261399_r1_CVE-2026-88771_CVE-2026-88772_Citrix_TLP_CLEAR.yaml	2026-10-19
+path	var/kw2s11	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22
+ip	209.141.43.95	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22
+path	var/vpn/bookmark/Nx_7508.php	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/vpn/bookmark/Nx_7508.pl	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/vpn/bookmark/Nx_7508.html	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	netscaler/ns_gui/vpn/Nx_7508.php	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	netscaler/ns_gui/vpn/Nx_7508.pl	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	netscaler/ns_gui/vpn/Nx_7508.html	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/gui/vpn/Nx_7508.php	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/gui/vpn/Nx_7508.pl	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/gui/vpn/Nx_7508.html	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/logon/LogonPoint/Nx_7508.php	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/logon/LogonPoint/Nx_7508.pl	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/logon/LogonPoint/Nx_7508.html	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/vpn/theme/Nx_7508.php	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/vpn/theme/Nx_7508.pl	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/vpn/theme/Nx_7508.html	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/gui/admin_ui/apex/Nx_7508.php	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/gui/admin_ui/apex/Nx_7508.pl	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+path	var/netscaler/gui/admin_ui/apex/Nx_7508.html	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	45.153.212.101	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	46.233.40.20	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	46.236.167.143	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	46.33.33.95	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	49.150.197.119	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	78.190.152.64	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	81.10.79.197	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	95.105.74.172	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	100.38.125.66	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	102.213.132.123	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	102.222.146.45	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	103.181.212.245	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	103.197.249.161	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	103.83.146.100	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	111.92.128.89	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	114.145.49.215	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	120.244.160.182	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	125.62.88.26	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	130.12.182.7	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	154.183.158.198	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	154.241.254.9	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	174.60.63.37	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	177.52.203.23	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	183.63.88.227	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	190.117.56.56	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	195.62.37.119	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+ip	207.48.184.10	zscaler	2026-10-16	c	https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability	2026-10-22b
+IOC

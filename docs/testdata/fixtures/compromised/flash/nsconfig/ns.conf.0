@@ -1,0 +1,6 @@
+#NS14.1 Build 73.41
+enable ns feature LB SSL SSLVPN AAA RESPONDER
+add vpn vserver gw-vs SSL 192.0.2.20 443
+add authentication vserver aaa-vs SSL 192.0.2.21 443
+add authentication samlIdPProfile idp1 -samlIdPCertName idpcert -samlSPCertName spcert -assertionConsumerServiceURL "https://sp.example.net/acs"
+set ns tcpParam -WS ENABLED

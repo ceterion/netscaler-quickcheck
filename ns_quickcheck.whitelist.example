@@ -1,0 +1,37 @@
+# ns_quickcheck.whitelist.example - Vorlage. Auf der Appliance als ns_quickcheck.whitelist anlegen (root:wheel 600); fehlt die
+# Datei, laeuft der Quickcheck ohne Ausnahmen. Die Vorlage wird bei Updates mitgeliefert, die Betreiberdatei nie ueberschrieben.
+# ns_quickcheck.whitelist - bekannte, gewollte Abweichungen dieser Appliance
+# Copyright 2026 ceterion AG
+# SPDX-License-Identifier: Apache-2.0
+#
+# Bereitgestellt "AS IS", ohne Gewaehrleistung oder Garantie irgendeiner Art, ausdruecklich oder
+# stillschweigend, einschliesslich Marktgaengigkeit und Eignung fuer einen bestimmten Zweck. Nutzung
+# auf eigene Verantwortung. Ein Verdict dieses Werkzeugs ersetzt keine forensische Untersuchung und
+# keine Aussage des Herstellers. Haftung im gesetzlich zulaessigen Umfang ausgeschlossen.
+# Siehe LICENSE und DISCLAIMER.md im Repository.
+#
+# Provided "AS IS", without warranty of any kind, express or implied, including merchantability and
+# fitness for a particular purpose. Use at your own risk. A verdict of this tool does not replace a
+# forensic investigation or a vendor statement. Liability excluded to the extent permitted by law.
+# Ablage: /var/nssnapshot/ns_quickcheck.whitelist, Besitzer root, Rechte 600.
+# Eine Regel pro Zeile: <typ>:<regex>   (Regex im ERE-Dialekt, Groß-/Kleinschreibung relevant)
+# Zeilen mit # sind Kommentare. Jede Regel braucht eine Begruendung im Kommentar darueber.
+#
+# Typen:
+#   user:      lokaler System-User, der nicht als Gelb gemeldet wird
+#   listener:  Zeile aus sockstat -4l (Prozess, User, Adresse), die nicht als Rot gemeldet wird
+#   path:      Dateipfad in Web-/Temp-Verzeichnissen, der nicht gemeldet wird
+#   cron:      root-Crontab-Zeile, die nicht gemeldet wird
+#   webfile:   Web-Datei, deren Aenderung seit Boot nicht gemeldet wird
+#   mitigation: Muster (Regex), das an MITIGATION_RULE_RE angehaengt wird: Namen oder Ausdruecke der
+#              eigenen Responder-/Traffic-Policies, damit sie als Mitigation erkannt werden
+#
+# Beispiele (auskommentiert):
+# Zweites dienstliches Lesekonto (der Service-User aus CLI_USER braucht keinen Eintrag)
+#user:^monitoring-ro$
+# Eigene Mitigation-Policies: Namen der Policy Expressions oder Ausdrucksteile, Change CHG0012340
+#mitigation:px_lp_|px_cmd|adfs/ls
+# Custom-Monitoring des Betreibers, Perl-Listener auf 41500, Change CHG0012345
+#listener:^perl .* \*:41500$
+# Theme-Anpassung des Betreibers, wird vom Portal-Team gepflegt
+#webfile:^/var/netscaler/logon/themes/BETREIBER/

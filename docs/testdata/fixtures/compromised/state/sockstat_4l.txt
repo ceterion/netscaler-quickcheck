@@ -1,0 +1,5 @@
+USER COMMAND PID FD PROTO LOCAL ADDRESS FOREIGN
+root sshd 100 3 tcp4 *:22 *:*
+root php 310 4 tcp4 127.0.0.1:9999 *:*
+root python3.9 320 4 tcp4 127.0.0.1:29000 *:*
+nobody perl 5130 3 tcp4 *:4444 *:*

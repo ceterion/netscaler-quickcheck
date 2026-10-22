@@ -1,0 +1,7 @@
+clean:OK:vuln96=0 vuln79=0 compromise=0 red=0 coverage=full
+# <fixture>:<ACTION>[:<RESULT-Feld>=<Wert> ...]; RESULT-Felder muessen exakt stimmen
+compromised:FORENSICS_FIRST:vuln96=1 vuln79=1 compromise=1
+eol:UPDATE:vuln96=1 compromise=0
+custom:UPDATE:vuln96=1 cve_custom=1 cve_conflict=1 compromise=0
+blocked:INVESTIGATE:orange=1 blocked_seen=2 compromise=0 red=0
+nologs:INVESTIGATE:coverage=partial compromise=0 red=0

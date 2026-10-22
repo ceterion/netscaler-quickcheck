@@ -1,0 +1,3 @@
+10.0.0.5 - - [19/Oct/2026:15:00:00 +0200] [100] "GET /nitro/v1/config/nsversion HTTP/1.1" 200 300 "-" "python-requests/2.31" "Time: 1200 microsecs"
+203.0.113.60 - - [19/Oct/2026:15:05:00 +0200] [101] "GET /nitro/v1/config/nsip HTTP/1.1" 401 120 "-" "curl/8.0" "Time: 800 microsecs"
+203.0.113.60 - - [19/Oct/2026:15:05:01 +0200] [101] "GET /menu/neo HTTP/1.1" 200 4096 "-" "Mozilla/5.0" "Time: 2100 microsecs"

@@ -1,0 +1,13 @@
+# ns_quickcheck.blocked_ips - Sperrliste des Betreibers. Neben das Script legen (Rechte 600), wie Whitelist und Config.
+# Was an Firewall, Blocklist oder Appliance bereits gesperrt ist. Das Script setzt keine Sperre; es nutzt die Liste so:
+#   Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE "abgedeckt" statt Rot; Requests einer gesperrten
+#   Adresse nach dem Sperrdatum sind GELB "Sperre greift nicht"; aktive Verbindungen und alles auf der Appliance bleiben Rot.
+# ACLs der Appliance (add ns simpleacl/acl ... DENY) gelten automatisch als gesperrt, ohne Datum (nur markiert).
+# Zeile: adresse_oder_netz ; seit (YYYY-MM-DD) ; Bemerkung
+#   Adresse Pflicht (IPv4 oder CIDR). Ohne Datum ist die Adresse nur markiert, Befunde bleiben Rot oder Gelb; erst mit Datum wird ORANGE.
+#   Die Bemerkung ist intern: sie steht im Original-Report und in den Adresslisten, nie in den anon-Fassungen. Ticket, Namen, Ort der Sperre dort hinein.
+#   Leerzeichen um die Semikolons sind egal; Tabs als Trenner bleiben erlaubt. Zeilen ohne gueltige Adresse nennt die Kopfzeile mit Zeilennummer.
+# Aufbau und Wirkung: ns_quickcheck_README.md, Abschnitt 5.4. Beispiele (RFC 5737; 198.51.100.x ist der Ersatzbereich der Anonymisierung und hier bewusst nicht verwendet):
+# 203.0.113.44 ; 2026-10-20 ; fw-zentral, INC-4711, Download-Host Injection 19.10.
+# 192.0.2.0/24 ; 2026-10-21 ; fw-zentral, INC-4711, Dropper-Suche, ganzer Bereich
+# 203.0.113.9 ;  ; blocklist des SOC, Datum unbekannt: nur markiert

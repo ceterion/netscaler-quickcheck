@@ -1,0 +1,63 @@
+# ns_quickcheck.conf.example - Vorlage. Auf der Appliance als ns_quickcheck.conf anlegen (root:wheel 600); fehlt die Datei,
+# gelten Defaults. Die Vorlage wird bei Updates mitgeliefert, die Betreiberdatei nie ueberschrieben.
+# ns_quickcheck.conf - optionale Konfiguration fuer ns_quickcheck_V15.sh
+# Copyright 2026 ceterion AG
+# SPDX-License-Identifier: Apache-2.0
+#
+# Bereitgestellt "AS IS", ohne Gewaehrleistung oder Garantie irgendeiner Art, ausdruecklich oder
+# stillschweigend, einschliesslich Marktgaengigkeit und Eignung fuer einen bestimmten Zweck. Nutzung
+# auf eigene Verantwortung. Ein Verdict dieses Werkzeugs ersetzt keine forensische Untersuchung und
+# keine Aussage des Herstellers. Haftung im gesetzlich zulaessigen Umfang ausgeschlossen.
+# Siehe LICENSE und DISCLAIMER.md im Repository.
+#
+# Provided "AS IS", without warranty of any kind, express or implied, including merchantability and
+# fitness for a particular purpose. Use at your own risk. A verdict of this tool does not replace a
+# forensic investigation or a vendor statement. Liability excluded to the extent permitted by law.
+# Ablage: /var/nssnapshot/ns_quickcheck.conf, Besitzer root, Rechte 600.
+# Reihenfolge der Quellen: ns_snapshot.conf (nur CLI_*), dann diese Datei, dann Kommandozeile.
+# sh-Syntax, keine Leerzeichen um das Gleichheitszeichen.
+
+# Zeitfenster fuer Angriffsspuren in Stunden
+HOURS=72
+
+# Reportverzeichnis (Text und JSON je Lauf). Wird vom Snapshot-Archiv 1 mitgenommen (ab Snapshot V6).
+REPORT_DIR=/var/nssnapshot/quickcheck
+# Reports aelter als N Tage werden beim naechsten Lauf geloescht
+REPORT_KEEP_DAYS=30
+# Arbeitsverzeichnis fuer Zwischendateien und --compare (Snapshot-Set wird dort entpackt). Leer = $BASE_DIR/tmp,
+# Rueckfall /var/tmp. Nie /tmp: liegt auf NetScaler auf dem kleinen Root-Dateisystem.
+WORK_BASE=""
+
+# Regeldatei (Builds, Angriffsmuster, Pfade) und Betreiber-Whitelist
+RULES_FILE=/var/nssnapshot/ns_quickcheck.rules
+WHITELIST_FILE=/var/nssnapshot/ns_quickcheck.whitelist
+
+# CLI-Ebene (Option B). Leer = Werte aus ns_snapshot.conf verwenden; gesetzt = hat Vorrang.
+# Service-User fuer die CLI-Ebene (Anlage: README Abschnitt 3.1). Leer = Werte aus ns_snapshot.conf, falls der Snapshot laeuft.
+# CLI_USER=ns-quickcheck
+# CLI_SECRET_FILE=/var/nssnapshot/ns_quickcheck.secret
+# CLI_TIMEOUT=20
+
+# Obergrenze fuer httpaccess-Logs in MB, die fuer die Quell-IP-Korrelation gelesen werden (0 = alle)
+ACCESS_LOG_MAX_MB=200
+# Zeilen je Detailliste in Terminal und Report; 0 = alles (Vorgabe), z. B. 50 bei Angriffsstuermen
+DETAIL_MAX=0
+
+# Erlaubte Management-Adressen als ERE (Admin-Netze, Sprungserver); leer = nur RFC 1918 gilt als intern. Beispiel: "^10\\.1\\.|^192\\.168\\.10\\."
+MGMT_NET_RE=""
+# Webshell-Sondierungen (Requests auf nicht existierende Webshell-Pfade): yellow (Vorgabe) oder info (nur Zaehlung, kein Einfluss auf das Verdict)
+PROBE_LEVEL=yellow
+
+# Gateway-Anmeldefehler (AAA): Schwellen fuer Gelb; Vorgaben 5 Fehlversuche je Adresse, 10 verschiedene Benutzernamen je Adresse
+AAA_FAIL_IP=5
+AAA_FAIL_USERS=10
+# Minuten nach dem letzten Fehlversuch, in denen ein Erfolg desselben Kontos von derselben Adresse als "Nutzer" gilt
+AAA_OK_WIN=5
+# Brute Force: ab so vielen Fehlversuchen auf ein einzelnes Konto im Fenster, von beliebig vielen Adressen
+AAA_BF_MIN=20
+# Schlaefer: Fehlversuche an so vielen verschiedenen Kalendertagen (Fenster oder kumulierte Liste), mehrere Konten, unter Maschinen-Takt
+AAA_SLEEPER_DAYS=2
+# Fehlversuche je Minute, ab denen eine Adresse als Maschine gilt
+AAA_RATE=10
+# Zeichen je Logzeile in Terminal und Report; 0 = ungekuerzt
+LINE_MAX=400

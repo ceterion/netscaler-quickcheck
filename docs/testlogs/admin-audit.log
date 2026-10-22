@@ -1,0 +1,3 @@
+Oct  5 09:09:00 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=ps auxww | grep monuploadd user=nsroot
+Oct  5 09:09:30 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=cat /var/log/ns.log | grep -i 'unexpectedly died' | sed 's/^/x/' user=nsroot
+Oct  5 09:10:00 <local0.notice> 192.0.2.5 10/05/2026:09:10:00 GMT gw-01 0-PPE-0 : default CLI CMD_EXECUTED 5110 0 :  User nsroot - Remote_ip 192.0.2.5 - Command "add responder action ra_block respondwith \"HTTP/1.1 403\"" - Status "Success"

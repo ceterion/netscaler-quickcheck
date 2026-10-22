@@ -1,0 +1,5 @@
+key	value
+hostname	gw-01
+build	12.1-65.25
+bootfile	/flash/ns-12.1-65.25.gz
+boottime_epoch	1791291358

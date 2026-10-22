@@ -1,0 +1,7 @@
+[Sun Oct 19 15:03:10.100000 2026] [php:error] [pid 1001] [client 127.0.0.2:40001] PHP Parse error:  syntax error, unexpected '}' in /var/vpn/themes/.ctxs.receiver.php on line 1
+[Sun Oct 19 15:03:11.100000 2026] [core:info] [pid 1001] [client 127.0.0.2:40002] AH00128: File does not exist: /var/netscaler/logon/themes/Default/.ctxs.receiver
+[Sun Oct 19 15:03:12.100000 2026] [core:info] [pid 1001] [client 127.0.0.2:40003] AH00128: File does not exist: /var/netscaler/logon/LogonPoint/.local_journal
+[Sun Oct 19 15:03:13.100000 2026] [core:info] [pid 1001] [client 127.0.0.2:40004] AH00128: File does not exist: /var/netscaler/logon/login.Php
+[Sun Oct 19 15:04:00.100000 2026] [cgi:error] [pid 1002] [client 127.0.0.2:40005] AH02811: script not found or unable to stat: /var/netscaler/gui/vpns/cfg/x.cgi
+[Sun Oct 19 15:05:00.100000 2026] [core:info] [pid 1002] [client 127.0.0.2:40006] AH00128: File does not exist: /var/netscaler/logon/LogonPoint/css/LogonUISimple.html.style.min.css
+[Sun Oct 19 15:06:00.100000 2026] [core:info] [pid 1003] [client 10.20.30.40:40007] AH00128: File does not exist: /var/netscaler/logon/themes/Default/x.css

@@ -1,0 +1,10 @@
+Oct 20 03:14:41 <local0.info> 198.51.100.17 10/20/2026:01:14:41 GMT gw-01 0-PPE-0 : default CMD_EXECUTED 2136000 0 :  User nsroot - Remote_ip 198.51.100.21 - Command "show ns version" - Status "Success"
+Oct 20 03:15:00 <local0.info> 198.51.100.17 10/20/2026:01:15:00 GMT gw-01 0-PPE-0 : default API CMD_EXECUTED 2136001 0 :  User nsroot - Remote_ip 198.51.100.21 - Command "show ns runningConfig" - Status "Success"
+Oct 20 03:15:02 gw-01 nsnetsvc: Connection from 198.51.100.21 accepted, service nitro
+Oct 20 03:16:10 gw-01 nscertfetcher: curl easy perform failed: Couldn't resolve host name
+Oct 20 03:20:00 gw-01 newsyslog[4711]: logfile turned over due to size>100K
+Oct 20 03:21:00 <local0.info> 198.51.100.17 10/20/2026:01:21:00 GMT gw-01 0-PPE-0 : default SSLVPN LOGIN 2136002 0 :  Context user01@198.51.100.30 - SessionId: 12 - User user01 - Client_ip 198.51.100.30 - Nat_ip "Mapped Ip" - Vserver 203.0.113.10:443 - Browser_type "Mozilla/5.0" - SSLVPN_client_type ICA - Group(s) "N/A"
+Oct 20 03:22:00 <local0.info> 198.51.100.17 10/20/2026:01:22:00 GMT gw-01 0-PPE-0 : default AAA Message 2136003 0 :  "authenticate user: succeeded for user01"
+198.51.100.30 -> 203.0.113.10 - - [20/Oct/2026:03:21:00 +0200] [12349] "GET /logon/LogonPoint/index.html HTTP/1.1" 200 4096 "-" "Mozilla/5.0 (Windows NT 10.0) CitrixReceiver/25.3" "Time: 1900 microsecs"
+198.51.100.30 -> 203.0.113.10 - - [20/Oct/2026:03:21:01 +0200] [12349] "POST /nf/auth/doAuthentication.do HTTP/1.1" 200 512 "-" "Mozilla/5.0" "Time: 5370 microsecs"
+198.51.100.31 -> 203.0.113.10 - - [20/Oct/2026:03:25:00 +0200] [12350] "GET /vpn/scripts/linux/nsgclient18.deb HTTP/1.1" 200 2048000 "-" "Mozilla/5.0 (X11; Linux x86_64)" "Time: 9000 microsecs"
