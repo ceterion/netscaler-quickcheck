@@ -26,7 +26,7 @@ Space-separated `key=value`, one line, always last in the report:
 | `red`, `yellow`, `orange` | integer | finding counts by colour; orange = covered by the operator's block list |
 | `blocked_seen` | integer | blocked addresses observed in this run |
 | `coverage` | `full`, `partial` | whether every core check had data; `partial` never yields `OK` |
-| `action` | `OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_FIRST` | verdict; exit code 0, 2, 1, 2 |
+| `action` | `OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_FIRST` | verdict; exit code 0 for `OK`, 1 for `INVESTIGATE`, 2 for `UPDATE` and `FORENSICS_FIRST`; exit 3 means the run aborted before a verdict (rules file or core variable missing, option without value) and no `RESULT` line is written |
 | `rules`, `custom` | stand | `RULES_VERSION`; `CUSTOM_VERSION` or `none` |
 | `script_sha256`, `rules_sha256`, `custom_sha256` | hex | hashes of what ran |
 | `cve_custom`, `cve_conflict` | integer | CVE lines from the custom file; lines that diverge from the rules file |

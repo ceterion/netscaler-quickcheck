@@ -54,10 +54,11 @@ Download: the two files for an appliance, `ns_quickcheck.sh` and `ns_quickcheck.
 mkdir -p /var/nssnapshot && cd /var/nssnapshot
 cp ns_quickcheck.conf.example ns_quickcheck.conf; cp ns_quickcheck.whitelist.example ns_quickcheck.whitelist   # first install only
 chown root:wheel ns_quickcheck* && chmod 700 ns_quickcheck.sh && chmod 600 ns_quickcheck.conf ns_quickcheck.rules ns_quickcheck.whitelist
-sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt; echo EXIT=$?   # first run on a new appliance: with trace
-sh ns_quickcheck.sh --no-out --full                                               # everything on screen
-sh ns_quickcheck.sh                                                               # report and JSON under /var/nssnapshot/quickcheck/
+sh ns_quickcheck.sh                 # full output on screen, report and JSON under /var/nssnapshot/quickcheck/
+echo EXIT=$?                        # 0 OK, 1 INVESTIGATE, 2 UPDATE or FORENSICS_FIRST, 3 aborted (reason on stderr)
 ```
+
+Read the last lines first: `ACTION:` and the `RESULT` line. Exit 1 or 2 is a verdict, not an error; what to do is under every finding. Only if the run aborts without a `RESULT` line, repeat it with a trace (`sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt`) and send both files, anonymized with `--anon`, to the contact address.
 
 Before the first acceptance, on a workstation: `sh ./ns_quickcheck.sh --from ./docs/testdata/fixtures/compromised --hours 100000 --no-out` must end with `ACTION: FORENSICS_FIRST`, `fixtures/clean` with `ACTION: OK`; `sh ./ns_quickcheck.sh --testlog ./docs/testlogs/` must report 0 FAIL.
 

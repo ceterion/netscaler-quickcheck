@@ -54,10 +54,11 @@ Bezug: Die zwei Dateien für eine Appliance, `ns_quickcheck.sh` und `ns_quickche
 mkdir -p /var/nssnapshot && cd /var/nssnapshot
 cp ns_quickcheck.conf.example ns_quickcheck.conf; cp ns_quickcheck.whitelist.example ns_quickcheck.whitelist   # nur erste Einrichtung
 chown root:wheel ns_quickcheck* && chmod 700 ns_quickcheck.sh && chmod 600 ns_quickcheck.conf ns_quickcheck.rules ns_quickcheck.whitelist
-sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt; echo EXIT=$?   # erster Lauf auf neuer Appliance: mit Trace
-sh ns_quickcheck.sh --no-out --full                                               # alles auf dem Bildschirm
-sh ns_quickcheck.sh                                                               # Report und JSON unter /var/nssnapshot/quickcheck/
+sh ns_quickcheck.sh                 # volle Ausgabe auf dem Bildschirm, Report und JSON unter /var/nssnapshot/quickcheck/
+echo EXIT=$?                        # 0 OK, 1 INVESTIGATE, 2 UPDATE oder FORENSICS_FIRST, 3 Abbruch (Grund auf stderr)
 ```
+
+Zuerst die letzten Zeilen lesen: `ACTION:` und die `RESULT`-Zeile. Exit 1 oder 2 ist ein Verdict, kein Fehler; was zu tun ist, steht unter jedem Befund. Nur wenn der Lauf ohne `RESULT`-Zeile abbricht, mit Trace wiederholen (`sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt`) und beide Dateien, mit `--anon` anonymisiert, an die Kontaktadresse senden.
 
 Vor der ersten Abnahme, am Arbeitsplatz: `sh ./ns_quickcheck.sh --from ./docs/testdata/fixtures/compromised --hours 100000 --no-out` muss mit `ACTION: FORENSICS_FIRST` enden, `fixtures/clean` mit `ACTION: OK`; `sh ./ns_quickcheck.sh --testlog ./docs/testlogs/` muss 0 FAIL melden.
 
