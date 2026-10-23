@@ -4,6 +4,24 @@ Ein Eintrag je Änderung ab dem ersten veröffentlichten Regelstand (2026-10-19)
 
 ---
 
+## 2026-10-23 - RULES_VERSION 2026-10-23
+
+**Anlass:** CTX697263 (22.10.2026): PHP2Shell, CVE-2026-109618 und CVE-2026-109619 im Management-Portal (PHP). Erstquellen: Citrix-Blog "Protecting NetScaler Management Access from PHP CVE-2026-109618 & CVE-2026-109619" (die CTX-Seite ist nur per Browser lesbar), Unit 42 und Zscaler 21.10. zum Mechanismus, Red Hat CVE-Eintrag.
+
+| Typ | Wert | Quelle | Fundstelle |
+|---|---|---|---|
+| `CVE_TABLE` (8) | CVE-2026-109618 und 109619 für 14.1 (73.41), 13.1 (64.28), 14.1-FIPS (73.41), 13.1-FIPS (37.282); Bedingung `all`, weil das Portal auf der NSIP immer läuft | CTX697263 | Abschnitt "Affected Versions" des Citrix-Blogs |
+| `HTTPERR_PHP_ANOMALY_RE` | neu | Hypothese | PHP-Standardmeldungen für Out-of-Memory und Fatal Error (`Allowed memory size`, `Out of memory`, `zend_mm_heap corrupted`, `Maximum execution time`); keine veröffentlichte Signatur, Mechanismus laut Unit 42 (longjmp/OOM) |
+| `MGMT_ACL_RE` | neu | CTX697263 | Mitigation: DENY-ACLs auf Port 80/443 der Management-Adressen, Platzhalter `NSIP_PLACEHOLDER` wird vom Script je Adresse ersetzt |
+
+Vorbehalte: Citrix nennt "vor 13.1-64.28", warnt aber, dass die Console 13.1-64.23 fälschlich meldet; bis der CTX-Volltext das klärt, gilt 64.28. 13.1-NDcPP (Fix 37.282) ist als Train nicht vorgesehen, Build 37.x wird als 13.1-FIPS bewertet. Die PHP-Muster sind eine Heuristik mit Schwelle (`PHP_ANOMALY_MIN`), auf gefixtem Build nur INFO.
+
+**Vorher:** 2026-10-22b | **Nachher:** SHA-256 bf0668a97539b4532994b4f8d960797320a5d32f73ac1ff5780daab5c2273c73
+**Test (Bearbeiter):** rules-apply 2.4 ok, --testlog 57 PASS (neu: httperror-php.log), 7 Fixtures grün (neu: php2shell), Provenance neu
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
 ## 2026-10-22b - RULES_VERSION 2026-10-22b
 
 **Anlass:** Zscaler ThreatLabz 16.10.2026 (Direktabruf 22.10.), Rest des Artikels nach dem Stand 2026-10-22.

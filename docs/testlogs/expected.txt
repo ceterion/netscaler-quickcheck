@@ -37,3 +37,5 @@ httpaccess-mgmt.log:MGMT_PATH_RE:3
 aaa-fail.log:AAA_FAIL_RE:3
 dom-boundary.log:ATTACKER_DOM_RE:3
 aaa-fail.log:AAA_OK_RE:1
+httperror-php.log:HTTPERR_PHP_ANOMALY_RE:4
+httperror-php.log:HTTPERR_EXEC_RE:3

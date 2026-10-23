@@ -16,7 +16,7 @@
 # NetScaler ADC / Gateway - Sicherheits-Triage auf der Appliance: ein Lauf, ein Verdict. Entstanden fuer CTX697096,
 # CTX697174 und CTX697191, gebaut fuer die Bulletins danach.
 #
-# Version : 17.29 (2026-10-21)
+# Version : 17.30 (2026-10-23)
 # Autor   : ceterion AG, Jens Miltenberger
 # Plattform: NetScaler 13.1 / 14.1 (FreeBSD), /bin/sh. Offline auch Linux/macOS/WSL.
 # Dateien : ns_quickcheck.conf (optional), ns_quickcheck.rules, ns_quickcheck.whitelist (optional)
@@ -59,6 +59,11 @@
 # Exit-Codes: 0 OK, 1 INVESTIGATE, 2 UPDATE oder FORENSICS_FIRST, 3 Fehler
 #
 # Changelog
+#   17.30 2026-10-23 CTX697263 (PHP2Shell, CVE-2026-109618/109619 im Management-Portal): vuln63 in RESULT; Block 2 zeigt
+#                    die Management-Adressen (NSIP, SNIPs mit mgmtAccess) und ob die von Citrix empfohlenen DENY-ACLs auf
+#                    Port 80/443 existieren (MGMT_ACL_RE); Block 4b prueft PHP-Speicher- und Fatal-Muster im Webserver-
+#                    Fehlerlog auch im admin_ui (HTTPERR_PHP_ANOMALY_RE, Schwelle PHP_ANOMALY_MIN): INFO auf gefixtem Build,
+#                    Gelb auf verwundbarem, Rot mit neuer PHP-Datei im Fenster. Heuristik, keine Signatur.
 #   17.29 2026-10-21 AAA: Schlaefer (Fehlversuche an AAA_SLEEPER_DAYS Tagen im Fenster oder laut kumulierter Liste,
 #                    oder Spanne von AAA_SLEEPER_DAYS Tagen, mehrere Konten, nie Maschinen-Takt) als eigener Befund, Adressliste aaa_sleeper; Anmeldefehler von
 #                    eigenen Adressen (ns.conf, RFC 1918, MGMT_NET_RE) als eigener Befund mit ns.conf-Objekt, nie in
@@ -241,7 +246,7 @@
 PATH=/netscaler:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin; export PATH
 LC_ALL=C; export LC_ALL
 umask 077
-VERSION="17.29"; RULES_MIN="2026-10-21d"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
+VERSION="17.30"; RULES_MIN="2026-10-23"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
 SELF="$0"; case "$SELF" in /*) ;; *) SELF="$(pwd)/$SELF" ;; esac
 SELFDIR=$(cd "$(dirname "$SELF")" 2>/dev/null && pwd || dirname "$SELF")
 BASE_DIR=/var/nssnapshot
@@ -258,6 +263,7 @@ AAA_SLEEPER_DAYS=2      # Schlaefer: Fehlversuche an so vielen verschiedenen Tag
 AAA_BF_MIN=20           # Brute Force: ab so vielen Fehlversuchen auf ein einzelnes Konto im Fenster (von beliebig vielen Adressen)
 AAA_RATE=10             # Fehlversuche je Minute, ab denen eine Adresse als Maschine gilt
 AAA_FAIL_USERS=10       # ab so vielen verschiedenen Benutzernamen mit Fehlversuch von einer Adresse Gelb (Password Spraying)
+PHP_ANOMALY_MIN=3       # PHP-Speicher-/Fatal-Muster im Management-Portal: ab so vielen Zeilen im Fenster wird gemeldet (CTX697263)
 PROBE_LEVEL=yellow      # Webshell-Sondierungen: yellow (Vorgabe) oder info (nur Zaehlung, kein Einfluss auf das Verdict)
 MGMT_NET_RE=""          # ERE fuer erlaubte Management-Adressen (z. B. "^10\.1\.|^192\.168\.10\."); leer = nur RFC 1918 gilt als intern
 DETAIL_MAX=0            # Zeilen je Detailliste in Terminal und Report; 0 = alles (Vorgabe)
@@ -392,9 +398,9 @@ CUSTOM_SHA=""; [ -r "${RULES_FILE}.custom" ] && CUSTOM_SHA=$(sha256_of "${RULES_
 # aus Block 4 (ADMIN_CMD_RE-Ausschluss, LOGON_HINT_RE-Vorfilter). Keine Appliance, keine Whitelist.
 if [ -n "$TESTLOG" ]; then
   : "${LOGON_HINT_RE:=}"; : "${TRIGGER_RE:=}"; : "${OBFUSC_RE:=}"; : "${CMD_NAMES:=}"; : "${LOGIN_PATH_RE:=}"
-  : "${NSAAAD_CRASH_RE:=}"; : "${DTLS_FAIL_RE:=}"; : "${PPE_CRASH_RE:=}"; : "${ADMIN_CMD_RE:=}"; : "${DROPPER_PATH_RE:=}"; : "${SUSPECT_PROC_RE:=}"; : "${HTTPERR_EXEC_RE:=}"; : "${HTTPERR_PROBE_RE:=}"; : "${AUTH_LOGIN_RE:=}"; : "${AUTH_FAIL_RE:=}"; : "${MGMT_PATH_RE:=}"; : "${AAA_FAIL_RE:=}"; : "${AAA_OK_RE:=}"
+  : "${NSAAAD_CRASH_RE:=}"; : "${DTLS_FAIL_RE:=}"; : "${PPE_CRASH_RE:=}"; : "${ADMIN_CMD_RE:=}"; : "${DROPPER_PATH_RE:=}"; : "${SUSPECT_PROC_RE:=}"; : "${HTTPERR_EXEC_RE:=}"; : "${HTTPERR_PROBE_RE:=}"; : "${AUTH_LOGIN_RE:=}"; : "${AUTH_FAIL_RE:=}"; : "${MGMT_PATH_RE:=}"; : "${AAA_FAIL_RE:=}"; : "${AAA_OK_RE:=}"; : "${HTTPERR_PHP_ANOMALY_RE:=}"
   CMDRE="[;|&\`]([[:space:]]|%20)*($CMD_NAMES)([[:space:]<>;|&\`\$]|%20|%3B|\\\$|$)|(%3B|%7C|%26)($CMD_NAMES)(%20|%24|%3B|%7C|$)"
-  CHECKS="INJECTION TRIGGER_RE OBFUSC_RE CMD LOGIN_PATH_RE ATTACKER_IP_RE ATTACKER_DOM_RE NSAAAD_CRASH_RE DTLS_FAIL_RE PPE_CRASH_RE DROPPER_PATH_RE SUSPECT_PROC_RE HTTPERR_EXEC_RE HTTPERR_PROBE_RE AUTH_LOGIN_RE AUTH_FAIL_RE MGMT_PATH_RE AAA_FAIL_RE AAA_OK_RE"
+  CHECKS="INJECTION TRIGGER_RE OBFUSC_RE CMD LOGIN_PATH_RE ATTACKER_IP_RE ATTACKER_DOM_RE NSAAAD_CRASH_RE DTLS_FAIL_RE PPE_CRASH_RE DROPPER_PATH_RE SUSPECT_PROC_RE HTTPERR_EXEC_RE HTTPERR_PROBE_RE AUTH_LOGIN_RE AUTH_FAIL_RE MGMT_PATH_RE AAA_FAIL_RE AAA_OK_RE HTTPERR_PHP_ANOMALY_RE"
   tl_count() { # $1 datei $2 pruefung
     case "$2" in
       INJECTION) grep -avE "$ADMIN_CMD_RE" "$1" | grep -aiE "$LOGON_HINT_RE" | grep -acE "$TRIGGER_RE|$OBFUSC_RE|$CMDRE" ;;
@@ -670,7 +676,7 @@ log_date() { printf '%s\n' "$1" | perl -e 'my %m=(Jan=>1,Feb=>2,Mar=>3,Apr=>4,Ma
 blocked_tag() { _bi=$(blocked_info "$1"); [ -n "$_bi" ] || return 0; _w=$(echo "$_bi" | cut -d'|' -f1); _s=$(echo "$_bi" | cut -d'|' -f2)
   if [ -n "$_s" ]; then printf ' (Sperre ab %s%s)' "$_s" "${_w:+ [Bemerkung: $_w]}"; else printf ' (gesperrt, Datum unbekannt: nur markiert%s)' "${_w:+ [Bemerkung: $_w]}"; fi; }
 RED_COUNT=0; YEL_COUNT=0; ORG_COUNT=0; BLOCKED_SEEN=0
-COMPROMISE=0; VULN=0; VULN9=0; EOL=0; ISN_OPEN=0; TRACES=0; MITIG_OK=0; SAML=0; SAVE_MISSING=0; UNSAVED=0
+COMPROMISE=0; VULN=0; VULN9=0; VULN63=0; EOL=0; ISN_OPEN=0; TRACES=0; MITIG_OK=0; SAML=0; SAVE_MISSING=0; UNSAVED=0
 flag_red() { red "$1"; RED_COUNT=$((RED_COUNT + 1)); printf '%s\n' "$1" >> "$JRED"; printf 'R\t%s\n' "$1" >> "$JFIND"; }
 flag_yel() { yel "$1"; YEL_COUNT=$((YEL_COUNT + 1)); printf '%s\n' "$1" >> "$JYEL"; printf 'Y\t%s\n' "$1" >> "$JFIND"; }
 flag_org() { org "$1"; ORG_COUNT=$((ORG_COUNT + 1)); printf 'O\t%s\n' "$1" >> "$JFIND"; }
@@ -845,6 +851,7 @@ else
     grep '^OPEN' "$WORK/cve.txt" > "$WORK/open.txt"
     while read -r _ cve ctx fixb rest; do flag_red "Build $BUILD ist VERWUNDBAR gegen $cve ($ctx), Fix ab $fixb: $rest"; done < "$WORK/open.txt"
     grep -q '^SAMLOPEN ' "$WORK/cve.txt" && VULN9=1
+    grep -q '^OPEN CVE-2026-1096[0-9]* CTX697263' "$WORK/cve.txt" && VULN63=1
     inf "Ziel-Build fuer diesen Train: $TRAIN-$FIXMAX" 1
   else
     _nc=$(echo "$ROWS" | grep -c '\[custom\]')
@@ -892,6 +899,17 @@ PARTS=$(ls "$(dirname "$NSCONF")"/partitions/*/ns.conf 2>/dev/null | wc -l | tr 
 [ "${PARTS:-0}" -gt 0 ] && inf "$PARTS Admin-Partition(en) - TCP-Parameter und ISN dort separat pruefen" 1
 MG=$(cg '^add ns ip ' | grep -iE -- '-type SNIP' | grep -iE -- '-mgmtAccess ENABLED' | awk '{print $4}' | tr '\n' ' ' | sed 's/ $//')
 [ -n "$MG" ] && flag_yel "Management-Zugriff auf SNIP aktiv: $MG - NITRO/GUI erreichbar; CVE-2026-88771 wird auch ueber fehlgeschlagene NITRO-Logins gestaged"
+# Management-Portal (PHP, CTX697263): Adressen und ACL-Mitigation
+NSIP=$(cg '^set ns config ' | grep -oE -- '-IPAddress [0-9.]+' | awk '{print $2}' | head -1); [ -n "$NSIP" ] || NSIP=$(cg '^add ns ip ' | grep -iE -- '-type NSIP' | awk '{print $4}' | head -1)
+MGMT_ADDRS="$NSIP $MG"; MGMT_ACL_OK=""; MGMT_ACL_NO=""
+if [ -z "$(echo "$MGMT_ADDRS" | tr -d ' ')" ]; then inf "Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft" 1
+elif [ -n "${MGMT_ACL_RE:-}" ]; then
+  for _a in $MGMT_ADDRS; do [ -n "$_a" ] || continue; _re=$(echo "$MGMT_ACL_RE" | sed "s/NSIP_PLACEHOLDER/$(echo "$_a" | sed 's/\./\\./g')/")
+    if cg "$_re" >/dev/null 2>&1; then MGMT_ACL_OK="$MGMT_ACL_OK$_a "; else MGMT_ACL_NO="$MGMT_ACL_NO$_a "; fi; done
+  if [ "$VULN63" -eq 1 ] && [ -n "$MGMT_ACL_NO" ]; then flag_yel "Management-Portal (PHP, CTX697263) auf verwundbarem Build ohne ACL-Schutz: $MGMT_ACL_NO- bis zum Update Port 80/443 dieser Adressen per ACL auf Admin-Netze begrenzen (Citrix-Empfehlung)"
+  elif [ -n "$MGMT_ACL_NO" ]; then inf "Management-Portal ohne DENY-ACL auf Port 80/443: $MGMT_ACL_NO(Build gegen CTX697263 gefixt; ACL bleibt empfehlenswert, wenn das Portal nicht nur aus Admin-Netzen erreichbar ist)" 1
+  else inf "Management-Portal: DENY-ACLs auf Port 80/443 fuer $MGMT_ACL_OK vorhanden (Citrix-Mitigation CTX697263)" 1; fi
+else inf "Management-Portal-ACLs nicht geprueft: Regel MGMT_ACL_RE fehlt in der Regeldatei ($RULES_VERSION; benoetigt $RULES_MIN oder neuer)" 1; fi
 
 # =============================================================================
 hdr "3 Mitigation"
@@ -1146,6 +1164,20 @@ fi
       out "          | Ergebnis:      PHP oder CGI haben ausserhalb der Verwaltungsoberflaeche gearbeitet; das passiert nur, wenn dort eine Datei liegt, die nicht hingehoert. Block 5 und Runbook." 1
       out "          | Zu tun:        1. Genannte Dateien ansehen: existieren sie noch? Inhalt, Zeitstempel, Hash bei VirusTotal (nur den Hash). 2. Zeit mit Block 4 abgleichen. 3. Bei Zweifel Incident-Prozess, nicht patchen." 1
     else grn "Webserver-Fehlerlog ohne Interpreter-Fehler ausserhalb der Stock-Pfade"; fi
+    # PHP-Speicher- und Fatal-Muster im Management-Portal (CTX697263), auch im admin_ui; Heuristik mit Schwelle
+    PHP_ANOM=0
+    if [ -n "${HTTPERR_PHP_ANOMALY_RE:-}" ]; then
+      catlogs $ERRLOGS | grep -aE "$HTTPERR_PHP_ANOMALY_RE" > "$WORK/php_anom.txt"; PHP_ANOM=$(grep -c . "$WORK/php_anom.txt")
+      if [ "$PHP_ANOM" -ge "${PHP_ANOMALY_MIN:-3}" ]; then
+        _pa1=$(log_date "$(head -1 "$WORK/php_anom.txt")"); _pa2=$(log_date "$(tail -1 "$WORK/php_anom.txt")")
+        if [ "$VULN63" -eq 1 ]; then flag_yel "PHP-Speicher-/Fatal-Muster im Management-Portal auf verwundbarem Build (CTX697263): $PHP_ANOM Zeile(n), ${_pa1:-?} bis ${_pa2:-?}"
+        else inf "PHP-Speicher-/Fatal-Muster im Management-Portal: $PHP_ANOM Zeile(n), ${_pa1:-?} bis ${_pa2:-?}; Build gegen CTX697263 gefixt, auf grossen Configs normal" 1; fi
+        sort "$WORK/php_anom.txt" | uniq -c | sort -rn | awk '{ c=$1; $1=""; sub(/^ /,""); print $0 "  (" c "x)" }' | show 6 1
+        out "          | Log:           $(log_hits "$HTTPERR_PHP_ANOMALY_RE" $ERRLOGS)" 1
+        out "          | Ergebnis:      Hypothese, keine veroeffentlichte Signatur: CVE-2026-109618/109619 nutzen Out-of-Memory- und Fatal-Error-Pfade im PHP; dieselben Meldungen entstehen auch bei grossen Configs in der GUI. Erst zusammen mit Block 5 (neue PHP-Datei, Interpreter-Kinder) wird daraus ein Befund." 1
+        [ "$VULN63" -eq 1 ] && out "          | Zu tun:        1. Update auf den Fix-Build (Block 1). 2. Bis dahin Port 80/443 der Management-Adressen per ACL begrenzen (Block 2). 3. Block 5 lesen." 1
+      else grn "Keine PHP-Speicher-/Fatal-Muster im Management-Portal ueber der Schwelle (${PHP_ANOMALY_MIN:-3})"; fi
+    else inf "PHP-Anomalien im Management-Portal nicht geprueft: Regel HTTPERR_PHP_ANOMALY_RE fehlt in der Regeldatei ($RULES_VERSION; benoetigt $RULES_MIN oder neuer)" 1; fi
     # Sondierung: Webshell-Namen aus der Regel plus Dateinamen aus PAYLOAD_PATHS
     PN=$(for _p in $PAYLOAD_PATHS; do basename "$_p"; done | sort -u | sed 's/[.[\*^$]/\\&/g' | tr '\n' '|' | sed 's/|$//')
     PROBE_RE="$HTTPERR_PROBE_RE"; [ -n "$PN" ] && PROBE_RE="$HTTPERR_PROBE_RE|File does not exist: .*/($PN)$"
@@ -1385,6 +1417,7 @@ if [ -n "$WD" ]; then
         _wfirst=$(grep -F -f "$WORK/neww_paths.txt" "$WORK/neww.txt" | cut -f1 | sort -n | head -1); _wlast=$(grep -F -f "$WORK/neww_paths.txt" "$WORK/neww.txt" | cut -f1 | sort -n | tail -1)
         _wout=$(head -30 "$WORK/neww_paths.txt" | grep -vcE '^/var/netscaler/logon/themes/|favicon\.ico$|/images/'); _wphp=$(head -30 "$WORK/neww_paths.txt" | grep -ciE '\.php$')
         out "          | Wann:          $( [ -n "$_wfirst" ] && fmtdate "$_wfirst" || echo ?) bis $( [ -n "$_wlast" ] && fmtdate "$_wlast" || echo ?), letzter Boot $(fmtdate "$BOOT")" 1
+        if [ "${_wphp:-0}" -gt 0 ] && [ "${PHP_ANOM:-0}" -ge "${PHP_ANOMALY_MIN:-3}" ] && [ "$VULN63" -eq 1 ]; then TRACES=1; COMPROMISE=1; flag_red "Neue PHP-Datei(en) plus PHP-Speicher-/Fatal-Muster auf verwundbarem Build (CTX697263): Muster einer PHP2Shell-Ausnutzung"; out "          | Zu tun:        Incident-Prozess, nicht patchen, nicht neu starten; Dateien sichern (Pfad, Hash), Management-Adressen per ACL abschotten." 1; fi
         if [ "${_wphp:-0}" -gt 0 ]; then out "          | Ergebnis:      untypisch: $_wphp PHP-Datei(en) geaendert; das ist kein Theme." 1
         elif [ "${_wout:-0}" -gt 0 ]; then out "          | Ergebnis:      $_wout Datei(en) ausserhalb von Themes, Bildern und Favicons; einzeln einordnen." 1
         else out "          | Ergebnis:      alle Aenderungen in Theme-Ordnern, Bildern oder Favicons; Theme-Anpassung durch den Betreiber ist die wahrscheinliche Erklaerung." 1; fi
@@ -1635,7 +1668,7 @@ if [ -s "$JIPS" ]; then
   _tot=$(sort "$JIPS" | cut -f1,2 | sort -u | grep -c .); out "  $_tot Eintrag/Eintraege; reine Liste: grep -v '^#' ns_quickcheck_observed_ips.tsv | cut -f2 | sort -u" 1
   out "" 1
 fi
-RESULT="RESULT host=$HOST build=${BUILD:-?} mode=$MODE cli=$CLI_MODE window=${HOURS}h saml=$SAML vuln96=$VULN vuln79=$VULN9 isn_open=$ISN_OPEN traces=$TRACES mitigation=$MITIG_OK unsaved=$UNSAVED save_missing=$SAVE_MISSING compromise=$COMPROMISE red=$RED_COUNT yellow=$YEL_COUNT orange=$ORG_COUNT blocked_seen=${BLOCKED_SEEN:-0} coverage=$COVERAGE action=$ACTION rules=$RULES_VERSION script_sha256=${SCRIPT_SHA:-?} rules_sha256=${RULES_SHA:-?} custom=${CUSTOM_VERSION:-none} custom_sha256=${CUSTOM_SHA:-none} cve_custom=${CVE_CUSTOM_N:-0} cve_conflict=${CVE_CONFLICT_N:-0} runtime=$(( $(date +%s) - NOW ))s"
+RESULT="RESULT host=$HOST build=${BUILD:-?} mode=$MODE cli=$CLI_MODE window=${HOURS}h saml=$SAML vuln96=$VULN vuln63=$VULN63 vuln79=$VULN9 isn_open=$ISN_OPEN traces=$TRACES mitigation=$MITIG_OK unsaved=$UNSAVED save_missing=$SAVE_MISSING compromise=$COMPROMISE red=$RED_COUNT yellow=$YEL_COUNT orange=$ORG_COUNT blocked_seen=${BLOCKED_SEEN:-0} coverage=$COVERAGE action=$ACTION rules=$RULES_VERSION script_sha256=${SCRIPT_SHA:-?} rules_sha256=${RULES_SHA:-?} custom=${CUSTOM_VERSION:-none} custom_sha256=${CUSTOM_SHA:-none} cve_custom=${CVE_CUSTOM_N:-0} cve_conflict=${CVE_CONFLICT_N:-0} runtime=$(( $(date +%s) - NOW ))s"
 out "$RESULT" 1
 
 # --- JSON ----------------------------------------------------------------------

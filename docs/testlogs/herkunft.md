@@ -39,3 +39,4 @@ Nicht auf eine Appliance kopieren: die Angriffsdateien treffen jeden IoC-Scanner
 | httpaccess-mgmt.log | 1 bis 3 | konstruiert im NetScaler-httpaccess-Format für die Management-Ebene (NITRO, GUI); Adressen RFC 5737 und RFC 1918 |
 | aaa-fail.log | 1 bis 4 | konstruiert nach dem NetScaler-AAA-Syslog-Format (LOGIN_FAILED mit Client_ip und User, Message authenticate user failed), Zeile 4 Admin-Befehl als Negativfall; Adressen RFC 5737 und RFC 1918 |
 | dom-boundary.log | 1 bis 4 | konstruiert: eine Domain der Regeldatei exakt, als Teil eines laengeren Namens, mit angehaengter Domain und in Grossbuchstaben; dazu eine Subdomain; Erwartung 3 (exakt, Grossbuchstaben, Subdomain) |
+| httperror-php.log | 1 bis 5 | konstruiert nach Apache/PHP-Standardmeldungen (Allowed memory size, Out of memory, zend_mm_heap corrupted, Maximum execution time) im admin_ui; Zeile 5 harmloses 404; Hypothese zu CTX697263, keine veröffentlichte Signatur |

@@ -1,0 +1,8 @@
+#NS14.1 Build 73.37
+enable ns feature LB SSL SSLVPN AAA RESPONDER
+set ns config -IPAddress 192.0.2.9 -netmask 255.255.255.0
+add ns ip 192.0.2.10 255.255.255.0 -type SNIP
+add vpn vserver gw-vs SSL 192.0.2.20 443
+add authentication vserver aaa-vs SSL 192.0.2.21 443
+add authentication ldapAction ldap-corp -serverIP 192.0.2.30 -ldapBase "dc=example,dc=net" -ldapBindDn "cn=svc,dc=example,dc=net" -ldapBindDnPassword <secret> -encrypted
+set ns tcpParam -WS ENABLED -enhancedISNGeneration ENABLED

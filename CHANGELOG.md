@@ -1,8 +1,12 @@
 # Changelog
 
+## v17.30 (2026-10-23)
+
+CTX697263 (PHP2Shell, CVE-2026-109618 und 109619 im Management-Portal), Regelstand 2026-10-23. Script: `vuln63` in RESULT; Block 2 zeigt Management-Adressen und die Citrix-Mitigation (DENY-ACLs auf Port 80/443, `MGMT_ACL_RE`); Block 4b prüft PHP-Speicher- und Fatal-Muster auch im `admin_ui` (`HTTPERR_PHP_ANOMALY_RE`, Schwelle `PHP_ANOMALY_MIN`): INFO auf gefixtem Build, Gelb auf verwundbarem, Rot mit neuer PHP-Datei im Fenster (Block 5). Heuristik, keine veröffentlichte Signatur. Testlog `httperror-php.log`, Fixture `php2shell`. Bestehende Prüfungen unverändert.
+
 ## v17.29 (2026-10-21)
 
-Erstes Release nach dem zurückgezogenen v15.1; Regelstand 2026-10-22b. Die Einzelschritte 17.0 bis 17.29 stehen im Kopf des Scripts, die Release-Notes in `docs/RELEASE_NOTES.md`.
+Erstes Release nach dem zurückgezogenen v15.1; Regelstand 2026-10-22b. Die Einzelschritte 17.0 bis 17.29 stehen im Kopf des Scripts, die Release-Notes in `docs/releases/`.
 
 **Regeldatei und Herkunft**
 - Regeldatei Format 2: jede Indikatorzeile trägt Quelle, Veröffentlichungsdatum, Fundstelle beim Erstautor und Regelstand; Zeilen ohne Fundstelle sind inaktiv. Verbindliche Beschreibung `docs/rules-format-2.md`, Lint in `rules-apply.sh` und `release.sh`

@@ -21,7 +21,7 @@ Space-separated `key=value`, one line, always last in the report:
 | Key | Values | Meaning |
 |---|---|---|
 | `host`, `build`, `mode`, `cli`, `window` | text | appliance, build string, `online` or `offline`, `nscli` or `none`, log window in hours (`168h`) |
-| `saml`, `vuln96`, `vuln79`, `isn_open` | 0 or 1 | SAML configured; a CTX697096 CVE open; a SAML CVE open; Enhanced ISN missing |
+| `saml`, `vuln96`, `vuln63`, `vuln79`, `isn_open` | 0 or 1 | SAML configured; a CTX697096 CVE open; a CTX697263 (PHP2Shell) CVE open; a SAML CVE open; Enhanced ISN missing |
 | `traces`, `mitigation`, `unsaved`, `save_missing`, `compromise` | 0 or 1 | attack traces found; mitigation policy bound; unsaved config lines; `save ns config` missing; compromise indicator found |
 | `red`, `yellow`, `orange` | integer | finding counts by colour; orange = covered by the operator's block list |
 | `blocked_seen` | integer | blocked addresses observed in this run |

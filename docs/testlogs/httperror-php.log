@@ -1,0 +1,5 @@
+[Thu Oct 22 10:01:00.100000 2026] [php:error] [pid 2001] [client 127.0.0.2:40001] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 1073741824 bytes) in /netscaler/ns_gui/admin_ui/php/libs/nitro.php on line 12
+[Thu Oct 22 10:01:01.100000 2026] [php:error] [pid 2001] [client 127.0.0.2:40002] PHP Fatal error:  Out of memory (allocated 134217728) in /netscaler/ns_gui/admin_ui/php/libs/nitro.php on line 12
+[Thu Oct 22 10:01:02.100000 2026] [php:error] [pid 2002] [client 127.0.0.2:40003] zend_mm_heap corrupted
+[Thu Oct 22 10:01:03.100000 2026] [php:error] [pid 2002] [client 127.0.0.2:40004] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /netscaler/ns_gui/admin_ui/php/libs/session.php on line 5
+[Thu Oct 22 10:05:00.100000 2026] [core:info] [pid 2003] [client 127.0.0.2:40005] AH00128: File does not exist: /var/netscaler/logon/LogonPoint/css/x.css

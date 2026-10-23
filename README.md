@@ -30,7 +30,7 @@ Security triage for Citrix NetScaler ADC and Gateway, run on the appliance: buil
 - **Feed the firewall, then check it held.** Every run writes the foreign addresses it saw, by category (download host, dropper requester, probe source, spraying machine, sleeper, hit), into a per-run list and a cumulative list per appliance: first seen, last seen, days seen, count per window. What you block goes into `ns_quickcheck.blocked_ips` with its date; the next run marks covered findings orange and reports "block not effective" for any address that still gets through.
 - **Hand it over.** Anonymized copies with a stable per-appliance mapping; account and host names masked, attacker values kept, address lists by category for firewall and SOC.
 - **Two prompts, one rules file.** The repository ships the two prompts the rules are made with: a research prompt that collects a bulletin's facts from primary publishers only, with URL and date per value, and a rules prompt that turns that research into a patch in the rules-file format. Anyone can run them against the next bulletin or against their own findings, apply the patch with `rules-apply.sh`, and get the same lint, provenance and duplicate check we use. The method is in the repo, not only the result.
-- **Trust the rules.** Every indicator traced to its first publisher, every release through 54 test logs, 6 fixtures and three platform lints; every threshold documented and configurable.
+- **Trust the rules.** Every indicator traced to its first publisher, every release through 57 test logs, 7 fixtures and three platform lints; every threshold documented and configurable.
 
 ## What it checks
 
@@ -43,7 +43,7 @@ One run, six blocks, one verdict (`OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_FIRS
 - **Operator context**: a block list (addresses already blocked at the firewall) turns covered findings orange, a whitelist removes confirmed changes, thresholds for the account checks live in a config file.
 - **Outputs**: report, JSON, per-run and cumulative address lists by category, and anonymized copies that can leave the house. `coverage=partial` in the result line means a core check had no data; the verdict is then never `OK`.
 
-Test basis: 54 test logs, 6 fixtures and three platform lints run before every release (`docs/release.sh`). Details: `ns_quickcheck_README.md` (German), sections 4.3 (thresholds) and 6 (blocks).
+Test basis: 57 test logs, 7 fixtures and three platform lints run before every release (`docs/release.sh`). Details: `ns_quickcheck_README.md` (German), sections 4.3 (thresholds) and 6 (blocks).
 
 ## Quick start
 
@@ -110,6 +110,7 @@ All files carry unversioned names; the version of the script is in its header an
 | `WORKFLOW.md`, `WORKFLOW.de.md` | seven-step operator workflow from bulletin to distributed rule file (English, German) |
 | `docs/release.sh` | refreshes `ns_quickcheck.sh` from the versioned script and checks they match |
 | `docs/PLATFORM.de.md` | platform findings: NetScaler `/bin/sh` crash on `$( { ...; } | ... )`, stock listeners, aliases, log formats |
+| `docs/releases/` | release notes per version (`v17.30.md`) and per rules stand (`rules-<date>.md`); the text of the GitHub release |
 | `docs/testdata/` | rule file states for the prompt acceptance test and prefix check; `fixtures/clean` and `fixtures/compromised` for a full offline run with expected verdicts (`fixture-expected.txt`), never copy to an appliance |
 | `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | reporting rules and issue templates for false positives and missed indicators |
 | `docs/testlogs/` | test logs per CVE plus `clean.log`, `admin-audit.log`, `expected.txt`, `herkunft.md`; run with `--testlog`, never copy to an appliance |

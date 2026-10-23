@@ -2,7 +2,7 @@
 
 Ein Lauf auf der Appliance, ein Verdict: Build gegen die Citrix-Bulletins, Angriffsspuren, Kompromittierungs-Schnellcheck, Adresslisten, anonymisierte Reports. Regelgesteuert, offline-fähig, erweiterbar durch eigene Indikatoren. Entstanden im Oktober 2026 für CTX697096, CTX697174 und CTX697191, gebaut für die Bulletins danach.
 
-Script V17.29, Regeldatei Format 2 (Stand 2026-10-22b), README v26 (2026-10-22); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
+Script V17.30, Regeldatei Format 2 (Stand 2026-10-23), README v27 (2026-10-23); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
 
 Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen lässt): 1 bis 7, 10, 11, 12, 15, 16; wer Schwellen anpasst: 4.2 und 4.3. **Betreiber mit eigenen Indikatoren**: zusätzlich 8.4 bis 8.6 und WORKFLOW.de.md. **ceterion und Power-User** (Regelpflege, Abnahme, Tests): 8, 9, 13.
 
@@ -16,7 +16,7 @@ Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen läs
    sh ns_quickcheck.sh
    ```
 3. Exit-Code lesen (`echo $?` direkt nach dem Lauf): 0 `OK`, 1 `INVESTIGATE`, 2 `UPDATE` oder `FORENSICS_FIRST`, 3 Abbruch mit Grund auf stderr (Regeldatei fehlt, Kernvariable fehlt, Option ohne Wert). 1 und 2 sind Verdicts, keine Fehler. Bricht der Lauf ohne `RESULT`-Zeile ab, mit `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt` wiederholen und beide Dateien anonymisiert einsenden (`--anon`, Abschnitt 5.3).
-4. Kopfzeile lesen: `ns_quickcheck 17.29  host=<name>  modus=online  regeln=2026-10-22b`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
+4. Kopfzeile lesen: `ns_quickcheck 17.30  host=<name>  modus=online  regeln=2026-10-23`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
 5. Ans Ende blättern: `ACTION: OK`, `UPDATE`, `INVESTIGATE` oder `FORENSICS_FIRST`. Was das heißt, steht in Abschnitt 7, Tabelle "Jetzt tun".
 6. Vor der `RESULT`-Zeile stehen die fremden Adressen dieses Laufs mit Status (neu oder bekannt seit) und Sperrstatus; `coverage=full` in `RESULT` bestätigt, dass alle Kernprüfungen Daten hatten.
 7. Alle weiteren Dateien (Config, Whitelist, Sperrliste, Custom-Datei, Zuordnungstabelle) gehören in dasselbe Verzeichnis. Die Dateien dieses Laufs liegen in `/var/nssnapshot/quickcheck/`: Report, JSON, Adressliste, anonymisierte Fassungen. Nach außen geht nur `_anon.*` (Abschnitt 5.3).
@@ -24,7 +24,7 @@ Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen läs
 So sieht ein sauberer Lauf aus (gekürzt, anonymisiert; `fenster=168h` stammt hier aus `HOURS=168` in der Config, die Vorgabe des Scripts ist 72 h):
 
 ```
-ns_quickcheck 17.29  host=gw-01  modus=online  fenster=168h  regeln=2026-10-22b  cli=nscli (user01, cli_user aus ns_snapshot.conf)
+ns_quickcheck 17.30  host=gw-01  modus=online  fenster=168h  regeln=2026-10-23  cli=nscli (user01, cli_user aus ns_snapshot.conf)
   [INFO]  Custom-Datei des Betreibers geladen: 78 aktive Indikator-Zeile(n), 0 CVE-Zeile(n) (betreiber-2026-10-20)
   [INFO]  Sperrliste: 3 Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)
 Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
@@ -52,7 +52,7 @@ Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
 == 6 Verdict ==
 ACTION: OK
 Build gefixt, keine Spuren. Naechster Lauf nach dem naechsten Bulletin oder taeglich per Cron.
-RESULT host=gw-01 build=14.1-73.46 ... compromise=0 red=0 yellow=0 orange=0 coverage=full action=OK rules=2026-10-22b ...
+RESULT host=gw-01 build=14.1-73.46 ... compromise=0 red=0 yellow=0 orange=0 coverage=full action=OK rules=2026-10-23 ...
 ```
 
 Ein exponiertes Gateway sieht an den meisten Tagen nicht so aus: Sondierungen, Dropper-Anfragen und Anmeldefehler sind Alltag. Was dann zu tun ist, steht in den "Zu tun"-Zeilen der Befunde und in Abschnitt 15 unter "Alles ist Gelb".
@@ -173,6 +173,7 @@ Optional, neben dem Script, 600; jede Zeile `NAME=wert`, fehlende Zeilen nehmen 
 | `LINE_MAX` | 400 | Zeichen je Logzeile in Terminal und Report; 0 = ungekürzt; Injection-Zeilen immer vollständig |
 | `MGMT_NET_RE` | leer (nur RFC 1918 gilt als intern) | ERE der Admin-Netze und Sprungserver; gilt für Management-Zugriffe, SSH-Logins, Webserver-Direktzugriffe und eigene Adressen bei Anmeldefehlern |
 | `PROBE_LEVEL` | `yellow` | `info` stuft Webshell-Sondierungen auf eine INFO-Zeile ab |
+| `PHP_ANOMALY_MIN` | 3 | PHP-Speicher-/Fatal-Muster im Management-Portal (CTX697263), ab so vielen Zeilen im Fenster gemeldet; auf gefixtem Build nur INFO |
 | `AAA_FAIL_IP` | 5 | Gateway-Anmeldefehler je Adresse, ab denen die Adresse bewertet wird |
 | `AAA_FAIL_USERS` | 10 | verschiedene Konten je Adresse, ab denen sie Maschine ist |
 | `AAA_RATE` | 10 | Fehlversuche je Minute, ab denen eine Adresse Maschine ist |
@@ -196,6 +197,7 @@ Die Bewertungen in Block 4 und 5 beruhen auf Schwellen, die an einem Lab-Gateway
 | Treffer: Erfolg nach Fehlserie einer Maschine (gleiche Adresse und Konto) oder nach Brute Force auf ein Konto (von jeder Adresse) | fest | der Nutzer meldet sich selbst nach dem Angriff an: deshalb "ein Mensch muss das entscheiden" | nie unterdrückt; Rot bleibt Rot |
 | Quell-IP bei Logon-Zeilen: Request zur Versuchszeit, plus/minus 5 s, Offset-Suche bis 14 h | fest | unbeteiligter Logon derselben Sekunde (deshalb "passt zu n von m" und "schwach") | ein Versuch allein liefert keine Quelle (bewusst) |
 | Quell-IP bei Responder-Zeilen: nur aus der Zeile selbst | fest | keiner | Policy ohne Audit-Message-Action: Quelle unbekannt (Howto Responder-Quelle) |
+| PHP2Shell-Hinweis: ab `PHP_ANOMALY_MIN` PHP-Speicher-/Fatal-Zeilen im Management-Portal; Gelb nur auf verwundbarem Build, Rot nur mit neuer PHP-Datei im Fenster | 3 | große Configs erzeugen dieselben Meldungen in der GUI (deshalb INFO auf gefixtem Build) | Ausnutzung ohne Fehlermeldung (keine Signatur veröffentlicht); Block 5 bleibt die zweite Linie |
 | Webshell-Sondierung: 404 für bekannte Webshell-Namen | fest | keiner, die Namen sind eindeutig | Angreifer mit eigenem Dateinamen: nur über Block 5 und den 200-Check |
 
 Cron (täglich nach dem Snapshot, bootfest über `/nsconfig/rc.netscaler`):
@@ -370,6 +372,7 @@ Logdateien werden nach Änderungszeit ausgewählt (`--hours`); die Kopfzeile des
 | Webshell-Pfad mit Status 200 im Access-Log | Rot, Kompromittierungszeichen; Adressliste `webshell_hit` |
 | Webshell-Sondierung: "File does not exist" für Webshell-Namen, PHP-Varianten, Scanner-Pfade und die Dateinamen aus `PAYLOAD_PATHS` (`HTTPERR_PROBE_RE`) | Gelb "Versuch ohne Wirkung" mit Pfaden, Zeitraum, Quellen aus dem Access-Log, Netzen, Sperrstatus; Adressliste `webshell_probe`; `PROBE_LEVEL=info` macht daraus INFO. Hinweis im Block: `[client 127.0.0.2]` ist die Appliance selbst (Glossar) |
 | Client im Fehlerlog außerhalb 127.0.0.x | Gelb "Webserver direkt angesprochen"; Adressliste `webserver_direct` |
+| PHP-Speicher-/Fatal-Muster im Management-Portal, auch `admin_ui` (`HTTPERR_PHP_ANOMALY_RE`, CTX697263) | ab `PHP_ANOMALY_MIN` Zeilen: INFO auf gefixtem Build, Gelb auf verwundbarem; Rot in Block 5, wenn dazu eine neue PHP-Datei im Fenster liegt. Heuristik, keine Signatur |
 
 **4c Management und SSH**
 
@@ -426,7 +429,7 @@ Abschnitt 7.
 
 `RESULT host=... build=... mode=online|offline cli=... window=<h>h saml=0|1 vuln96=0|1 vuln79=0|1 isn_open=0|1 traces=0|1 mitigation=0|1 unsaved=0|1 save_missing=0|1 compromise=0|1 red=<n> yellow=<n> orange=<n> blocked_seen=<n> coverage=full|partial action=<Verdict> rules=<Regelstand> script_sha256=... rules_sha256=... custom=<Version|none> custom_sha256=... cve_custom=<n> cve_conflict=<n> runtime=<s>s`
 
-`coverage`: `full`, oder `partial`, wenn eine Kernprüfung ohne Daten blieb (ns.log- oder httpaccess-Familie fehlt im Fenster, Datei nicht lesbar); bei `partial` wird das Verdict nie `OK`. `vuln96`: eine CVE aus CTX697096 offen. `vuln79`: mindestens eine SAML-abhängige CVE offen. `cve_conflict`: Regeldatei und Custom-Datei bewerten eine CVE unterschiedlich.
+`coverage`: `full`, oder `partial`, wenn eine Kernprüfung ohne Daten blieb (ns.log- oder httpaccess-Familie fehlt im Fenster, Datei nicht lesbar); bei `partial` wird das Verdict nie `OK`. `vuln96`: eine CVE aus CTX697096 offen. `vuln63`: eine CVE aus CTX697263 (PHP2Shell) offen. `vuln79`: mindestens eine SAML-abhängige CVE offen. `cve_conflict`: Regeldatei und Custom-Datei bewerten eine CVE unterschiedlich.
 
 Zwei Regeln über den Befunden: `coverage=partial` (siehe oben) macht das Verdict nie `OK`; Orange-Befunde (durch Sperren abgedeckt) zählen nicht als Spur, ein Lauf mit nur Orange ist `OK`.
 
@@ -458,6 +461,7 @@ Regelvariablen, die das Script erwartet (fehlt eine Kernvariable, Exit 3; fehlt 
 | Block 5 | `PAYLOAD_PATHS`, `STOCK_ALIAS_ROOTS`, `ALLOWED_CRON_RE`, `KNOWN_LISTENER_RE`, `SUSPECT_PROC_RE`, `SUSPECT_PROC_PARENT_OK_RE`, `STOCK_FILE_HASHES` |
 | seit 2026-10-21 (Logs) | `HTTPERR_EXEC_RE`, `HTTPERR_PROBE_RE`, `AUTH_LOGIN_RE`, `AUTH_FAIL_RE`, `MGMT_PATH_RE` |
 | seit 2026-10-21c/d (AAA) | `AAA_FAIL_RE`, `AAA_OK_RE` |
+| seit 2026-10-23 (CTX697263) | `HTTPERR_PHP_ANOMALY_RE`, `MGMT_ACL_RE` |
 | IOC-Abschnitt | Zeilen `ip`, `dom`, `hash`, `path`; daraus baut das Script `ATTACKER_IP_RE`, `ATTACKER_DOM_RE` (mit Grenzen, ohne Groß-/Kleinschreibung) und die Pfad- und Hashlisten |
 
 ### 8.2 Herkunftsprotokoll
@@ -477,7 +481,7 @@ Regelvariablen, die das Script erwartet (fehlt eine Kernvariable, Exit 3; fehlt 
 - Zusammenstellungen Dritter (Community-Scanner, Sammelseiten) sind Verweise, keine Quellen; Fundstelle ist immer die Veröffentlichung des Erstautors. Werte ohne Erstautor bleiben inaktiv (`PRUEFEN`).
 - Die Regeldatei wird nur erweitert, nie gekürzt; eine Entfernung braucht einen Changelog-Eintrag mit Begründung.
 - Das Script prüft beim Start, dass die Kernvariablen der Regeldatei vorhanden sind (`RULES_VERSION`, `TRIGGER_RE`, `OBFUSC_RE`, `CMD_NAMES`, `LOGON_HINT_RE`, `ADMIN_CMD_RE`, `CVE_TABLE`); fehlt eine, bricht es mit Exit 3 ab, statt mit leeren Mustern zu laufen.
-- Jeder Regelstand durchläuft `docs/release.sh`: Plattform-Lints 1 bis 3, Format-2-Lint, Präfix-Prüfung, 54 Testlogs, 6 Fixtures, Herkunftsprotokoll.
+- Jeder Regelstand durchläuft `docs/release.sh`: Plattform-Lints 1 bis 3, Format-2-Lint, Präfix-Prüfung, 57 Testlogs, 7 Fixtures, Herkunftsprotokoll.
 - Regex: POSIX ERE ohne GNU-Erweiterungen, Semantik immer "Zeile passt ja/nein" (`rules-format-2.md`).
 
 ### 8.4 Custom-Datei des Betreibers
@@ -498,7 +502,7 @@ Community-Werkzeuge prüfen dieselben Bulletins mit eigenen Indikatorsammlungen.
 
 ## 9. Validierungsstand und Abnahme-Protokoll
 
-**Validiert:** NetScaler 14.1-73.41 und 14.1-73.46 (MPX, Lab): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 54 Testlogs, 6 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
+**Validiert:** NetScaler 14.1-73.41 und 14.1-73.46 (MPX, Lab): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 57 Testlogs, 7 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
 
 **Abnahme auf jeder neuen Appliance vor der ersten Bewertung:**
 1. Erster Lauf mit Trace: `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt; echo EXIT=$?`. Exit 139 heißt Absturz; `tail /tmp/qc_trace.txt` zeigt die Zeile; Issue mit Trace.
@@ -699,6 +703,7 @@ Ein Feldbefund gehört nie in ein Issue (die Adresse ist dein Befund, die Fundst
 
 | Version | Datum | Änderung |
 |---|---|---|
+| v27 | 2026-10-23 | Script 17.30 und Regelstand 2026-10-23: CTX697263 (PHP2Shell) in Block 1, 2, 4b und 5; `PHP_ANOMALY_MIN`; `vuln63` |
 | v26 | 2026-10-22 | Schnellstart nach `/var/nssnapshot/`; 8.7 ohne Nennung einzelner Community-Werkzeuge; englische Fassung `ns_quickcheck_README.en.md` |
 | v25 | 2026-10-22 | Korrekturen nach Review: Sperrliste 5.4 auf drei Felder, `--hours`-Vorgabe 72 (plus `HOURS` in 4.2), `webshell_hit` in 5.2, elf Spalten der kumulierten Liste, Verdict-Regeln nach 7.1, Service-User-Quellen in 4.2 und 10 |
 | v24 | 2026-10-21 | Für Script 17.29 und Regelstand 2026-10-21d: gelesene Logs (3), Konfiguration (4.2) und Schwellen (4.3) als Tabellen, Block 4 in vier Gruppen mit den AAA-Befunden (Treffer, Brute Force, Schläfer, Spraying, intern), `coverage`, Sperrliste, Adressliste mit 11 Spalten, Howtos Responder-Quelle und Lockout, FAQ "Alles ist Gelb" und "Wen rufe ich an", Glossar |

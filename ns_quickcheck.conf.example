@@ -61,3 +61,5 @@ AAA_SLEEPER_DAYS=2
 AAA_RATE=10
 # Zeichen je Logzeile in Terminal und Report; 0 = ungekuerzt
 LINE_MAX=400
+# PHP-Speicher-/Fatal-Muster im Management-Portal (CTX697263): ab so vielen Zeilen im Fenster wird gemeldet; auf gefixtem Build nur INFO
+PHP_ANOMALY_MIN=3

@@ -2,7 +2,7 @@
 
 One run on the appliance, one verdict: build against the Citrix bulletins, attack traces, quick compromise check, address lists, anonymized reports. Rule-driven, works offline, extensible with your own indicators. Built in October 2026 for CTX697096, CTX697174 and CTX697191, designed for the bulletins that follow.
 
-Script V17.29, rules file format 2 (version 2026-10-22b), README v26 en (2026-10-22, English edition of v26; German is the leading version); the version in the repository always matches the script, the history is in section 17. Apache 2.0, Copyright 2026 ceterion AG.
+Script V17.30, rules file format 2 (version 2026-10-23), README v27 en (2026-10-23, English edition of v27; German is the leading version); the version in the repository always matches the script, the history is in section 17. Apache 2.0, Copyright 2026 ceterion AG.
 
 **Language note:** the script's output (terminal, report, finding texts in the JSON) is German only. This README therefore quotes output lines verbatim in German and gives the English meaning in parentheses where it matters. Field names, verdicts and the RESULT line are language-neutral. English output (`--language en`) is planned for V18 (section 12).
 
@@ -18,7 +18,7 @@ Which section is for whom: **Operators** (the admin who runs the script): 1 to 7
    sh ns_quickcheck.sh
    ```
 3. Read the exit code (`echo $?` right after the run): 0 `OK`, 1 `INVESTIGATE`, 2 `UPDATE` or `FORENSICS_FIRST`, 3 aborted with the reason on stderr (rules file missing, core variable missing, option without value). 1 and 2 are verdicts, not errors. If the run aborts without a `RESULT` line, repeat it with `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt` and send both files anonymized (`--anon`, section 5.3).
-4. Read the header line: `ns_quickcheck 17.29  host=<n>  modus=online  regeln=2026-10-22b`. If it shows `cli=none`, the CLI layer is missing (section 3); the script runs anyway. Below it are the loaded operator files (custom file, blocklist, whitelist), and block 4 lists the log families read with their file counts.
+4. Read the header line: `ns_quickcheck 17.30  host=<n>  modus=online  regeln=2026-10-23`. If it shows `cli=none`, the CLI layer is missing (section 3); the script runs anyway. Below it are the loaded operator files (custom file, blocklist, whitelist), and block 4 lists the log families read with their file counts.
 5. Scroll to the end: `ACTION: OK`, `UPDATE`, `INVESTIGATE` or `FORENSICS_FIRST`. What that means is in section 7, column "Do now".
 6. Before the `RESULT` line you find the external addresses of this run with their status (new or known since) and blocklist status; `coverage=full` in `RESULT` confirms that all core checks had data.
 7. All further files (config, whitelist, block list, custom file, mapping table) belong in the same directory. The files of this run are in `/var/nssnapshot/quickcheck/`: report, JSON, address list, anonymized versions. Only `_anon.*` may leave the organization (section 5.3).
@@ -26,7 +26,7 @@ Which section is for whom: **Operators** (the admin who runs the script): 1 to 7
 A clean run looks like this (shortened, anonymized; `fenster=168h` here comes from `HOURS=168` in the config, the script default is 72 h):
 
 ```
-ns_quickcheck 17.29  host=gw-01  modus=online  fenster=168h  regeln=2026-10-22b  cli=nscli (user01, cli_user aus ns_snapshot.conf)
+ns_quickcheck 17.30  host=gw-01  modus=online  fenster=168h  regeln=2026-10-23  cli=nscli (user01, cli_user aus ns_snapshot.conf)
   [INFO]  Custom-Datei des Betreibers geladen: 78 aktive Indikator-Zeile(n), 0 CVE-Zeile(n) (betreiber-2026-10-20)
   [INFO]  Sperrliste: 3 Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)
 Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
@@ -54,7 +54,7 @@ Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
 == 6 Verdict ==
 ACTION: OK
 Build gefixt, keine Spuren. Naechster Lauf nach dem naechsten Bulletin oder taeglich per Cron.
-RESULT host=gw-01 build=14.1-73.46 ... compromise=0 red=0 yellow=0 orange=0 coverage=full action=OK rules=2026-10-22b ...
+RESULT host=gw-01 build=14.1-73.46 ... compromise=0 red=0 yellow=0 orange=0 coverage=full action=OK rules=2026-10-23 ...
 ```
 
 The block headings read: 1 Build, 2 Exposure, 3 Mitigation, 4 attack traces, 5 quick compromise check, 6 verdict.
@@ -483,7 +483,7 @@ Rule variables the script expects (if a core variable is missing, exit 3; if a n
 - Compilations by third parties (community scanners, aggregator pages) are pointers, not sources; the source reference is always the original publisher's publication. Values without an original publisher stay inactive (`PRUEFEN`).
 - The rules file is only extended, never shortened; a removal requires a changelog entry with a justification.
 - At startup the script checks that the core variables of the rules file are present (`RULES_VERSION`, `TRIGGER_RE`, `OBFUSC_RE`, `CMD_NAMES`, `LOGON_HINT_RE`, `ADMIN_CMD_RE`, `CVE_TABLE`); if one is missing, it aborts with exit 3 instead of running with empty patterns.
-- Every rules version goes through `docs/release.sh`: platform lints 1 to 3, format 2 lint, prefix check, 54 test logs, 6 fixtures, provenance record.
+- Every rules version goes through `docs/release.sh`: platform lints 1 to 3, format 2 lint, prefix check, 57 test logs, 7 fixtures, provenance record.
 - Regex: POSIX ERE without GNU extensions, semantics always "line matches yes/no" (`rules-format-2.md`).
 
 ### 8.4 Operator custom file
@@ -502,9 +502,13 @@ Rule variables the script expects (if a core variable is missing, exit 3; if a n
 
 Community tools check the same bulletins with indicator collections of their own. The quick check takes no values from them, only from the original publications with their reference (section 8.2); the projects are separate. For the widest coverage, run several tools and compare the findings.
 
+### 8.8 CTX697263 (PHP2Shell) in script 17.30
+
+Block 1 rates CVE-2026-109618 and CVE-2026-109619 against the build (condition `all`, the management portal always runs on the NSIP). Block 2 lists the management addresses (NSIP, SNIPs with management access) and whether the DENY ACLs on ports 80/443 recommended by Citrix exist (`MGMT_ACL_RE`); yellow on a vulnerable build without ACL. Block 4b checks PHP memory and fatal patterns in the web server error log including `admin_ui` (`HTTPERR_PHP_ANOMALY_RE`): from `PHP_ANOMALY_MIN` lines INFO on a fixed build, yellow on a vulnerable one; block 5 turns it red when a new PHP file appeared in the same window. This is a heuristic on error classes, no published signature exists. `vuln63` in RESULT.
+
 ## 9. Validation status and acceptance procedure
 
-**Validated:** NetScaler 14.1-73.41 and 14.1-73.46 (MPX, lab): online runs with `--compare cron`, offline runs against snapshot sets and fixtures, custom file, blocklist, anonymization; on 21 Oct 2026 eleven lab runs on an exposed gateway with an ongoing spraying campaign (1,700 failed logons, 60 machine addresses, webshell probes, injection attempt), from which the finding blocks and thresholds are derived. Test basis: 54 test logs, 6 fixtures, three platform lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS and 14.1 appliances with features the lab did not have (SAML, AppFW, Bot, GSLB, admin partitions, custom themes, mitigation policies); expect two to five false positives on the first run there.
+**Validated:** NetScaler 14.1-73.41 and 14.1-73.46 (MPX, lab): online runs with `--compare cron`, offline runs against snapshot sets and fixtures, custom file, blocklist, anonymization; on 21 Oct 2026 eleven lab runs on an exposed gateway with an ongoing spraying campaign (1,700 failed logons, 60 machine addresses, webshell probes, injection attempt), from which the finding blocks and thresholds are derived. Test basis: 57 test logs, 7 fixtures, three platform lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS and 14.1 appliances with features the lab did not have (SAML, AppFW, Bot, GSLB, admin partitions, custom themes, mitigation policies); expect two to five false positives on the first run there.
 
 **Acceptance on every new appliance before the first assessment:**
 1. First run with trace: `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt; echo EXIT=$?`. Exit 139 means a crash; `tail /tmp/qc_trace.txt` shows the line; open an issue with the trace.
@@ -706,6 +710,7 @@ A field finding never belongs in an issue (the address is your finding, the sour
 | Version | Date | Change |
 |---|---|---|
 | v25 (English draft) | 2026-10-22 | English translation of v25; script output stays German (language note at the top); section 7.1: `INVESTIGATE` with "Nicht vollständig geprüft" for `coverage=partial` restated; option `--conf`: `HOURS` added to the parameter list |
+| v27 en | 2026-10-23 | English edition of v27: script 17.30 and rules 2026-10-23, CTX697263 (PHP2Shell) in blocks 1, 2, 4b and 5, `PHP_ANOMALY_MIN`, `vuln63` |
 | v26 en | 2026-10-22 | English edition of v26: quick start to `/var/nssnapshot/`, 8.7 without naming individual community tools, rules stand 2026-10-22b |
 | v25 | 2026-10-22 | Corrections after review: blocklist 5.4 reduced to three fields, `--hours` default 72 (plus `HOURS` in 4.2), `webshell_hit` in 5.2, eleven columns of the cumulative list, verdict rules moved to 7.1, service user sources in 4.2 and 10 |
 | v24 | 2026-10-21 | For script 17.29 and rules version 2026-10-21d: logs read (3), configuration (4.2) and thresholds (4.3) as tables, block 4 in four groups with the AAA findings (hit, brute force, sleeper, spraying, internal), `coverage`, blocklist, address list with 11 columns, howtos responder source and lockout, FAQ "Everything is yellow" and "Whom do I call", glossary |

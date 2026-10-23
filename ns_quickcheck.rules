@@ -29,9 +29,9 @@
 # Bestehende Werte werden nie gekuerzt oder ersetzt (Ausnahme FIX_*), damit alte Vektoren pruefbar bleiben.
 # Aenderungshistorie mit Belegen: ns_quickcheck.rules.changelog.md
 
-RULES_VERSION="2026-10-22b"
+RULES_VERSION="2026-10-23"
 RULES_FORMAT="2"
-RULES_SOURCE="CTX697096, CTX697174, CTX697191, CISA KEV, CISA SIGMA 261399 r1, CERT-EU 28.09., Mandiant/GTIG 29.09., watchTowr 28.09. und 07.10., Unit 42 30.09., LevelBlue 02.10., Sygnia 01.10., SOCRadar 07.10. (Daten nur mit Fundstelle beim Erstautor; Zusammenstellungen Dritter sind Verweise), Zscaler ThreatLabz 16.10."
+RULES_SOURCE="CTX697096, CTX697174, CTX697191, CISA KEV, CISA SIGMA 261399 r1, CERT-EU 28.09., Mandiant/GTIG 29.09., watchTowr 28.09. und 07.10., Unit 42 30.09., LevelBlue 02.10., Sygnia 01.10., SOCRadar 07.10. (Daten nur mit Fundstelle beim Erstautor; Zusammenstellungen Dritter sind Verweise), Zscaler ThreatLabz 16.10., CTX697263 22.10."
 
 # --- CVE-Tabelle (ab Script-V3): eine Zeile je CVE und Train, Felder durch :: getrennt
 #   Bulletin :: CVE :: Train (14.1, 13.1, 14.1-FIPS, 13.1-FIPS) :: Fix-Build :: Bedingung :: Text   (Trenner ist ::, weil Regex | enthalten darf)
@@ -49,6 +49,7 @@ RULES_SOURCE="CTX697096, CTX697174, CTX697191, CISA KEV, CISA SIGMA 261399 r1, C
 # ihren Konfigurationsbedingungen aus "Steps to determine". Gleicher Fix-Build wie 88771, das Verdict aendert sich nicht.
 # +2026-10-15c CTX697096 (Direktabruf 15.10., "Steps to determine"): CVE-2026-88773 bis 88777 mit Konfigurationsbedingungen; gleicher Fix-Build wie 88771. Zitate im Changelog
 # +2026-10-22 CTX697096 (27.09., Direktabruf 22.10.): CVE-2026-88772 und 88778 fuer 13.1-FIPS und 14.1-FIPS ergaenzt; Fix-Builds gelten laut "What Customers Should Do" fuer alle CVEs des Bulletins
+# +2026-10-23 CTX697263 (22.10., Citrix-Blog "Protecting NetScaler Management Access" als lesbare Erstquelle, Unit 42 und Zscaler 21.10. zum Mechanismus): PHP2Shell CVE-2026-109618 und 109619 im Management-Portal (PHP); Bedingung all, weil das Portal auf der NSIP immer laeuft. Vorbehalt: Citrix nennt "vor 13.1-64.28", warnt aber, dass die Console 13.1-64.23 faelschlich meldet; bis der CTX-Volltext das klaert, gilt 64.28. 13.1-NDcPP (Fix 37.282) ist als Train im Format nicht vorgesehen und wird wie 13.1-FIPS behandelt.
 CVE_TABLE='
 CTX697096::CVE-2026-88771::14.1::73.37::all::Pre-Auth RCE CVSS 9.5, aktiv ausgenutzt, oeffentliches Tooling
 CTX697096::CVE-2026-88771::13.1::64.23::all::Pre-Auth RCE CVSS 9.5, aktiv ausgenutzt, oeffentliches Tooling
@@ -94,6 +95,14 @@ CTX697096::CVE-2026-88772::13.1-FIPS::37.279::conf:^add vpn vserver [^ ]+ (SSL|D
 CTX697096::CVE-2026-88772::14.1-FIPS::73.37::conf:^add vpn vserver [^ ]+ (SSL|DTLS) ::DTLS RCE CVSS 9.5, seit Anfang September ausgenutzt
 CTX697096::CVE-2026-88778::13.1-FIPS::37.279::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
 CTX697096::CVE-2026-88778::14.1-FIPS::73.37::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
+CTX697263::CVE-2026-109618::14.1::73.41::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109618::13.1::64.28::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109618::14.1-FIPS::73.41::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109618::13.1-FIPS::37.282::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::14.1::73.41::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::13.1::64.28::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::14.1-FIPS::73.41::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::13.1-FIPS::37.282::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
 '
 
 # --- Gefixte Builds je Release-Train (Fallback fuer Script-V2 und wenn CVE_TABLE leer ist): "<Slot A> <Slot B>"
@@ -205,6 +214,15 @@ MGMT_PATH_RE='"(GET|POST|PUT|DELETE) /(nitro/v1|menu|admin_ui|rapi)/'
 AAA_FAIL_RE='AAA (LOGIN_FAILED|Message [0-9]+ 0 :  "authenticate user: failed)|AAA LOGIN_FAILED|SSLVPN LOGIN_FAILED'
 # +2026-10-21 Erfolgreiche Gateway-Anmeldungen (ns.log, AAA): fuer die Paarung "Fehlserie, dann Erfolg" je Adresse und Konto.
 AAA_OK_RE='AAA (LOGIN|Message [0-9]+ 0 :  "authenticate user: succeeded)|SSLVPN LOGIN [0-9]+ 0 :  Context|AAA LOGIN [0-9]+ 0 :  Context'
+
+# +2026-10-23 PHP2Shell (CTX697263, CVE-2026-109618/109619): Hypothese, keine veroeffentlichte Signatur. Die CVEs nutzen Out-of-Memory-
+#   und Fatal-Error-Pfade im PHP des Management-Portals; Apache meldet solche Zustaende im Fehlerlog. Das Script wertet diese Muster
+#   ueber alle httperror-Zeilen aus, auch im admin_ui (dort laeuft PHP legitim), mit Schwelle PHP_ANOMALY_MIN aus der Config.
+#   Quellen: Unit 42 21.10. (Mechanismus longjmp/OOM), Zscaler 21.10., Red Hat CVE-Eintrag; Muster sind Standard-PHP-Meldungen.
+HTTPERR_PHP_ANOMALY_RE='Allowed memory size of [0-9]+ bytes exhausted|PHP Fatal error: +Out of memory|zend_mm_heap corrupted|Maximum execution time of [0-9]+ seconds exceeded'
+# +2026-10-23 Mitigation nach CTX697263: ACLs, die Port 80 und 443 der Management-Adressen sperren oder auf vertrauenswuerdige Quellen begrenzen.
+#   Das Script prueft je Management-Adresse (NSIP, SNIP mit -mgmtAccess), ob eine DENY-ACL mit dieser destIP und Port 80 oder 443 existiert.
+MGMT_ACL_RE='^add ns acl [^ ]+ DENY .*-destIP (= )?NSIP_PLACEHOLDER .*-destPort (= )?(80|443)'
 # Stock-Hashes von Systemdateien je Build (ab Script-V12): '<pfad relativ zu />::<sha256>::<build>' je Zeile, leer = nur Ausgabe
 # des Ist-Hashes im Report ohne Bewertung. Erster Kandidat: netscaler/ns_monuploadd_err.pl (Mechanismus von CVE-2026-88771).
 # +2026-10-14b Lab 14.1-73.46, Erstinstallation 2026-10-14, kein SAML, keine Spuren. FIPS-Builds: Wert nicht bekannt (dann nur Info).

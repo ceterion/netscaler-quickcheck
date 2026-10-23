@@ -30,7 +30,7 @@ Sicherheits-Triage für Citrix NetScaler ADC und Gateway, auf der Appliance: Bui
 - **Die Firewall füttern und dann prüfen, ob es hält.** Jeder Lauf schreibt die fremden Adressen, die er gesehen hat, nach Kategorie (Download-Host, Dropper-Anfrage, Sondierungsquelle, Spraying-Maschine, Schläfer, Treffer) in eine Liste je Lauf und eine kumulierte Liste je Appliance: zuerst gesehen, zuletzt gesehen, Tage, Anzahl je Fenster. Was du sperrst, kommt mit Datum in `ns_quickcheck.blocked_ips`; der nächste Lauf markiert abgedeckte Befunde Orange und meldet "Sperre greift nicht" für jede Adresse, die trotzdem noch ankommt.
 - **Weitergeben können.** Anonymisierte Fassungen mit stabiler Zuordnung je Appliance; Konten- und Hostnamen maskiert, Angreiferwerte erhalten, Adresslisten nach Kategorie für Firewall und SOC.
 - **Zwei Prompts, eine Regeldatei.** Das Repository enthält die zwei Prompts, mit denen die Regeln entstehen: einen Recherche-Prompt, der die Fakten eines Bulletins nur bei Erstveröffentlichern sammelt, mit URL und Datum je Wert, und einen Regel-Prompt, der daraus einen Patch im Format der Regeldatei macht. Jeder kann sie auf das nächste Bulletin oder auf eigene Befunde anwenden, den Patch mit `rules-apply.sh` einspielen und bekommt denselben Lint, dieselbe Herkunftsprüfung und dieselbe Dublettenprüfung wie wir. Die Methode liegt im Repo, nicht nur das Ergebnis.
-- **Den Regeln trauen.** Jeder Indikator auf seinen Erstveröffentlicher zurückgeführt, jedes Release durch 54 Testlogs, 6 Fixtures und drei Plattform-Lints; jede Schwelle dokumentiert und einstellbar.
+- **Den Regeln trauen.** Jeder Indikator auf seinen Erstveröffentlicher zurückgeführt, jedes Release durch 57 Testlogs, 7 Fixtures und drei Plattform-Lints; jede Schwelle dokumentiert und einstellbar.
 
 ## Was es prüft
 
@@ -43,7 +43,7 @@ Ein Lauf, sechs Blöcke, ein Verdict (`OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_
 - **Betreiberkontext**: eine Sperrliste (an der Firewall bereits gesperrte Adressen) macht abgedeckte Befunde Orange, eine Whitelist nimmt bestätigte Änderungen heraus, die Schwellen der Kontenprüfungen stehen in einer Config.
 - **Ausgaben**: Report, JSON, Adresslisten je Lauf und kumuliert nach Kategorie, anonymisierte Fassungen für die Weitergabe. `coverage=partial` in der RESULT-Zeile heißt, eine Kernprüfung hatte keine Daten; das Verdict ist dann nie `OK`.
 
-Testbasis: 54 Testlogs, 6 Fixtures und drei Plattform-Lints vor jedem Release (`docs/release.sh`). Details: `ns_quickcheck_README.md`, Abschnitte 4.3 (Schwellen) und 6 (Blöcke).
+Testbasis: 57 Testlogs, 7 Fixtures und drei Plattform-Lints vor jedem Release (`docs/release.sh`). Details: `ns_quickcheck_README.md`, Abschnitte 4.3 (Schwellen) und 6 (Blöcke).
 
 ## Schnellstart
 
@@ -110,6 +110,7 @@ Alle Dateien tragen unversionierte Namen; die Version des Scripts steht im Heade
 | `WORKFLOW.de.md`, `WORKFLOW.md` | Betreiberablauf in sieben Schritten vom Bulletin zur verteilten Regeldatei (deutsch, englisch) |
 | `docs/release.sh` | erzeugt `ns_quickcheck.sh` aus dem versionierten Script, Lint, `--testlog`, Fixture-Läufe |
 | `docs/PLATFORM.de.md` | Plattformbefunde: Absturz der NetScaler-`sh` bei Klammergruppen in `$( )`, Stock-Listener, Aliase, Logformate |
+| `docs/releases/` | Release-Notes je Version (`v17.30.md`) und je Regelstand (`rules-<datum>.md`); zugleich der Text des GitHub-Releases |
 | `docs/testdata/` | Regeldatei-Stände für Prompt-Abnahmetest und Präfix-Prüfung; `fixtures/clean` und `fixtures/compromised` für den vollen Offline-Lauf mit erwarteten Verdicts (`fixture-expected.txt`), nie auf eine Appliance kopieren |
 | `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | Meldewege und Issue-Vorlagen für Fehlalarme und übersehene Indikatoren |
 | `docs/testlogs/` | Testlogs je CVE plus `clean.log`, `admin-audit.log`, `expected.txt`, `herkunft.md`; Lauf mit `--testlog`, nie auf eine Appliance kopieren |
