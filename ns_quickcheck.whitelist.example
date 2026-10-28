@@ -1,37 +1,22 @@
-# ns_quickcheck.whitelist.example - Vorlage. Auf der Appliance als ns_quickcheck.whitelist anlegen (root:wheel 600); fehlt die
-# Datei, laeuft der Quickcheck ohne Ausnahmen. Die Vorlage wird bei Updates mitgeliefert, die Betreiberdatei nie ueberschrieben.
-# ns_quickcheck.whitelist - bekannte, gewollte Abweichungen dieser Appliance
-# Copyright 2026 ceterion AG
-# SPDX-License-Identifier: Apache-2.0
+# ns_quickcheck.whitelist - Ausnahmen je Appliance. Neben das Script legen (Rechte 600). Eine Regel je Zeile: <typ>:<regex>
+# Typen: webfile (Web-Datei seit Boot geaendert), user (System-User), listener (Port/Prozess), path (Dateipfad), cron (Crontab-Zeile)
 #
-# Bereitgestellt "AS IS", ohne Gewaehrleistung oder Garantie irgendeiner Art, ausdruecklich oder
-# stillschweigend, einschliesslich Marktgaengigkeit und Eignung fuer einen bestimmten Zweck. Nutzung
-# auf eigene Verantwortung. Ein Verdict dieses Werkzeugs ersetzt keine forensische Untersuchung und
-# keine Aussage des Herstellers. Haftung im gesetzlich zulaessigen Umfang ausgeschlossen.
-# Siehe LICENSE und DISCLAIMER.md im Repository.
+# webfile hat drei Formen, keine andere:
+#   Verzeichnis   webfile:^/var/netscaler/logon/themes/MeinTheme/            endet mit /   alles darunter, nie Code; NICHT EMPFOHLEN (WORKFLOW, ACHTUNG)
+#   Datei         webfile:^/var/netscaler/logon/.../style\.css$             endet mit $   genau diese Datei
+#   Datei + Pin   webfile:^/var/netscaler/logon/.../script\.js$@sha256=<64 hex>           genau dieser Stand; Pflicht fuer Code
+#   Pin-Zeilen erzeugen: sh /var/nssnapshot/ns_quickcheck.sh --pin <verzeichnis>   (vorher Diff gegen Vorversion)
+# Punkte maskieren (\.), Pfade so eng wie moeglich, Kommentarzeile mit Datum und Ticket darueber.
 #
-# Provided "AS IS", without warranty of any kind, express or implied, including merchantability and
-# fitness for a particular purpose. Use at your own risk. A verdict of this tool does not replace a
-# forensic investigation or a vendor statement. Liability excluded to the extent permitted by law.
-# Ablage: /var/nssnapshot/ns_quickcheck.whitelist, Besitzer root, Rechte 600.
-# Eine Regel pro Zeile: <typ>:<regex>   (Regex im ERE-Dialekt, Groß-/Kleinschreibung relevant)
-# Zeilen mit # sind Kommentare. Jede Regel braucht eine Begruendung im Kommentar darueber.
+# 2026-10-15 CHG-1234 Theme BETREIBER: Pins je Datei, erzeugt mit --pin-all /var/netscaler/logon/themes/BETREIBER/ nach dem Diff
+#webfile:^/var/netscaler/logon/themes/BETREIBER/style\.css$@sha256=<64 hex>
+#webfile:^/var/netscaler/logon/themes/BETREIBER/script\.js$@sha256=<64 hex>
+#webfile:^/var/netscaler/gui/admin_ui/common/images/favicon\.ico$
+# 2026-10-23 CHG-1301 Portal-Anpassung; Code gepinnt nach Diff
+#webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/script\.js$@sha256=<64 hex>
 #
-# Typen:
-#   user:      lokaler System-User, der nicht als Gelb gemeldet wird
-#   listener:  Zeile aus sockstat -4l (Prozess, User, Adresse), die nicht als Rot gemeldet wird
-#   path:      Dateipfad in Web-/Temp-Verzeichnissen, der nicht gemeldet wird
-#   cron:      root-Crontab-Zeile, die nicht gemeldet wird
-#   webfile:   Web-Datei, deren Aenderung seit Boot nicht gemeldet wird
-#   mitigation: Muster (Regex), das an MITIGATION_RULE_RE angehaengt wird: Namen oder Ausdruecke der
-#              eigenen Responder-/Traffic-Policies, damit sie als Mitigation erkannt werden
-#
-# Beispiele (auskommentiert):
-# Zweites dienstliches Lesekonto (der Service-User aus CLI_USER braucht keinen Eintrag)
-#user:^monitoring-ro$
-# Eigene Mitigation-Policies: Namen der Policy Expressions oder Ausdrucksteile, Change CHG0012340
-#mitigation:px_lp_|px_cmd|adfs/ls
-# Custom-Monitoring des Betreibers, Perl-Listener auf 41500, Change CHG0012345
-#listener:^perl .* \*:41500$
-# Theme-Anpassung des Betreibers, wird vom Portal-Team gepflegt
-#webfile:^/var/netscaler/logon/themes/BETREIBER/
+# weitere Typen:
+#user:^svc_monitoring$
+#listener:^tcp4 .*:8443 .*nsnetsvc
+#path:^/var/tmp/betreiber-skript\.sh$
+#cron:^0 3 \* \* \* root /var/nssnapshot/ns_snapshot\.sh

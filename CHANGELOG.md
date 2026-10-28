@@ -1,5 +1,55 @@
 # Changelog
 
+## v17.42 (2026-10-28)
+
+Cores: komprimierte Dateien dem Ereignis zugeordnet; Verzeichnis-Cores `/var/core/<n>` leer und kurz nach Boot als INFO (`CORE_BOOT_LEVEL`), sonst Gelb; Verdict-Satz zur Mitigation nur bei offener CVE; Regelstand 2026-10-28e mit Stock-Hash 73.49. Freeze.
+
+## v17.41 (2026-10-28)
+
+Abstürze: jedes Ereignis mindestens Gelb; Rot bei nsaaad mit SAML ab dem zweiten Ereignis am Tag, httpd bei offenem PHP2Shell, nsppe mit DTLS, drei Ereignissen eines Prozesses am Tag, demselben Prozess an drei Tagen (`ns_quickcheck_observed_crashes.tsv`), Anfrage von außen in den 120 s davor (`crash_trigger`). Neue Belege: Apache-Worker-Abstürze (`HTTPERR_CRASH_RE`), Core ohne Logzeile, Kernel-Panic (`KERNEL_PANIC_RE`), Speicherdruck (`KERNEL_MEM_RE`), Neustart ohne Befehl. `crashes=` in RESULT. Regelstand 2026-10-28d.
+
+## v17.40 (2026-10-28)
+
+Pitboss-Prozesszeilen (`proc <name> (<pid>) SIGNALED` / `EXITED with status 0x8b`) im Ereignis, Signal aus dem Exit-Status; Ereigniszeiten einheitlich aus dem Syslog-Kopf (Lokalzeit). Regelstand 2026-10-28c.
+
+## v17.39 (2026-10-28)
+
+Prozessabstürze: Restart-Zähler je Ereignis, Core-Belege als Dateien `/var/core/<proc>-<pid>` und Verzeichnisse, je Ereignis angehängt; Regelstand 2026-10-28b mit drei weiteren Pitboss-/Kernel-Zeilenarten aus dem Lab.
+
+## v17.38 (2026-10-28)
+
+Verdict nennt offene CVEs, Bulletins und Ziel-Build; `vuln96` nur noch CTX697096, neues Feld `vuln_open`; Anmelde-Zusammenfassung mit Konto je Quelle; Anonymisierung maskiert Hostnamen aus URLs und NT-/DNS-Domänen aus Config-Werten (Lab-Lauf: StoreFront-URL und Domäne standen im Klartext).
+
+## v17.37 (2026-10-28)
+
+CVE-Tabelle: Fix-Build `pending` (kein Fix-Build veröffentlicht, jeder Build des Trains verwundbar), `rules-apply.sh` 2.5, Format 2 1.4. Research-Prompt v17 (Fix-Builds nur aus dem CTX-Artikel, `pending`, "Updated On" lesen), Regel-Prompt v8 (echter Schnitt auf Format 2). Kleinkram: Testlog-Platzhalter `1.1.1.1` ersetzt, `docs/testdata/README.md` ohne gelöschte Stände, Runbook Schritt 7 nur Citrix-IoC-Scan, `release.sh` räumt Zuordnungstabellen vor der Laufdatei-Prüfung.
+
+## v17.36 (2026-10-27)
+
+Regelstand 2026-10-28: Fix-Builds für PHP2Shell (CTX697263, Update vom 27.10.) auf 14.1-73.49, 13.1-64.32, 14.1-FIPS 73.49, 13.1-FIPS 37.286 korrigiert; die Stände 2026-10-23 und 2026-10-27 hatten die Fix-Builds des SAML-Bulletins eingetragen und Appliances auf 73.41 bis 73.46 fälschlich als gefixt gemeldet. Fixtures für gefixte Appliances auf 73.49.
+
+Zeitstempel je Web-Datei über perl (awk-`strftime` fehlte auf der Appliance), Plattform-Lint 4 gegen GNU-awk-Funktionen; Verzeichnisregeln der Whitelist nicht empfohlen (INFO im Kopf, ACHTUNG-Block in WORKFLOW beider Sprachen, Vorlage nur mit Pins).
+
+## v17.35 (2026-10-27)
+
+`--pin-all <pfad>` (Pin-Zeilen für alle Dateien, nicht nur Code); WORKFLOW beider Sprachen mit Abschnitt "Whitelist: mit Hash je Datei".
+
+## v17.34 (2026-10-27)
+
+Whitelist mit drei Regelformen (Verzeichnis `/`, Datei `$`, Datei mit Pin `$@sha256=`); Verzeichnisregeln decken keinen Code ab, Dateiregeln auf Code nur mit Pin; WARN nur noch für Regeln, die keiner Form entsprechen. `--pin <pfad>` erzeugt Pin-Zeilen. Web-Dateien mit Änderungszeit, vollständig im Report, ab 20 je Verzeichnis gruppiert. Zuordnungstabelle übergeht ungültige `user`-/`mail`-Einträge beim Laden. README 15 Howto Whitelist als Fünf-Schritte-Anleitung, Vorlage neu.
+
+## v17.33 (2026-10-27)
+
+Anonymisierer: Konten unter 3 Zeichen und reservierte Reportwörter kommen nicht in die Zuordnungstabelle (vorher machte ein Konto `info` aus `[INFO]` ein `[userNNN]`, ein Konto `-` ersetzte jeden Bindestrich). Web-Dateien: Einordnung über alle geänderten Dateien statt nur die angezeigten; ausführbare Dateien nie als Theme-Anpassung, eigener Hinweis "Diff gegen Vorversion". Whitelist: Hash-Pin `webfile:<regex>@sha256=<hash>`, WARN bei Regeln ohne `$`, Kopfzeile "Whitelist: nicht vorhanden". Zeitspanne der Sondierung chronologisch. Fixture `aaa-dup` (Doppelzählung über `ns.log` und `messages` ausgeschlossen).
+
+## v17.32 (2026-10-27)
+
+Selbsttreffer beseitigt: `nsprofmon_mgmt.pl`-Zeilen (CPU-Momentaufnahmen mit den Kommandozeilen von grep und perl des Quickcheck samt Suchmustern) werden beim Lesen der Syslog-Familie abgezweigt und nur noch mit `SUSPECT_PROC_RE` geprüft; identische Zeilen aus `ns.log` und `messages` zählen einmal. Block 4 zeigt deshalb weniger Treffer als 17.31, nicht weil weniger passiert. Prozessabstürze generisch als Ereignisse je Prozess und PID (Pitboss, Kernel, `/var/core/<n>`), Regelstand 2026-10-27 mit verankerten Mustern; nsaaad wie bisher bewertet, httpd mit Bezug CTX697263, nsppe mit DTLS Rot. Anonymisierte Adresslisten (`_ips_anon.tsv`, `ns_quickcheck_observed_ips_anon.tsv`) und Share-Datei `_share.tsv` für die Weitergabe an ceterion (belastbare Kategorien, keine Appliance-Kennung). Testlog `pitboss-crash.log`, Fixture `crash`.
+
+## v17.31 (2026-10-27)
+
+Vertrauensliste `ns_quickcheck.trusted_ips` (`adresse ; bis ; Bemerkung`, `--trusted`): vertraute Adressen gelten bei Management, SSH und Anmeldefehlern als intern, fallen aus Versuchs-Befunden heraus und erscheinen gesammelt als `[TRUST]` in Blau ohne Verdict-Wirkung (`TRUST_LEVEL=yellow` macht Gelb daraus); Wirkungs-Befunde bleiben Rot. Ablaufdatum, Konflikt mit der Sperrliste als WARN, einmaliges Gelb beim Wechsel von Angreifer- zu Vertrauensliste, `trusted_<art>` in den Adresslisten, `trusted_seen=` in RESULT, Liste `trust` im JSON. Fußzeile mit Werkzeug, Version, Regelstand und Quelle (`FOOTER=1` Vorgabe), `source_url` im JSON. Fixture `trusted`.
+
 ## v17.30 (2026-10-23)
 
 CTX697263 (PHP2Shell, CVE-2026-109618 und 109619 im Management-Portal), Regelstand 2026-10-23. Script: `vuln63` in RESULT; Block 2 zeigt Management-Adressen und die Citrix-Mitigation (DENY-ACLs auf Port 80/443, `MGMT_ACL_RE`); Block 4b prüft PHP-Speicher- und Fatal-Muster auch im `admin_ui` (`HTTPERR_PHP_ANOMALY_RE`, Schwelle `PHP_ANOMALY_MIN`): INFO auf gefixtem Build, Gelb auf verwundbarem, Rot mit neuer PHP-Datei im Fenster (Block 5). Heuristik, keine veröffentlichte Signatur. Testlog `httperror-php.log`, Fixture `php2shell`. Bestehende Prüfungen unverändert.
@@ -45,6 +95,8 @@ Erstes Release nach dem zurückgezogenen v15.1; Regelstand 2026-10-22b. Die Einz
 - README neu (Schnellstart, Verdict-Entscheidungstabelle, Optionen, Sicherheitsbetrachtung, FAQ, Glossar); unversionierte Dateinamen im Repo, Versionen im Dateikopf; Regel-Changelog beginnt mit dem ersten veröffentlichten Regelstand
 
 **Geplant (V18)**
+- Stock-Manifest je Build (Hashes aller Web- und Management-Dateien aus einer frischen Installation; Block 5 unterscheidet Stock, veränderte Stock-Datei und neue Datei; löst das Whitelist-Pflegeproblem)
+- Adress-Feed aus Share-Dateien der Betreiber (Collector: Dedupe, Zwei-Appliances-Regel, Verfall, Abuse-Prozess)
 - `WEBSHELL_NAME_RE`: Webshell-Namen als Muster über die Web-Verzeichnisse statt exakter Pfade; Anlass Zscaler 16.10. (`Nx_<nummer>.php/.pl/.html`, Nummer je Angriffsinstanz anders)
 - "Neu gegenüber dem letzten Lauf": Befunde, die seit n Läufen unverändert bestehen, als bekannt markieren; nur Neues oben
 - `--language en` mit Nachrichtenkatalog; englische Hauptdoku

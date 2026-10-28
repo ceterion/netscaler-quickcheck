@@ -16,7 +16,7 @@
 # NetScaler ADC / Gateway - Sicherheits-Triage auf der Appliance: ein Lauf, ein Verdict. Entstanden fuer CTX697096,
 # CTX697174 und CTX697191, gebaut fuer die Bulletins danach.
 #
-# Version : 17.30 (2026-10-23)
+# Version : 17.42 (2026-10-28)
 # Autor   : ceterion AG, Jens Miltenberger
 # Plattform: NetScaler 13.1 / 14.1 (FreeBSD), /bin/sh. Offline auch Linux/macOS/WSL.
 # Dateien : ns_quickcheck.conf (optional), ns_quickcheck.rules, ns_quickcheck.whitelist (optional)
@@ -59,6 +59,74 @@
 # Exit-Codes: 0 OK, 1 INVESTIGATE, 2 UPDATE oder FORENSICS_FIRST, 3 Fehler
 #
 # Changelog
+#   17.42 2026-10-28 Cores: komprimierte Dateien (<proc>-<pid>.gz) werden dem Ereignis zugeordnet statt als Phantom-
+#                    Ereignis gezaehlt; nummerierte Verzeichnisse /var/core/<n> gelten als Verzeichnis-Core (Prozess
+#                    unbekannt): leer und innerhalb 15 min nach Boot = INFO "Boot-Nachlauf" (CORE_BOOT_LEVEL=info, Vorgabe;
+#                    yellow macht Gelb daraus), sonst Gelb als Ereignis. Verdict: Mitigation-Satz nur bei offener CVE.
+#                    Regelstand 2026-10-28e: Stock-Hash 14.1-73.49 (Lab und Betreiber). Freeze.
+#   17.41 2026-10-28 Abstuerze, Linie "lieber mehr": jedes Ereignis mindestens Gelb; Rot bei nsaaad mit SAML ab dem zweiten
+#                    Ereignis in 24 h, httpd bei offenem PHP2Shell, nsppe mit DTLS-Fehlern, jedem Prozess ab drei Ereignissen
+#                    in 24 h, demselben Prozess an drei Tagen (kumulierte Datei ns_quickcheck_observed_crashes.tsv), und bei
+#                    einer SAML-Anfrage oder einem externen Management-Request in den 120 s vor dem Absturz (Adresse als
+#                    crash_trigger in die Adresslisten). Neue Belege: Apache-Worker-Abstuerze im Fehlerlog (HTTPERR_CRASH_RE),
+#                    Core-Datei ohne Logzeile, Neustart ohne reboot/shutdown im Audit-Log, Kernel-Panic (KERNEL_PANIC_RE),
+#                    Speicherdruck (KERNEL_MEM_RE). crashes=<n> in RESULT und JSON. Regelstand 2026-10-28d.
+#   17.40 2026-10-28 Prozessabstuerze: Zeilen des Pitboss-Prozesses selbst ("proc <name> (<pid>) SIGNALED" / "EXITED with status
+#                    0x8b") werden dem Ereignis zugeordnet; das Signal wird aus dem Exit-Status (128 + n) abgeleitet, wenn
+#                    keine Kernel-Zeile vorliegt (Regelstand 2026-10-28c, Lab 28.10.).
+#   17.39 2026-10-28 Prozessabstuerze: Restart-Zaehler je Ereignis (aus der folgenden "New pid"-Zeile) statt Hoechstwert je
+#                    Prozess; Core-Belege als Dateien /var/core/<proc>-<pid> und Verzeichnisse /var/core/<n>, je Ereignis an
+#                    die Zeile gehaengt; neue Zeilenarten "collecting core dump on", "Adding pitboss watch", Kernel "Core dump
+#                    of pid" (Regelstand 2026-10-28b, Lab 28.10.).
+#   17.38 2026-10-28 Verdict nennt die offenen CVEs und Bulletins mit Ziel-Build (bisher fest CTX697096 und leeres Ziel);
+#                    vuln96 nur noch fuer CTX697096-Zeilen, neues RESULT-Feld vuln_open=<n> (Zahl offener CVEs); Anmelde-
+#                    Zusammenfassung mit Konto je Quelle; Anonymisierung liest Hostnamen aus URLs und Domaenen aus
+#                    -ntDomain/-domain/-dnsSuffix/-searchFilter in ns.conf-Werten (Lab-Lauf 28.10.: StoreFront-URL und
+#                    NT-Domaene standen im Klartext in der anon-Fassung).
+#   17.37 2026-10-28 CVE-Tabelle: Fix-Build "pending" = Hersteller hat noch keinen Fix-Build veroeffentlicht; jede Appliance
+#                    des Trains gilt als verwundbar, Befund nennt "Fix-Build noch nicht veroeffentlicht (Stand <Regelstand>)".
+#                    Anlass: CTX697263 hatte vom 22. bis 27.10. keinen Fix-Build; der Regelstand 2026-10-23 trug die Builds
+#                    eines anderen Bulletins ein. Mit pending waere der Fehler nicht moeglich gewesen (Format 2, 1.4).
+#   17.36 2026-10-27 Zeitstempel je Web-Datei ueber perl statt awk-strftime (BWK-awk kennt strftime nicht, die Zeiten
+#                    fehlten auf der Appliance); Kopfzeile zaehlt Verzeichnisregeln der Whitelist als INFO (nicht empfohlen,
+#                    Pins je Datei verwenden). Plattform-Lint 4 gegen GNU-awk-Funktionen.
+#   17.35 2026-10-27 --pin-all <pfad>: Pin-Zeilen fuer alle Dateien unter dem Pfad (nicht nur Code), fuer die Whitelist mit
+#                    Hash je Datei (WORKFLOW, Abschnitt Whitelist).
+#   17.34 2026-10-27 Whitelist mit drei Regelformen: Verzeichnis (endet mit /; deckt nie Code ab), Datei (endet mit $),
+#                    Datei mit Pin ($@sha256=<hash>, Pflicht fuer Code: .js .php .pl .sh .cgi .py plugins.xml). WARN nur noch
+#                    fuer Regeln, die keiner Form entsprechen, und fuer Dateiregeln auf Code ohne Pin. --pin <pfad> gibt
+#                    fertige Pin-Zeilen fuer alle Code-Dateien darunter aus. Web-Dateien: Report listet alle nicht freigegebenen
+#                    Dateien mit Aenderungszeit (neueste zuerst), Terminal 8 plus "n weitere"; ab 20 Dateien je Verzeichnis
+#                    gruppiert (Code bleibt einzeln). Zuordnungstabelle: user-/mail-Eintraege unter 3 Zeichen oder mit
+#                    Reportwoertern werden beim Laden uebergangen (INFO), Tabelle bleibt unveraendert.
+#   17.33 2026-10-27 Anonymisierer: Konten unter 3 Zeichen und reservierte Woerter (OK, INFO, WARN, GELB, ROT, ORANGE, TRUST,
+#                    ACTION, RESULT, user, root, nsroot u. a.) kommen nicht in die Zuordnungstabelle; Benutzer "-" nie.
+#                    Web-Dateien: Einordnung ("Ergebnis") ueber alle geaenderten Dateien statt nur ueber die angezeigten;
+#                    ausfuehrbare Dateien (.js, .php, .pl, .sh, .cgi, plugins.xml) nie als Theme-Anpassung, eigener Hinweis
+#                    "ausfuehrbarer Code, Diff gegen Vorversion". Whitelist: optionaler Hash-Pin webfile:<regex>@sha256=<hash>
+#                    (Treffer nur bei gleichem Hash, sonst "freigegebene Datei erneut geaendert"), WARN bei webfile-Regeln
+#                    ohne abschliessendes $; Kopfzeile "Whitelist: nicht vorhanden". Zeitspanne der Webshell-Sondierung
+#                    chronologisch. Regressionstest AAA mit duplizierten Zeilen (Fixture aaa-dup).
+#   17.32 2026-10-27 Anonymisierte Adresslisten (_ips_anon.tsv je Lauf, ns_quickcheck_observed_ips_anon.tsv kumuliert:
+#                    ohne Hostname, Bemerkungen der Sperr- und Vertrauensliste entfernt) und Share-Datei _share.tsv fuer
+#                    die Weitergabe an ceterion (nur belastbare Kategorien, keine Appliance-Kennung). Selbsttreffer und Prozessabstuerze: nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen, die den eigenen
+#                    grep und perl des Quickcheck samt Suchmustern loggen) werden beim Lesen der Syslog-Familie abgezweigt
+#                    und nur noch mit SUSPECT_PROC_RE geprueft; identische Zeilen aus ns.log und messages zaehlen einmal
+#                    (catns). Prozessabstuerze generisch: Pitboss- und Kernel-Zeilen (PITBOSS_RE, KERNEL_EXIT_RE, Regel-
+#                    stand 2026-10-27) werden zu Ereignissen je Prozess und PID mit Signal, Restart-Zaehler und Core-
+#                    Verzeichnis /var/core/<n> im Fenster; nsaaad wie bisher bewertet (Gelb, Rot mit SAML und offener
+#                    SAML-CVE), httpd Gelb mit Bezug CTX697263, nsppe mit DTLS-Fehlern Rot, andere INFO. Altes Muster als
+#                    NSAAAD_CRASH_LEGACY_RE: Treffer nur dort ergeben INFO "unbekanntes Format". Core-Verzeichnisse auch
+#                    ohne Logzeile (Rotation). Hinweis: Block 4 zeigt gegenueber 17.31 weniger Treffer, weil die
+#                    Selbsttreffer wegfallen, nicht weil weniger passiert.
+#   17.31 2026-10-27 Vertrauensliste ns_quickcheck.trusted_ips (adresse ; bis ; Bemerkung) oder --trusted <pfad>:
+#                    vertraute Adressen gelten bei Management, SSH und Anmeldefehlern als intern, fallen aus Versuchs-
+#                    Befunden heraus (Sondierung, Dropper, Spraying, Brute Force, Schlaefer) und erscheinen gesammelt
+#                    als [TRUST] in Blau ohne Verdict-Wirkung (TRUST_LEVEL=trust|yellow); Wirkungs-Befunde bleiben Rot
+#                    mit Zusatz. Ablaufdatum, Konflikt mit der Sperrliste als WARN, einmaliges Gelb beim Wechsel von
+#                    Angreifer- zu Vertrauensliste, Kategorie trusted_<art> in den Adresslisten, trusted_seen= in RESULT,
+#                    Liste trust im JSON. Fusszeile mit Werkzeug, Version, Regelstand und Quelle (FOOTER=1 Vorgabe,
+#                    FOOTER=0 schaltet ab), source_url im JSON.
 #   17.30 2026-10-23 CTX697263 (PHP2Shell, CVE-2026-109618/109619 im Management-Portal): vuln63 in RESULT; Block 2 zeigt
 #                    die Management-Adressen (NSIP, SNIPs mit mgmtAccess) und ob die von Citrix empfohlenen DENY-ACLs auf
 #                    Port 80/443 existieren (MGMT_ACL_RE); Block 4b prueft PHP-Speicher- und Fatal-Muster im Webserver-
@@ -246,7 +314,7 @@
 PATH=/netscaler:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin; export PATH
 LC_ALL=C; export LC_ALL
 umask 077
-VERSION="17.30"; RULES_MIN="2026-10-23"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
+VERSION="17.42"; RULES_MIN="2026-10-23"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
 SELF="$0"; case "$SELF" in /*) ;; *) SELF="$(pwd)/$SELF" ;; esac
 SELFDIR=$(cd "$(dirname "$SELF")" 2>/dev/null && pwd || dirname "$SELF")
 BASE_DIR=/var/nssnapshot
@@ -263,13 +331,16 @@ AAA_SLEEPER_DAYS=2      # Schlaefer: Fehlversuche an so vielen verschiedenen Tag
 AAA_BF_MIN=20           # Brute Force: ab so vielen Fehlversuchen auf ein einzelnes Konto im Fenster (von beliebig vielen Adressen)
 AAA_RATE=10             # Fehlversuche je Minute, ab denen eine Adresse als Maschine gilt
 AAA_FAIL_USERS=10       # ab so vielen verschiedenen Benutzernamen mit Fehlversuch von einer Adresse Gelb (Password Spraying)
+CORE_BOOT_LEVEL=info    # leeres Core-Verzeichnis /var/core/<n> innerhalb 15 min nach Boot: info (Boot-Nachlauf) oder yellow (als Absturz-Ereignis)
+TRUST_LEVEL=trust       # [TRUST] (Blau, ohne Verdict-Wirkung) oder yellow (als Gelb, mit Verdict-Wirkung)
+FOOTER=1                # Fusszeile "Erstellt mit netscaler-quickcheck ..." im Report und in den anon-Fassungen; 0 = aus
 PHP_ANOMALY_MIN=3       # PHP-Speicher-/Fatal-Muster im Management-Portal: ab so vielen Zeilen im Fenster wird gemeldet (CTX697263)
 PROBE_LEVEL=yellow      # Webshell-Sondierungen: yellow (Vorgabe) oder info (nur Zaehlung, kein Einfluss auf das Verdict)
 MGMT_NET_RE=""          # ERE fuer erlaubte Management-Adressen (z. B. "^10\.1\.|^192\.168\.10\."); leer = nur RFC 1918 gilt als intern
 DETAIL_MAX=0            # Zeilen je Detailliste in Terminal und Report; 0 = alles (Vorgabe)
 RULES_FILE=""
 TESTLOG=""
-WHITELIST_FILE=""; BLOCKED_FILE=""
+WHITELIST_FILE=""; BLOCKED_FILE=""; TRUSTED_FILE=""; PIN_PATH=""; PIN_ALL=0
 CLI_USER=""
 CLI_SECRET_FILE="$BASE_DIR/ns_snapshot.secret"
 CLI_TIMEOUT=20
@@ -308,11 +379,12 @@ fi
 # --- Argumente (haben Vorrang) -------------------------------------------------
 while [ $# -gt 0 ]; do
   case "$1" in
-    --hours|--from|--compare|--testlog|--rules|--whitelist|--blocked|--conf|--out|--anon)
+    --pin|--pin-all) [ $# -ge 2 ] && [ -n "$2" ] || { echo "ERROR: $1 braucht einen Pfad: $1 <verzeichnis oder datei>" >&2; exit 3; }; PIN_PATH="$2"; [ "$1" = "--pin-all" ] && PIN_ALL=1; shift ;;
+    --hours|--from|--compare|--testlog|--rules|--whitelist|--blocked|--trusted|--conf|--out|--anon)
       [ $# -ge 2 ] && [ -n "$2" ] || { echo "ERROR: $1 braucht einen Wert: $1 <wert> oder $1=<wert>" >&2; exit 3; }
       case "$1" in
         --hours) HOURS="$2" ;; --from) FROM="$2" ;; --compare) COMPARE="$2" ;; --testlog) TESTLOG="$2" ;;
-        --rules) RULES_FILE="$2" ;; --whitelist) WHITELIST_FILE="$2" ;; --blocked) BLOCKED_FILE="$2" ;; --conf) ;; --out) OUTFILE="$2" ;; --anon) ANON_FILE="$2" ;;
+        --rules) RULES_FILE="$2" ;; --whitelist) WHITELIST_FILE="$2" ;; --blocked) BLOCKED_FILE="$2" ;; --trusted) TRUSTED_FILE="$2" ;; --conf) ;; --out) OUTFILE="$2" ;; --anon) ANON_FILE="$2" ;;
       esac; shift ;;
     --hours=*)   HOURS="${1#--hours=}" ;;
     --from=*)    FROM="${1#--from=}" ;;
@@ -321,6 +393,7 @@ while [ $# -gt 0 ]; do
     --rules=*)   RULES_FILE="${1#--rules=}" ;;
     --whitelist=*) WHITELIST_FILE="${1#--whitelist=}" ;;
     --blocked=*) BLOCKED_FILE="${1#--blocked=}" ;;
+    --trusted=*) TRUSTED_FILE="${1#--trusted=}" ;;
     --conf=*)    ;;
     --out=*)     OUTFILE="${1#--out=}" ;;
     --no-out)    NO_OUT=1 ;;
@@ -398,9 +471,9 @@ CUSTOM_SHA=""; [ -r "${RULES_FILE}.custom" ] && CUSTOM_SHA=$(sha256_of "${RULES_
 # aus Block 4 (ADMIN_CMD_RE-Ausschluss, LOGON_HINT_RE-Vorfilter). Keine Appliance, keine Whitelist.
 if [ -n "$TESTLOG" ]; then
   : "${LOGON_HINT_RE:=}"; : "${TRIGGER_RE:=}"; : "${OBFUSC_RE:=}"; : "${CMD_NAMES:=}"; : "${LOGIN_PATH_RE:=}"
-  : "${NSAAAD_CRASH_RE:=}"; : "${DTLS_FAIL_RE:=}"; : "${PPE_CRASH_RE:=}"; : "${ADMIN_CMD_RE:=}"; : "${DROPPER_PATH_RE:=}"; : "${SUSPECT_PROC_RE:=}"; : "${HTTPERR_EXEC_RE:=}"; : "${HTTPERR_PROBE_RE:=}"; : "${AUTH_LOGIN_RE:=}"; : "${AUTH_FAIL_RE:=}"; : "${MGMT_PATH_RE:=}"; : "${AAA_FAIL_RE:=}"; : "${AAA_OK_RE:=}"; : "${HTTPERR_PHP_ANOMALY_RE:=}"
+  : "${NSAAAD_CRASH_RE:=}"; : "${NSAAAD_CRASH_LEGACY_RE:=}"; : "${PITBOSS_RE:=}"; : "${KERNEL_EXIT_RE:=}"; : "${HTTPERR_CRASH_RE:=}"; : "${KERNEL_MEM_RE:=}"; : "${KERNEL_PANIC_RE:=}"; : "${DTLS_FAIL_RE:=}"; : "${PPE_CRASH_RE:=}"; : "${ADMIN_CMD_RE:=}"; : "${DROPPER_PATH_RE:=}"; : "${SUSPECT_PROC_RE:=}"; : "${HTTPERR_EXEC_RE:=}"; : "${HTTPERR_PROBE_RE:=}"; : "${AUTH_LOGIN_RE:=}"; : "${AUTH_FAIL_RE:=}"; : "${MGMT_PATH_RE:=}"; : "${AAA_FAIL_RE:=}"; : "${AAA_OK_RE:=}"; : "${HTTPERR_PHP_ANOMALY_RE:=}"
   CMDRE="[;|&\`]([[:space:]]|%20)*($CMD_NAMES)([[:space:]<>;|&\`\$]|%20|%3B|\\\$|$)|(%3B|%7C|%26)($CMD_NAMES)(%20|%24|%3B|%7C|$)"
-  CHECKS="INJECTION TRIGGER_RE OBFUSC_RE CMD LOGIN_PATH_RE ATTACKER_IP_RE ATTACKER_DOM_RE NSAAAD_CRASH_RE DTLS_FAIL_RE PPE_CRASH_RE DROPPER_PATH_RE SUSPECT_PROC_RE HTTPERR_EXEC_RE HTTPERR_PROBE_RE AUTH_LOGIN_RE AUTH_FAIL_RE MGMT_PATH_RE AAA_FAIL_RE AAA_OK_RE HTTPERR_PHP_ANOMALY_RE"
+  CHECKS="INJECTION TRIGGER_RE OBFUSC_RE CMD LOGIN_PATH_RE ATTACKER_IP_RE ATTACKER_DOM_RE NSAAAD_CRASH_RE NSAAAD_CRASH_LEGACY_RE PITBOSS_RE KERNEL_EXIT_RE HTTPERR_CRASH_RE KERNEL_MEM_RE KERNEL_PANIC_RE DTLS_FAIL_RE PPE_CRASH_RE DROPPER_PATH_RE SUSPECT_PROC_RE HTTPERR_EXEC_RE HTTPERR_PROBE_RE AUTH_LOGIN_RE AUTH_FAIL_RE MGMT_PATH_RE AAA_FAIL_RE AAA_OK_RE HTTPERR_PHP_ANOMALY_RE"
   tl_count() { # $1 datei $2 pruefung
     case "$2" in
       INJECTION) grep -avE "$ADMIN_CMD_RE" "$1" | grep -aiE "$LOGON_HINT_RE" | grep -acE "$TRIGGER_RE|$OBFUSC_RE|$CMDRE" ;;
@@ -447,7 +520,11 @@ fi
 WL_OK=0; [ -f "$WHITELIST_FILE" ] && { safe_file "$WHITELIST_FILE" && WL_OK=1 || echo "WARN: Whitelist ignoriert (Rechte): $WHITELIST_FILE" >&2; }
 # wl <typ>: Regex-Alternation aller Whitelist-Regeln dieses Typs, leer wenn keine
 wl() { [ "$WL_OK" -eq 1 ] || return 0; grep -E "^$1:" "$WHITELIST_FILE" 2>/dev/null | sed "s/^$1://" | grep -v '^[[:space:]]*$' | tr '\n' '|' | sed 's/|$//'; }
-WL_USER=$(wl user); WL_LISTENER=$(wl listener); WL_PATH=$(wl path); WL_CRON=$(wl cron); WL_WEBFILE=$(wl webfile); WL_MITIG=$(wl mitigation)
+WL_USER=$(wl user); WL_LISTENER=$(wl listener); WL_PATH=$(wl path); WL_CRON=$(wl cron); WL_MITIG=$(wl mitigation)
+# webfile-Regeln: optionaler Hash-Pin "webfile:<regex>@sha256=<hash>"; ohne Pin wie bisher, mit Pin nur bei gleichem Hash
+WL_WEBFILE=$(wl webfile | tr '|' '\n' | sed 's/@sha256=[0-9a-f]*$//' | tr '\n' '|' | sed 's/|$//')
+WL_WEBPIN="$WORK/wl_webpin.tsv"; : > "$WL_WEBPIN"
+[ "$WL_OK" -eq 1 ] && grep -E '^webfile:.*@sha256=[0-9a-f][0-9a-f]*$' "$WHITELIST_FILE" 2>/dev/null | sed 's/^webfile://' | awk -F'@sha256=' 'length($2)==64 { printf "%s\t%s\n", $1, $2 }' > "$WL_WEBPIN"
 # filter_wl <regex>: Zeilen entfernen, die auf die Whitelist passen (leerer Regex = nichts filtern)
 filter_wl() { if [ -n "$1" ]; then grep -vE "$1"; else cat; fi; }
 
@@ -490,8 +567,13 @@ trap 'rm -rf "$WORK"' EXIT INT TERM HUP
 # Hostnamen, System-User ausser nsroot, Auth-Server-Namen, DNS-Suffixe, E-Mail-Adressen. Angreifer-Werte aus der
 # Regeldatei, Hashes, Pfade, Zeitstempel und Regelstaende bleiben. Schadensbegrenzung, kein Beweis: Stichprobe vor Weitergabe.
 ANON_MAP="$(dirname "$RULES_FILE")/ns_quickcheck.anon.${HOST}.map"
+ANON_RESERVED='^(OK|INFO|WARN|GELB|ROT|ORANGE|TRUST|ACTION|RESULT|HINWEIS|RED|YELLOW|user|root|nsroot|admin|none|null|true|false|host|ip|mail|bis|ab|seit|neu|ja|nein|und|oder|von|aus|auf|mit|im|in|an|zu|der|die|das|den|dem|des|ein|eine|the|and|for|not|log|conf|json|txt|tsv)$'
 anon_add() { # art original
   [ -n "$2" ] || return 0
+  if [ "$1" = user ] || [ "$1" = mail ]; then
+    [ "${#2}" -ge 3 ] || return 0                          # Konten unter 3 Zeichen (z. B. "-") nie maskieren: zu viele Treffer im Fliesstext
+    echo "$2" | grep -qiE "$ANON_RESERVED" && return 0     # reservierte Woerter des Reports nie als Konto behandeln
+  fi
   grep -qF "	$2	" "$ANON_MAP" 2>/dev/null && return 0
   n=$(grep -c "^$1	" "$ANON_MAP" 2>/dev/null); n=$((n+1))
   case "$1" in
@@ -537,6 +619,9 @@ anon_map_build() {
     for v in $(cg '^add server ' | awk '{print $3}'); do anon_add obj "$v"; done
     for v in $(cg ' -serverIP ' | sed 's/.*-serverIP \([0-9.]*\).*/\1/' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'); do anon_add ip "$v"; done
     for v in $(cg ' -(bindDn|ldapBase|searchFilter|ssoNameAttribute) ' | grep -oiE 'dc=[A-Za-z0-9-]+' | sed 's/^[dD][cC]=//' | awk 'length($0) >= 3' | sort -u); do anon_add obj "$v"; done
+    # Hostnamen aus URLs in Config-Werten (wihome, storefronturl, homePage, Redirects) und NT-/DNS-Domaenen
+    for v in $(cg '' | grep -oiE 'https?://[A-Za-z0-9.-]+' | sed 's#^[hH][tT][tT][pP][sS]*://##' | grep -E '^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' | sort -u); do anon_add dom "$v"; done
+    for v in $(cg ' -(ntDomain|domain|dnsSuffix|emailDomain|defaultAuthenticationGroup) ' | grep -oE -- '-(ntDomain|domain|dnsSuffix|emailDomain|defaultAuthenticationGroup) "?[^" ]+' | awk '{print $2}' | tr -d '"' | awk 'length($0) >= 3' | sort -u); do anon_add dom "$v"; done
     for v in $(cg ' -(bindDn|ldapBase) ' | grep -oiE '(cn|ou)=[A-Za-z0-9 ._-]+' | sed 's/^[cC][nN]=//; s/^[oO][uU]=//' | awk 'length($0) >= 4' | sort -u); do anon_add obj "$v"; done
     # Theme-Verzeichnisse ausserhalb der Stock-Themes
     for v in $(ls "$ROOT/var/netscaler/logon/themes" 2>/dev/null | grep -vE '^(Default|Greenbubble|Caxton|RfWebUI|X1|default|greenbubble|caxton|rfwebui|x1)$'); do anon_add theme "$v"; done
@@ -546,8 +631,10 @@ anon_apply() { # infile outfile
   # dynamisch: RFC-1918-Adressen und E-Mail-Adressen im Text nachtragen, dann perl-Ersetzung, laengste Werte zuerst
   for v in $(grep -oE '\b(10\.[0-9]{1,3}|192\.168|172\.(1[6-9]|2[0-9]|3[01]))\.[0-9]{1,3}\.[0-9]{1,3}\b' "$1" 2>/dev/null | sort -u); do anon_add ip "$v"; done
   for v in $(grep -oE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$1" 2>/dev/null | sort -u); do anon_add mail "$v"; done
-  MAP="$ANON_MAP" SECRETS="$WORK/anon.secrets" ANONMODE="${3:-report}" perl -e '
-    open(my $m,"<",$ENV{MAP}) or exit 1; my @r; while (<$m>) { chomp; my ($k,$o,$n)=split /\t/; push @r,[$k,$o,$n] if defined $n } close $m;
+  MAP="$ANON_MAP" SECRETS="$WORK/anon.secrets" ANONMODE="${3:-report}" RESERVED="$ANON_RESERVED" perl -e '
+    open(my $m,"<",$ENV{MAP}) or exit 1; my @r; my $res=$ENV{RESERVED}; while (<$m>) { chomp; my ($k,$o,$n)=split /\t/; next unless defined $n;
+      if ($k eq "user" || $k eq "mail") { next if length($o) < 3; next if $o =~ /$res/i }   # ungueltige Altlasten der Tabelle (17.33): nie ersetzen
+      push @r,[$k,$o,$n] } close $m;
     @r = sort { length($b->[1]) <=> length($a->[1]) } @r; my $sec=0;
     my $keys = "password|ldapBindDnPassword|radKey|tacacsSecret|secret|sharedSecret|clientSecret|pskKey|community|tsigKey|passplain|encryptionKey|kek|ikeKey";
     while (my $l=<STDIN>) {
@@ -587,7 +674,7 @@ if [ "$MODE" = online ] && [ -d "$REPORT_DIR" ]; then
 fi
 
 # --- Ausgabe -------------------------------------------------------------------
-if [ -t 1 ]; then R=$(printf '\033[31m'); G=$(printf '\033[32m'); Y=$(printf '\033[33m'); O=$(printf '\033[38;5;208m'); B=$(printf '\033[1m'); N=$(printf '\033[0m')
+if [ -t 1 ]; then R=$(printf '\033[31m'); G=$(printf '\033[32m'); Y=$(printf '\033[33m'); O=$(printf '\033[38;5;208m'); T=$(printf '\033[36m'); B=$(printf '\033[1m'); N=$(printf '\033[0m')
 else R=""; G=""; Y=""; B=""; N=""; fi
 # out <text> [screen] [farbe]: Klartext in die Datei (ohne Pipe, ohne Fork); Bildschirm bei --full,
 # screen=1 oder --no-out, dort mit Farbe. Kein Perl je Zeile mehr: die Pipe in einer Funktion innerhalb
@@ -599,6 +686,7 @@ out() {
       R) printf '%s%s%s\n' "$R" "$1" "$N" ;;
       Y) printf '%s%s%s\n' "$Y" "$1" "$N" ;;
       O) printf '%s%s%s\n' "${O:-$Y}" "$1" "$N" ;;
+      T) printf '%s%s%s\n' "${T:-}" "$1" "$N" ;;
       G) printf '%s%s%s\n' "$G" "$1" "$N" ;;
       B) printf '%s%s%s\n' "$B" "$1" "$N" ;;
       *) printf '%s\n' "$1" ;;
@@ -609,6 +697,7 @@ hdr()  { out "" 1; out "== $1 ==" 1 B; }
 red()  { out "  [ROT]   $1" 1 R; }
 yel()  { out "  [GELB]  $1" 1 Y; }
 org()  { out "  [ORANGE] $1" 1 O; }
+tru()  { out "  [TRUST] $1" 1 T; }
 grn()  { out "  [OK]    $1" "${2:-0}" G; }
 inf()  { out "  [INFO]  $1" "${2:-0}"; }
 # Detailzeilen (Logzeilen, Pfade): defanged, nicht druckbare Zeichen ersetzt, 200 Zeichen
@@ -619,6 +708,14 @@ show() {
 mtime_of() { perl -e '@s=stat($ARGV[0]); print $s[9] if @s' "$1" 2>/dev/null; }
 fmtdate()  { perl -MPOSIX -e 'print strftime("%Y-%m-%d %H:%M", localtime($ARGV[0]))' "$1" 2>/dev/null; }
 catlogs()  { for _f in "$@"; do [ -f "$_f" ] || continue; case "$_f" in *.gz) gzip -dc "$_f" 2>/dev/null ;; *) cat "$_f" 2>/dev/null ;; esac; done; }
+# catns: Syslog-Familie (ns.log, nsvpn.log, messages, notice.log). nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit den
+# Kommandozeilen laufender Prozesse, darunter grep und perl des Quickcheck samt Suchmustern) werden abgezweigt, damit kein
+# Check sich selbst findet; identische Zeilen aus mehreren Dateien (messages spiegelt ns.log) zaehlen einmal.
+NSPROF_FILE="$WORK/nsprofmon.txt"; : > "$NSPROF_FILE"
+catns() { catlogs "$@" | awk -v pf="$NSPROF_FILE" '/nsprofmon_mgmt\.pl/ { print >> pf; next } !seen[$0]++' ; }
+# before_syslog <epoch> <sekunden>: Syslog-Zeilen aus STDIN, deren Kopfzeit in [epoch-sekunden, epoch] liegt; before_apache dito fuer Access-Log-Zeilen
+before_syslog() { CE="$1" WIN="$2" perl -MTime::Local -ne 'my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); my $cy=(localtime)[5]+1900; if (/^([A-Z][a-z][a-z]) +(\d+) (\d\d):(\d\d):(\d\d)/) { my $e=timelocal($5,$4,$3,$2,$M{$1},$cy); print if $e >= $ENV{CE}-$ENV{WIN} && $e <= $ENV{CE} }'; }
+before_apache() { CE="$1" WIN="$2" perl -MTime::Local -ne 'my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); if (m{\[(\d+)/([A-Z][a-z][a-z])/(\d\d\d\d):(\d\d):(\d\d):(\d\d)}) { my $e=timelocal($6,$5,$4,$1,$M{$2},$3); print if $e >= $ENV{CE}-$ENV{WIN} && $e <= $ENV{CE} }'; }
 # die zwei juengsten Dateien eines Musters, unabhaengig vom Alter (fuer das KI-Bundle)
 logs_in_window_all() { ls -t "$LOGDIR"/$1 2>/dev/null | head -2; }
 cg()  { grep -iE -e "$1" "$NSCONF" 2>/dev/null; }
@@ -634,7 +731,9 @@ state_or() { _n="$1"; shift; if [ "$MODE" = offline ]; then cat "$STATE/$_n.txt"
 JRED="$WORK/red.txt"; JYEL="$WORK/yel.txt"; JFIND="$WORK/findings.tsv"; JIPS="$WORK/ips.tsv"; : > "$JRED"; : > "$JYEL"; : > "$JFIND"; : > "$JIPS"
 # ip_note <kategorie> <adresse> [anzahl] [quelle]: beobachtete fremde Adresse fuer die Adressliste; eigene und private Adressen nicht
 ip_note() { case "$2" in 10.*|192.168.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|127.*|0.*|169.254.*) return ;; esac
-  printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "${3:-1}" "${4:-}" "$(blocked_info "$2")" >> "$JIPS"; }
+  _ti=$(trusted_info "$2" 2>/dev/null)
+  if [ -n "$_ti" ]; then printf 'trusted_%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "${3:-1}" "${4:-} (trusted$( [ -n "${_ti#*|}" ] && echo " bis ${_ti#*|}"): ${_ti%%|*})" "$(blocked_info "$2")" >> "$JIPS"; trust_event "$2" "$1: ${3:-1} (${4:-})"
+  else printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "${3:-1}" "${4:-}" "$(blocked_info "$2")" >> "$JIPS"; fi; }
 # Sperrliste des Betreibers: ns_quickcheck.blocked_ips neben dem Script oder --blocked <pfad> (adresse_oder_netz TAB wo TAB seit TAB ticket TAB kommentar); dazu ACLs der Appliance
 [ -n "$BLOCKED_FILE" ] || BLOCKED_FILE="$SELFDIR/ns_quickcheck.blocked_ips"; BLOCKED_TAB="$WORK/blocked.tsv"; : > "$BLOCKED_TAB"
 if [ -r "$BLOCKED_FILE" ]; then
@@ -655,6 +754,38 @@ fi
 # ACLs der Appliance (DENY mit srcIP) gelten als Sperre "netscaler" ohne Datum: markiert, aber nicht abgedeckt
 cg '^add ns (simpleacl|acl6?|acl) ' | grep -i ' DENY' | grep -oE -- '-srcIP(6)? (= )?[0-9.]+(-[0-9.]+)?' | awk '{ v=$NF; sub(/-.*/, "", v); if (v ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) print v "\tnetscaler\t\t" }' | sort -u >> "$BLOCKED_TAB"
 BLOCKED_N=$(grep -c . "$BLOCKED_TAB"); BLOCKED_PRESENT=${BLOCKED_PRESENT:-0}
+# Vertrauensliste des Betreibers: ns_quickcheck.trusted_ips neben dem Script oder --trusted <pfad>; Format adresse_oder_netz ; bis ; Bemerkung
+[ -n "$TRUSTED_FILE" ] || TRUSTED_FILE="$SELFDIR/ns_quickcheck.trusted_ips"; TRUSTED_TAB="$WORK/trusted.tsv"; : > "$TRUSTED_TAB"; TRUST_EVENTS="$WORK/trust_events.tsv"; : > "$TRUST_EVENTS"
+TRUSTED_N=0; TRUSTED_EXPIRED=0; TRUSTED_BAD=""; TRUSTED_PRESENT=0
+if [ -r "$TRUSTED_FILE" ]; then
+  if perl -e '@s=stat($ARGV[0]) or exit 1; exit(($s[2] & 022) ? 1 : 0)' "$TRUSTED_FILE"; then
+    TRUSTED_PRESENT=1; _today=$(date +%Y-%m-%d)
+    awk -v today="$_today" 'BEGIN { bad=""; expd=0 } /^#/ || /^[[:space:]]*$/ { next }
+      { line=$0; if (index(line, ";")) n=split(line, f, ";"); else n=split(line, f, "\t")
+        for (i=1;i<=n;i++) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", f[i]) }
+        a=f[1]; sub(/\/.*/, "", a); if (n < 1 || a !~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) { bad = bad NR " "; next }
+        bis=f[2]; bem=f[3]; for (i=4;i<=n;i++) bem = bem ";" f[i]
+        if (bis !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) { if (bis != "" && bis !~ /^[0-9-]*$/) { bem = bis (bem != "" ? ", " bem : "") } bis="" }
+        if (bis != "" && bis < today) { expd++; next }
+        print f[1] "\t" bem "\t" bis > "/dev/stdout" }
+      END { printf "%s\t%d\n", bad, expd > "/dev/stderr" }' "$TRUSTED_FILE" >> "$TRUSTED_TAB" 2>"$WORK/trusted.info"
+    TRUSTED_BAD=$(cut -f1 "$WORK/trusted.info" | sed 's/ $//'); TRUSTED_EXPIRED=$(cut -f2 "$WORK/trusted.info")
+  else echo "WARN: Vertrauensliste ist group/world-writable und wird ignoriert: $TRUSTED_FILE" >&2; fi
+fi
+TRUSTED_N=$(grep -c . "$TRUSTED_TAB")
+# trusted_info <ip>: "bemerkung|bis" oder leer; Netze als a.b.c.d/n
+trusted_info() {
+  [ -s "$TRUSTED_TAB" ] || return 0
+  awk -F'\t' -v ip="$1" 'function toint(a, p) { split(a, p, "."); return ((p[1]*256+p[2])*256+p[3])*256+p[4] }
+    { n=$1; bits=32; if (index(n,"/")) { bits=substr(n,index(n,"/")+1); n=substr(n,1,index(n,"/")-1) }
+      if (n !~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) next
+      if (int(toint(ip)/2^(32-bits)) == int(toint(n)/2^(32-bits))) { printf "%s|%s", $2, $3; exit } }' "$TRUSTED_TAB"
+}
+is_trusted_ip() { [ -n "$(trusted_info "$1")" ]; }
+# trusted_tag <ip>: Zusatz fuer Wirkungs-Befunde (Rot bleibt Rot); [Bemerkung: ...] entfernt die Anonymisierung
+trusted_tag() { _ti=$(trusted_info "$1"); [ -n "$_ti" ] || return 0; _tb=$(echo "$_ti" | cut -d'|' -f2); _tm=$(echo "$_ti" | cut -d'|' -f1); printf ' [Adresse in trusted_ips%s]%s' "${_tb:+ bis $_tb}" "${_tm:+ [Bemerkung: $_tm]}"; }
+# trust_event <ip> <text>: was eine vertraute Adresse im Fenster getan hat, fuer den [TRUST]-Block
+trust_event() { printf '%s\t%s\n' "$1" "$2" >> "$TRUST_EVENTS"; }
 # blocked_info <ip>: "wo|seit|ticket" oder leer; Netze als a.b.c.d/n
 blocked_info() {
   [ -s "$BLOCKED_TAB" ] || return 0
@@ -676,10 +807,12 @@ log_date() { printf '%s\n' "$1" | perl -e 'my %m=(Jan=>1,Feb=>2,Mar=>3,Apr=>4,Ma
 blocked_tag() { _bi=$(blocked_info "$1"); [ -n "$_bi" ] || return 0; _w=$(echo "$_bi" | cut -d'|' -f1); _s=$(echo "$_bi" | cut -d'|' -f2)
   if [ -n "$_s" ]; then printf ' (Sperre ab %s%s)' "$_s" "${_w:+ [Bemerkung: $_w]}"; else printf ' (gesperrt, Datum unbekannt: nur markiert%s)' "${_w:+ [Bemerkung: $_w]}"; fi; }
 RED_COUNT=0; YEL_COUNT=0; ORG_COUNT=0; BLOCKED_SEEN=0
-COMPROMISE=0; VULN=0; VULN9=0; VULN63=0; EOL=0; ISN_OPEN=0; TRACES=0; MITIG_OK=0; SAML=0; SAVE_MISSING=0; UNSAVED=0
+COMPROMISE=0; VULN=0; VULN9=0; VULN63=0; VULN96=0; NCRASH=0; EOL=0; ISN_OPEN=0; TRACES=0; MITIG_OK=0; SAML=0; SAVE_MISSING=0; UNSAVED=0
 flag_red() { red "$1"; RED_COUNT=$((RED_COUNT + 1)); printf '%s\n' "$1" >> "$JRED"; printf 'R\t%s\n' "$1" >> "$JFIND"; }
 flag_yel() { yel "$1"; YEL_COUNT=$((YEL_COUNT + 1)); printf '%s\n' "$1" >> "$JYEL"; printf 'Y\t%s\n' "$1" >> "$JFIND"; }
 flag_org() { org "$1"; ORG_COUNT=$((ORG_COUNT + 1)); printf 'O\t%s\n' "$1" >> "$JFIND"; }
+TRUST_COUNT=0
+flag_tru() { if [ "${TRUST_LEVEL:-trust}" = yellow ]; then flag_yel "$1"; else tru "$1"; printf 'T\t%s\n' "$1" >> "$JFIND"; fi; TRUST_COUNT=$((TRUST_COUNT + 1)); }
 
 # --- CLI-Ebene (wie ns_snapshot V5) --------------------------------------------
 CLI_MODE=none; CLI_REASON=""; CLI_PW=""
@@ -787,6 +920,11 @@ out "ns_quickcheck $VERSION  host=$HOST  modus=$MODE  fenster=${HOURS}h  regeln=
 if [ "$RULES_VERSION" != "$RULES_MIN" ] && [ "$(printf '%s\n%s\n' "$RULES_VERSION" "$RULES_MIN" | sort | head -1)" = "$RULES_VERSION" ]; then
   out "  [INFO]  Regeldatei $RULES_VERSION ist aelter als der Mindeststand dieses Scripts ($RULES_MIN); Pruefungen, deren Regeln fehlen, entfallen mit Hinweis" 1
 fi
+if [ "$TRUSTED_PRESENT" -eq 1 ]; then
+  out "  [INFO]  Vertrauensliste: $TRUSTED_N Eintrag/Eintraege (ns_quickcheck.trusted_ips)$( [ "$TRUSTED_EXPIRED" -gt 0 ] && echo ", $TRUSTED_EXPIRED abgelaufen und uebergangen"); vertraute Adressen erscheinen als [TRUST], Wirkungs-Befunde bleiben Rot" 1
+  [ -n "$TRUSTED_BAD" ] && out "  [WARN]  Vertrauensliste: Zeile(n) $TRUSTED_BAD uebergangen (keine IPv4-Adresse; Format: adresse ; bis ; Bemerkung)" 1
+  cut -f1 "$TRUSTED_TAB" | while read -r _t; do _tb=$(echo "$_t" | sed 's#/.*##'); [ -n "$(blocked_info "$_tb")" ] && out "  [WARN]  $_t steht in trusted_ips und in der Sperrliste; die Sperrliste gilt" 1; done
+fi
 if [ "${BLOCKED_PRESENT:-0}" -eq 1 ] || [ "${BLOCKED_N:-0}" -gt 0 ]; then
   out "  [INFO]  Sperrliste: $BLOCKED_N Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)$( [ "${BLOCKED_NODATE:-0}" -gt 0 ] && echo "; ${BLOCKED_NODATE} ohne Datum: nur markiert, fuer ORANGE das Sperrdatum (YYYY-MM-DD) als zweites Feld eintragen")" 1
   [ -n "$BLOCKED_BAD" ] && out "  [WARN]  Sperrliste: Zeile(n) ${BLOCKED_BAD} uebergangen (keine IPv4-Adresse; Format: adresse ; seit ; Bemerkung)" 1
@@ -794,9 +932,23 @@ fi
 [ "${IOC_INACTIVE:-0}" -gt 0 ] && out "  [INFO]  Regeldatei Format 2: $IOC_INACTIVE Indikator-Zeile(n) inaktiv (Fundstelle ausstehend oder zur Entfernung markiert)" 1
 [ "$MODE" = offline ] && out "Quelle: $ROOT" 1
 [ "$CLI_MODE" = none ] && [ "$MODE" = online ] && out "CLI-Ebene aus: ${CLI_REASON:-kein Weg}" 1
-[ "$WL_OK" -eq 1 ] && out "Whitelist: $WHITELIST_FILE ($(grep -cvE '^#|^[[:space:]]*$' "$WHITELIST_FILE") Regeln)" 1
+if [ "$WL_OK" -eq 1 ]; then out "Whitelist: $WHITELIST_FILE ($(grep -cvE '^#|^[[:space:]]*$' "$WHITELIST_FILE") Regeln)" 1
+  _wlbad=$(grep -E '^webfile:' "$WHITELIST_FILE" | sed 's/@sha256=.*//' | grep -vE '\$$|/$' | sed 's/^webfile://' | head -5 | tr '\n' ' ')
+  [ -n "$_wlbad" ] && out "  [WARN]  Whitelist: webfile-Regel(n), die weder mit / (Verzeichnis) noch mit \$ (Datei) enden, treffen mehr als gewollt: $_wlbad(README 15)" 1
+  _wldir=$(grep -E '^webfile:.*/$' "$WHITELIST_FILE" | grep -c .); [ "$_wldir" -gt 0 ] && out "  [INFO]  Whitelist: $_wldir Verzeichnisregel(n) ohne Hash; sie geben alles darunter frei, auch neue Dateien (nie Code). Empfohlen: Pins je Datei, --pin-all <ordner> (WORKFLOW, Whitelist)" 1
+  _wlcode=$(grep -E '^webfile:' "$WHITELIST_FILE" | grep -v '@sha256=' | grep -iE '\\?\.(js|php|pl|sh|cgi|py)\$$|plugins\\?\.xml\$$' | sed 's/^webfile://' | head -5 | tr '\n' ' ')
+  [ -n "$_wlcode" ] && out "  [WARN]  Whitelist: Dateiregel(n) auf Code ohne Hash-Pin sind wirkungslos, Code braucht @sha256=<hash> (--pin <pfad> erzeugt die Zeilen): $_wlcode" 1
+else out "Whitelist: nicht vorhanden ($WHITELIST_FILE); alle Befunde ungefiltert" 1; fi
 
 # =============================================================================
+if [ -n "$PIN_PATH" ]; then
+  _pp="$ROOT${PIN_PATH}"; [ -e "$_pp" ] || { echo "ERROR: --pin: $PIN_PATH nicht gefunden" >&2; exit 3; }
+  echo "# Pin-Zeilen fuer ns_quickcheck.whitelist ($( [ "$PIN_ALL" -eq 1 ] && echo alle Dateien || echo nur Code) unter $PIN_PATH), erzeugt $(date '+%Y-%m-%d %H:%M') von ns_quickcheck $VERSION; vorher Diff gegen Vorversion, dann Zeilen uebernehmen"
+  find "$_pp" -type f 2>/dev/null | { if [ "$PIN_ALL" -eq 1 ]; then cat; else grep -iE '\.(js|php|pl|sh|cgi|py)$|/plugins\.xml$'; fi; } | sort | while IFS= read -r _f; do
+    _h=$(sha256 -q "$_f" 2>/dev/null || sha256sum "$_f" 2>/dev/null | cut -c1-64); _rel="${_f#$ROOT}"; _esc=$(printf '%s' "$_rel" | sed 's/[.]/\\./g')
+    printf 'webfile:^%s$@sha256=%s\n' "$_esc" "$_h"; done
+  rm -rf "$WORK" 2>/dev/null; exit 0
+fi
 hdr "1 Build"
 # =============================================================================
 BOOTFILE=""; BOOT=""; BUILD=""; CONFBUILD=""
@@ -830,6 +982,7 @@ elif [ "$NROWS" -eq 0 ]; then flag_yel "Train $TRAIN nicht in der Regeldatei ($R
 else
   echo "$ROWS" > "$WORK/rows.txt"
   while IFS="$TAB" read -r ctx cve train fix cond text; do
+    if [ "$fix" = pending ]; then echo "OPEN $cve $ctx $train-pending $text (Fix-Build noch nicht veroeffentlicht, Stand $RULES_VERSION; bis dahin Mitigation, Block 2 und 3)"; echo "$cond" | grep -qi saml && echo "SAMLOPEN $cve"; continue; fi
     echo "$fix" | grep -qE '^[0-9]+\.[0-9]+$' || { echo "SKIP $ctx $cve: Fix-Build '$fix' ungueltig"; continue; }
     applies=1; condnote=""
     case "$cond" in
@@ -845,13 +998,14 @@ else
     else echo "NA $cve $ctx $train-$fix (Bedingung nicht konfiguriert)"; fi
   done < "$WORK/rows.txt" > "$WORK/cve.txt"
   NOPEN=$(grep -c '^OPEN' "$WORK/cve.txt"); NOK=$(grep -c '^OK' "$WORK/cve.txt"); NNA=$(grep -c '^NA' "$WORK/cve.txt")
-  FIXMAX=$(echo "$ROWS" | awk -F"$TAB" '{print $4}' | sort -t. -k1,1n -k2,2n | tail -1)
+  FIXMAX=$(echo "$ROWS" | awk -F"$TAB" '$4 != "pending" {print $4}' | sort -t. -k1,1n -k2,2n | tail -1)
   if [ "$NOPEN" -gt 0 ]; then
     VULN=1
     grep '^OPEN' "$WORK/cve.txt" > "$WORK/open.txt"
-    while read -r _ cve ctx fixb rest; do flag_red "Build $BUILD ist VERWUNDBAR gegen $cve ($ctx), Fix ab $fixb: $rest"; done < "$WORK/open.txt"
+    while read -r _ cve ctx fixb rest; do case "$fixb" in *-pending) flag_red "Build $BUILD ist VERWUNDBAR gegen $cve ($ctx), kein Fix-Build veroeffentlicht: $rest" ;; *) flag_red "Build $BUILD ist VERWUNDBAR gegen $cve ($ctx), Fix ab $fixb: $rest" ;; esac; done < "$WORK/open.txt"
     grep -q '^SAMLOPEN ' "$WORK/cve.txt" && VULN9=1
     grep -q '^OPEN CVE-2026-1096[0-9]* CTX697263' "$WORK/cve.txt" && VULN63=1
+    VULN96=0; grep -q '^OPEN CVE-2026-8877[0-9] CTX697096' "$WORK/cve.txt" && VULN96=1
     inf "Ziel-Build fuer diesen Train: $TRAIN-$FIXMAX" 1
   else
     _nc=$(echo "$ROWS" | grep -c '\[custom\]')
@@ -963,10 +1117,11 @@ _lc() { echo "$1" | grep -c .; }
 # net24_summary: liest "anzahl adresse" je Zeile von stdin, gibt "a.b.c.0/24 (n Adressen, m Requests)" absteigend aus
 net24_summary() { awk '{ split($2, o, "."); if (o[4]=="") next; n=o[1] "." o[2] "." o[3] ".0/24"; a[n]++; r[n]+=$1 } END { for (n in a) printf "%s (%d Adresse(n), %d Request(s))\n", n, a[n], r[n] }' | sort -t'(' -k2 -rn | tr '\n' ' ' | sed 's/ $//'; }
 # log_lines_in <datei-mit-zeilen> <dateien...>: "datei (n), ..." je Logdatei, wie viele der gefundenen Zeilen darin stehen
-log_lines_in() { _lf="$1"; shift; for _f in "$@"; do [ -f "$_f" ] || continue; _n=$(catlogs "$_f" | grep -aFxc -f "$_lf"); [ "$_n" -gt 0 ] && printf '%s (%s), ' "$_f" "$_n"; done | sed 's/, $//'; }
+log_lines_in() { _lf="$1"; shift; for _f in "$@"; do [ -f "$_f" ] || continue; case "$_f" in *ns.log*|*nsvpn*|*messages*|*notice*) _n=$(catns "$_f" | grep -aFxc -f "$_lf") ;; *) _n=$(catlogs "$_f" | grep -aFxc -f "$_lf") ;; esac; [ "$_n" -gt 0 ] && printf '%s (%s), ' "$_f" "$_n"; done | sed 's/, $//'; }
 # log_hits <ERE> <dateien...>: "datei (n), datei (n)" fuer die Zeile "Log:" im Befundblock
-log_hits() { _re="$1"; shift; for _f in "$@"; do [ -f "$_f" ] || continue; _n=$(catlogs "$_f" | grep -acE "$_re"); [ "$_n" -gt 0 ] && printf '%s (%s), ' "$_f" "$_n"; done | sed 's/, $//'; }
-is_internal_ip() { case "$1" in 10.*|192.168.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|127.*) return 0 ;; esac; [ -n "$MGMT_NET_RE" ] && echo "$1" | grep -qE "$MGMT_NET_RE" && return 0; return 1; }
+log_hits() { _re="$1"; shift; for _f in "$@"; do [ -f "$_f" ] || continue; case "$_f" in *ns.log*|*nsvpn*|*messages*|*notice*) _n=$(catns "$_f" | grep -acE "$_re") ;; *) _n=$(catlogs "$_f" | grep -acE "$_re") ;; esac; [ "$_n" -gt 0 ] && printf '%s (%s), ' "$_f" "$_n"; done | sed 's/, $//'; }
+is_internal_ip() { case "$1" in 10.*|192.168.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|127.*) return 0 ;; esac; [ -n "$MGMT_NET_RE" ] && echo "$1" | grep -qE "$MGMT_NET_RE" && return 0
+  if is_trusted_ip "$1"; then trust_event "$1" "als intern gewertet (Management, SSH oder Anmeldefehler)"; return 0; fi; return 1; }
 ACCLOGS=$(logs_in_window 'httpaccess*')
 # Obergrenze fuer Access-Logs: neueste zuerst, bis ACCESS_LOG_MAX_MB
 if [ "${ACCESS_LOG_MAX_MB:-0}" -gt 0 ] && [ -n "$ACCLOGS" ]; then
@@ -977,11 +1132,12 @@ for _f in $NSLOGS $ACCLOGS $ERRLOGS $AUTHLOGS $MGMTLOGS; do [ -r "$_f" ] || UNRE
 [ -z "$NSLOGS" ] && { COVERAGE=partial; COVERAGE_WHY="$COVERAGE_WHY ns.log-Familie fehlt im Fenster;"; }
 [ -z "$ACCLOGS" ] && { COVERAGE=partial; COVERAGE_WHY="$COVERAGE_WHY httpaccess fehlt im Fenster (Dropper, Sondierung, Quellen);"; }
 [ "$UNREAD" -gt 0 ] && { COVERAGE=partial; COVERAGE_WHY="$COVERAGE_WHY $UNREAD Logdatei(en) nicht lesbar;"; }
+_npf=$(catlogs $NSLOGS | grep -ac 'nsprofmon_mgmt\.pl'); [ "${_npf:-0}" -gt 0 ] && inf "nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: $_npf; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet" 1
 inf "Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice $(_lc "$NSLOGS"), httpaccess $(_lc "$ACCLOGS"), httperror $(_lc "$ERRLOGS"), auth.log $(_lc "$AUTHLOGS"), httpaccess.log (Management) $(_lc "$MGMTLOGS"), cron $(_lc "$CRONLOGS") Datei(en)$( [ "$UNREAD" -gt 0 ] && echo ", $UNREAD nicht lesbar")" 1
 HOSTS=""
 if [ -z "$NSLOGS" ]; then flag_yel "Keine ns.log/nsvpn.log/messages im Fenster (Pfad $LOGDIR) - Logs rotiert oder nicht im Snapshot"
 else
-  INJ=$(catlogs $NSLOGS | grep -avE "$ADMIN_CMD_RE" | grep -aiE "$LOGON_HINT_RE" \
+  INJ=$(catns $NSLOGS | grep -avE "$ADMIN_CMD_RE" | grep -aiE "$LOGON_HINT_RE" \
         | grep -aE "$TRIGGER_RE|$OBFUSC_RE|[;|&\`]([[:space:]]|%20)*($CMD_NAMES)([[:space:]<>;|&\`\$]|%20|%3B|\\\$|$)|(%3B|%7C|%26)($CMD_NAMES)(%20|%24|%3B|%7C|$)" | sort -u)
   NINJ=$(echo "$INJ" | grep -c .)
   if [ "$NINJ" -gt 0 ]; then
@@ -1057,8 +1213,8 @@ else
     else out "          | Download-Host: keiner im Payload erkennbar" 1; fi
     if [ -n "$SRC" ]; then
       echo "$SRC" | while IFS= read -r _l; do _ip=${_l%% *}; _m=$(echo "$_l" | grep -oE 'passt zu [0-9]+ von [0-9]+' | awk '{print $3, $5}'); _w=""; set -- $_m; [ -n "${2:-}" ] && [ "$2" -gt 1 ] && [ "$1" -eq 1 ] && _w=", schwach"
-        if [ "$SRC_KIND" = line ]; then _same=""; echo "$HOSTS" | grep -qx "$_ip" && _same=", identisch mit dem Download-Host (laedt von sich selbst nach)"; out "          | Quelle:        $_ip (aus der Responder-Zeile, $(echo "${_l#* }" | sed 's/^ *//'))$_same$(blocked_tag "$_ip")" 1
-        else out "          | Quelle:        $_ip, $(echo "${_l#* }" | sed 's/^ *//')$_w (bei NAT nur die NAT-Adresse)$(blocked_tag "$_ip")" 1; fi; done
+        if [ "$SRC_KIND" = line ]; then _same=""; echo "$HOSTS" | grep -qx "$_ip" && _same=", identisch mit dem Download-Host (laedt von sich selbst nach)"; out "          | Quelle:        $_ip (aus der Responder-Zeile, $(echo "${_l#* }" | sed 's/^ *//'))$_same$(blocked_tag "$_ip")$(trusted_tag "$_ip")" 1
+        else out "          | Quelle:        $_ip, $(echo "${_l#* }" | sed 's/^ *//')$_w (bei NAT nur die NAT-Adresse)$(blocked_tag "$_ip")$(trusted_tag "$_ip")" 1; fi; done
     elif [ "$SRC_KIND" = line ]; then out "          | Quelle:        unbekannt; der Responder hat den Request vor dem Webserver abgewiesen, das Access-Log kennt ihn nicht, und die Policy protokolliert keine Client-Adresse (README 15, Howto Responder-Quelle)" 1
     elif [ -n "$ACCLOGS" ]; then out "          | Quelle:        unbekannt; kein Logon-Request im Access-Log zur Versuchszeit (Log fuer den Zeitpunkt rotiert, oder die Uhren weichen mehr als 14h ab)" 1
     else out "          | Quelle:        unbekannt; kein Access-Log im Fenster" 1; fi
@@ -1074,18 +1230,130 @@ else
       [ -n "$HOSTS" ] && out "          |                $_z. Download-Host in der Firewall sperren und in ns_quickcheck.blocked_ips eintragen (adresse ; datum ; Bemerkung); dann wird dieser Befund ORANGE." 1
     fi
   else grn "Keine Injection-Muster in Logon-Zeilen der letzten ${HOURS}h"; fi
-  SC=$(catlogs $NSLOGS | grep -aiE "$NSAAAD_CRASH_RE" | sort -u); NSC=$(echo "$SC" | grep -c .)
-  if [ "$NSC" -gt 0 ]; then
-    TRACES=1
-    if [ "$SAML" -eq 1 ] && [ "$VULN9" -eq 1 ]; then flag_red "$NSC nsaaad-Crash-Zeile(n) bei SAML auf ungefixtem Build - SAML-CVE wird wahrscheinlich ausgenutzt:"
-    else flag_yel "$NSC nsaaad-Crash-Zeile(n) - Ursache klaeren (SAML=$SAML, SAML-CVE offen=$( [ "$VULN9" -eq 1 ] && echo ja || echo nein )):"
-      out "          | Was passiert ist: nsaaad, der Authentifizierungsdienst, ist abgestuerzt. Ohne SAML und mit gefixtem Build ist das meist ein Betriebsproblem, kein Angriff." 1
-      out "          | Zu tun: Core-Dumps in /var/core sichern; wiederholt es sich, an Citrix Support. Mit SAML und offener SAML-CVE waere dieselbe Zeile rot." 1; fi
-    echo "$SC" > "$WORK/sc_lines.txt"; out "          | Log:           $(log_lines_in "$WORK/sc_lines.txt" $NSLOGS)" 1
-    echo "$SC" | tail -5 | show 5 1
-    CORES=$(find "$ROOT/var/core" -name '*nsaaad*' -mmin -"$MINS" 2>/dev/null | wc -l | tr -d ' ')
-    [ "${CORES:-0}" -gt 0 ] && out "          | $CORES nsaaad-Core-Dump(s) in /var/core - vor Reboot sichern, an Citrix Support" 1
-  else grn "Keine nsaaad-Crashes im Fenster"; fi
+  # --- Prozessabstuerze (Pitboss und Kernel): Ereignisse je Prozess und PID, Restart-Zaehler, Core-Verzeichnisse
+  if [ -n "${PITBOSS_RE:-}" ] && [ -n "${KERNEL_EXIT_RE:-}" ]; then
+    catns $NSLOGS | grep -aE "$PITBOSS_RE|$KERNEL_EXIT_RE" > "$WORK/crash_lines.txt"
+    # Apache-Worker-Abstuerze aus dem Webserver-Fehlerlog (Format "[Thu Oct 23 10:01:00.100000 2026] [core:notice] [pid 1200] AH00052: child pid 1234 exit signal Segmentation fault (11)")
+    [ -n "${HTTPERR_CRASH_RE:-}" ] && catlogs $ERRLOGS | grep -aE "$HTTPERR_CRASH_RE" >> "$WORK/crash_lines.txt"
+    # Zeile -> datum TAB zeit TAB proc TAB pid TAB art TAB wert   (art: died|signal|restart|restarts|escalate)
+    perl -e '
+      my %M=(Jan=>"01",Feb=>"02",Mar=>"03",Apr=>"04",May=>"05",Jun=>"06",Jul=>"07",Aug=>"08",Sep=>"09",Oct=>"10",Nov=>"11",Dec=>"12"); my $cy=(localtime)[5]+1900;
+      # Zeit einheitlich aus dem Syslog-Kopf (Lokalzeit der Appliance); die GMT-Angabe der PPE-Zeilen nur, wenn der Kopf fehlt
+      while (<STDIN>) { chomp; my ($d,$t)=("",""); if (/^([A-Z][a-z]{2}) +(\d+) (\d\d:\d\d:\d\d)/) { $d=sprintf("%04d-%s-%02d",$cy,$M{$1},$2); $t=$3 } elsif (m{(\d\d)/(\d\d)/(\d{4}):(\d\d:\d\d:\d\d)}) { $d="$3-$1-$2"; $t=$4 }
+        if (/^\[([A-Z][a-z]{2}) ([A-Z][a-z]{2}) +(\d+) (\d\d:\d\d:\d\d)(?:\.\d+)? (\d{4})\]/) { $d=sprintf("%04d-%s-%02d",$5,$M{$2},$3); $t=$4 }
+        if (/AH00052: child pid (\d+) exit signal [A-Za-z ]+ \((\d+)\)/) { print "$d\t$t\thttpd\t$1\tsignal\t$2\n"; next }
+        if (/kernel: pid (\d+) \(([^)]+)\), jid \d+, uid \d+: exited on signal (\d+)/) { print "$d\t$t\t$2\t$1\tsignal\t$3\n"; next }
+        if (/(\S+) \((\d+)\) unexpectedly died/) { print "$d\t$t\t$1\t$2\tdied\t\n"; next }
+        if (/collecting core dump on (\S+) \((\d+)\)/) { print "$d\t$t\t$1\t$2\tdied\t\n"; next }
+        if (/kernel: Core dump of pid (\d+) \(([^)]+)\)/) { print "$d\t$t\t$2\t$1\tdied\t\n"; next }
+        if (/Adding pitboss watch on \((\d+)\) for \(/) { next }
+        if (/pitboss\[\d+\]: proc (\S+) \((\d+)\) SIGNALED/) { print "$d\t$t\t$1\t$2\tdied\t\n"; next }
+        if (/pitboss\[\d+\]: proc (\S+) \((\d+)\) EXITED with status 0x([0-9a-f]+)/) { my $st=hex($3); my $sig=($st>=128 ? $st-128 : 0); print "$d\t$t\t$1\t$2\t".($sig>0 ? "status" : "died")."\t$sig\n"; next }
+        if (/Restarting process (\S+) old pid \((\d+)\)/) { print "$d\t$t\t$1\t$2\trestart\t\n"; next }
+        if (/New pid \((\d+)\) for \(([^)]+)\) restarts \((\d+)\)/) { print "$d\t$t\t$2\tnew\trestarts\t$3\n"; next }
+        if (/maximum number of restarts|declaring system failure/i) { print "$d\t$t\t?\t?\tescalate\t$_\n"; next } }' < "$WORK/crash_lines.txt" > "$WORK/crash.tsv"
+    # Ereignis = Prozess + gestorbene PID + Tag; Restart-Zaehler je Prozess als Hoechstwert; Eskalation als eigenes Ereignis
+    # Ereignis = Prozess + gestorbene PID + Tag; Restart-Zaehler je Ereignis aus der naechsten "New pid ... restarts (n)"-Zeile desselben Prozesses
+    sort -t"$(printf '\t')" -k1,1 -k2,2 "$WORK/crash.tsv" | awk -F'\t' '
+      $5=="died" || $5=="signal" || $5=="restart" || $5=="status" { k=$3 SUBSEP $4 SUBSEP $1; if (!(k in ev)) { ev[k]=1; ord[++n]=k; ep[k]=$3; eid[k]=$4; ed[k]=$1; et[k]=$2; pend[$3]=k } if ($5=="signal") es[k]=$6; if ($5=="status" && es[k]=="") es[k]=$6; if ($2 < et[k] || et[k]=="") et[k]=$2 }
+      $5=="restarts" { if ($3 in pend) { rs[pend[$3]]=$6+0; delete pend[$3] } }
+      $5=="escalate" { k="ESC" SUBSEP ++m; ord[++n]=k; ep[k]="(Pitboss)"; eid[k]="-"; ed[k]=$1; et[k]=$2; es[k]="Eskalation: " $6 }
+      END { for (i=1;i<=n;i++) { k=ord[i]; printf "%s %s\t%s\t%s\t%s\t%s\n", ed[k], et[k], ep[k], eid[k], (es[k]==""?"-":es[k]), (k in rs ? rs[k] : "-") } }' | sort -r > "$WORK/crash_events.tsv"
+    NCR=$(grep -c . "$WORK/crash_events.tsv")
+    # Core-Verzeichnisse im Fenster (auch ohne Logzeile, etwa nach Rotation)
+    # Core-Belege: Verzeichnisse /var/core/<n> (aelteres Muster) und Dateien /var/core/<proc>-<pid> (Standardmuster %N-%P)
+    if [ "$MODE" = online ]; then CORED=$(find /var/core -mindepth 1 -maxdepth 1 \( -type d -o -type f \) -mmin -"$MINS" 2>/dev/null | grep -v '/bounds$' | sort)
+    elif [ -f "$MANIFEST" ]; then CORED=$(awk -F'\t' -v s="$(( $(date +%s) - MINS*60 ))" '$1 ~ /^\/var\/core\/[^\/]+$/ && $1 !~ /\/bounds$/ && $7 >= s { print $1 }' "$MANIFEST" | sort); else CORED=""; fi
+    NCORED=$(echo "$CORED" | grep -c .)
+    # Core-Datei ohne Logzeile ist selbst ein Ereignis (Logrotation, nicht ueberwachter Prozess)
+    : > "$WORK/core_boot.txt"
+    echo "$CORED" | grep . | while IFS= read -r _cf; do _cb=$(basename "$_cf"); _cb=${_cb%.gz}; _cb=${_cb%.bz2}; _cb=${_cb%.xz}
+      _cm=$( [ "$MODE" = online ] && mtime_of "$_cf" || awk -F'\t' -v f="$_cf" '$1==f {print $7}' "$MANIFEST" 2>/dev/null); _cm=${_cm:-0}
+      _ct="$(fmtdate "$_cm" | sed 's/ [0-9:]*$//') $(fmtdate "$_cm" | awk '{print $2}'):00"
+      if echo "$_cb" | grep -qE '^[0-9]+$'; then
+        # nummeriertes Verzeichnis: Prozess unbekannt; leer und kurz nach dem Boot = Boot-Nachlauf
+        _empty=1; if [ "$MODE" = online ]; then [ -d "$_cf" ] && [ -n "$(ls -A "$_cf" 2>/dev/null)" ] && _empty=0; else awk -F'\t' -v d="$_cf/" 'index($1,d)==1 { f=1 } END { exit f ? 0 : 1 }' "$MANIFEST" 2>/dev/null && _empty=0; fi
+        _sb=$(( _cm - ${BOOT:-0} ))
+        if [ "$_empty" -eq 1 ] && [ "$_sb" -ge 0 ] && [ "$_sb" -le 900 ] && [ "${CORE_BOOT_LEVEL:-info}" != yellow ]; then printf '%s\t%s\t%s\n' "$_cf" "$_ct" "$((_sb / 60))" >> "$WORK/core_boot.txt"; continue; fi
+        printf '%s\t(unbekannt)\t-\tVerzeichnis %s%s, %s min nach Boot\t-\n' "$_ct" "$_cf" "$( [ "$_empty" -eq 1 ] && echo ', leer' )" "$((_sb / 60))" >> "$WORK/crash_events.tsv"; continue
+      fi
+      _cp=${_cb%-*}; _cpid=${_cb##*-}; echo "$_cpid" | grep -qE '^[0-9]+$' || { _cp="$_cb"; _cpid="-"; }
+      grep -q "	$_cp	$_cpid	" "$WORK/crash_events.tsv" 2>/dev/null && continue
+      printf '%s\t%s\t%s\tCore ohne Logzeile\t-\n' "$_ct" "$_cp" "$_cpid" >> "$WORK/crash_events.tsv"; done
+    sort -r "$WORK/crash_events.tsv" -o "$WORK/crash_events.tsv"; NCR=$(grep -c . "$WORK/crash_events.tsv")
+    if [ "$NCR" -gt 0 ] || [ "$NCORED" -gt 0 ]; then
+      TRACES=1
+      _nsa=$(awk -F'\t' '$2=="nsaaad"' "$WORK/crash_events.tsv" | grep -c .); _htd=$(awk -F'\t' '$2=="httpd"' "$WORK/crash_events.tsv" | grep -c .); _ppe=$(awk -F'\t' '$2 ~ /^nsppe|^NSPPE/' "$WORK/crash_events.tsv" | grep -c .)
+      _ddt=0; catns $NSLOGS | grep -aqE "$DTLS_FAIL_RE" && _ddt=1
+      # Haeufung: je Prozess Ereignisse in 24 h (Fenster) und an verschiedenen Tagen (kumulierte Datei)
+      _max24=$(awk -F'\t' '{ split($1,a," "); c[$2 SUBSEP a[1]]++ } END { m=0; for (k in c) if (c[k]>m) m=c[k]; print m+0 }' "$WORK/crash_events.tsv")
+      _nsa24=$(awk -F'\t' '$2=="nsaaad" { split($1,a," "); c[a[1]]++ } END { m=0; for (k in c) if (c[k]>m) m=c[k]; print m+0 }' "$WORK/crash_events.tsv")
+      CUMC="$(dirname "${OUTFILE:-.}")/ns_quickcheck_observed_crashes.tsv"; _days3=""
+      awk -F'\t' '{ split($1,a," "); print $2 "\t" a[1] }' "$WORK/crash_events.tsv" > "$WORK/crash_days.tsv"
+      if [ -f "$CUMC" ]; then _days3=$(grep -v '^#' "$CUMC" | cat - "$WORK/crash_days.tsv" | sort -u | awk -F'\t' '{ d[$1]++ } END { for (p in d) if (d[p] >= 3) printf "%s ", p }'); fi
+      # Korrelation: SAML-Anfrage oder externer Management-Request in den 120 s vor einem nsaaad-/httpd-Absturz
+      _trig=""
+      while IFS="$(printf '\t')" read -r _ct _cp _cpid _rest; do
+        case "$_cp" in nsaaad|httpd) ;; *) continue ;; esac
+        _ce=$(perl -MTime::Local -e 'my ($d,$t)=split / /,$ARGV[0]; my ($y,$m,$dd)=split /-/,$d; my ($H,$Mi,$S)=split /:/,$t; print timelocal($S,$Mi,$H,$dd,$m-1,$y)' "$_ct" 2>/dev/null); [ -n "$_ce" ] || continue
+        # Zeilen der 120 s vor dem Ereignis: Syslog-Zeit (nsaaad: SAML-Zeilen in ns.log) bzw. Apache-Zeit (httpd: Management-Access-Log)
+        if [ "$_cp" = nsaaad ]; then
+          _hit=$(catns $NSLOGS | grep -aE 'SAML|AssertionConsumerService|SAMLResponse' | before_syslog "$_ce" 120 | grep -oE 'Client_ip [0-9.]+|from [0-9.]+' | cut -d' ' -f2 | grep -v '^$' | sort | uniq -c | sort -rn | head -1 | sed 's/^ *[0-9]* //')
+        else
+          _hit=$(catlogs $MGMTLOGS | before_apache "$_ce" 120 | cut -d' ' -f1 | sort -u | while read -r _mi; do is_internal_ip "$_mi" || echo "$_mi"; done | head -1)
+        fi
+        [ -n "$_hit" ] && { _trig="$_trig$_cp $_cpid von $_hit; "; ip_note crash_trigger "$_hit" 1 "Anfrage vor Absturz von $_cp (Fenster 120 s, Zuordnung grob)"; }
+      done < "$WORK/crash_events.tsv"
+      _hd="$NCR Absturz-Ereignis(se) im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core; je Prozess und PID einmal gezaehlt)$( [ "$NCORED" -gt 0 ] && echo ", $NCORED Core-Beleg(e)")"
+      _why=""
+      [ "$_nsa" -gt 0 ] && [ "$SAML" -eq 1 ] && [ "$VULN9" -eq 1 ] && _why="nsaaad bei SAML auf ungefixtem Build: SAML-CVE wird wahrscheinlich ausgenutzt"
+      [ -z "$_why" ] && [ "$_nsa24" -ge 2 ] && [ "$SAML" -eq 1 ] && _why="nsaaad auf einem SAML-Gateway $_nsa24 mal an einem Tag: Ausnutzungsmuster (CTX697174/CTX697191), bis das Gegenteil feststeht"
+      [ -z "$_why" ] && [ "$_htd" -gt 0 ] && [ "$VULN63" -eq 1 ] && _why="httpd auf verwundbarem Build (CTX697263): der verwundbare Prozess stuerzt ab, das ist der Angriff"
+      [ -z "$_why" ] && [ "$_ppe" -gt 0 ] && [ "$_ddt" -eq 1 ] && _why="Packet Engine mit DTLS-Fehlern im selben Fenster: moeglicher CVE-2026-88772-Versuch"
+      [ -z "$_why" ] && [ "$_max24" -ge 3 ] && _why="$_max24 Abstuerze desselben Prozesses an einem Tag"
+      [ -z "$_why" ] && [ -n "$_days3" ] && _why="derselbe Prozess an drei oder mehr Tagen abgestuerzt ($_days3; ns_quickcheck_observed_crashes.tsv)"
+      [ -z "$_why" ] && [ -n "$_trig" ] && _why="Absturz unmittelbar nach Anfrage von aussen: $_trig"
+      if [ -n "$_why" ]; then flag_red "$_hd - $_why"
+      else flag_yel "$_hd - jeder Absturz braucht eine Einordnung$( [ "$_nsa" -gt 0 ] && [ "$SAML" -eq 1 ] && echo "; nsaaad auf einem SAML-Gateway ist ein Ausnutzungsindikator, beim zweiten Ereignis Rot")$( [ "$_htd" -gt 0 ] && echo "; httpd: Bezug zu CTX697263 pruefen")"; fi
+      [ -n "$_trig" ] && [ -n "$_why" ] && out "          | Ausloeser:     $_trig(Adressen als crash_trigger in der Adressliste)" 1
+      # kumulierte Absturzdatei je Appliance: Prozess TAB Tag, fuer die Wiederholung ueber Tage
+      if [ -n "${OUTFILE:-}" ] && [ "$NO_OUT" -eq 0 ]; then { [ -f "$CUMC" ] && grep -v '^#' "$CUMC"; awk -F'\t' '{ split($1,a," "); print $2 "\t" a[1] }' "$WORK/crash_events.tsv"; } | sort -u > "$WORK/cumc.tmp"; { echo "# ns_quickcheck: Abstuerze je Prozess und Tag, kumuliert ueber Laeufe; nie loeschen"; cat "$WORK/cumc.tmp"; } > "$CUMC"; chmod 600 "$CUMC" 2>/dev/null; fi
+      out "          | Ereignisse (neueste zuerst; Zeit, Prozess, PID, Signal, Restart-Zaehler):" 1
+      awk -F'\t' -v cores="$(echo "$CORED" | tr '\n' ' ')" '{ c=""; n=split(cores, a, " "); for (i=1;i<=n;i++) { b=a[i]; sub(/\.(gz|bz2|xz)$/, "", b); if (b ~ ("/" $2 "-" $3 "$")) c="  core: " a[i] } if ($3=="-") printf "%s  %s  %s\n", $1, $2, $4; else printf "%s  %s  pid %s  signal %s  restarts %s%s\n", $1, $2, $3, $4, $5, c }' "$WORK/crash_events.tsv" | show 10 1
+      [ "$NCORED" -gt 0 ] && { out "          | Core-Belege im Fenster (Dateien oder Verzeichnisse unter /var/core; vor Reboot sichern, an Citrix Support):" 1; echo "$CORED" | show 10 1; }
+      [ "$NCR" -gt 0 ] && out "          | Log:           $(log_lines_in "$WORK/crash_lines.txt" $NSLOGS)" 1
+      out "          | Was passiert ist: ein Daemon ist abgestuerzt und wurde von Pitboss neu gestartet. Ohne SAML und mit gefixtem Build ist nsaaad meist ein Betriebsproblem; httpd im Fenster von CTX697263 und nsppe mit DTLS-Fehlern sind Angriffsmuster." 1
+      out "          | Zu tun: /var/core sichern; wiederholt es sich oder passt der Prozess zu einer offenen CVE: Citrix Support, Incident-Prozess." 1
+    else grn "Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)"; fi
+    [ -s "$WORK/core_boot.txt" ] && while IFS="$(printf '\t')" read -r _cf _ct _mn; do inf "Core-Verzeichnis $_cf leer, angelegt $_ct ($_mn min nach Boot): Boot-Nachlauf des Upgrades oder Reboots, kein Absturz; Inhalt pruefen: ls -la $_cf (CORE_BOOT_LEVEL=yellow macht daraus ein Ereignis)" 1; done < "$WORK/core_boot.txt"
+    NCRASH=${NCR:-0}
+    # Kernel: Panic/Trap und Speicherdruck
+    if [ -n "${KERNEL_PANIC_RE:-}" ]; then _kp=$(catns $NSLOGS | grep -aE "$KERNEL_PANIC_RE" | grep -c .); [ "$_kp" -gt 0 ] && { TRACES=1; flag_red "$_kp Kernel-Panic/Trap-Zeile(n) im Fenster - Absturz des Kernels, Ursache mit Citrix Support klaeren:"; catns $NSLOGS | grep -aE "$KERNEL_PANIC_RE" | tail -3 | show 3 1; }; fi
+    if [ -n "${KERNEL_MEM_RE:-}" ]; then _km=$(catns $NSLOGS | grep -aE "$KERNEL_MEM_RE" | grep -c .); [ "$_km" -gt 0 ] && { TRACES=1; flag_yel "$_km Zeile(n) Speicherdruck im Kernel (Swap erschoepft, Prozesse beendet) - bei httpd oder nsaaad Begleiter von Out-of-Memory-Angriffen (PHP2Shell), sonst Betriebsproblem:"; catns $NSLOGS | grep -aE "$KERNEL_MEM_RE" | tail -3 | show 3 1; }; fi
+    # Neustart ohne reboot/shutdown im Audit-Log (Panic, Watchdog, Stromverlust oder Angreifer)
+    if [ -n "${BOOT:-}" ] && [ "$BOOT" -gt 0 ] && [ "$((NOW - BOOT))" -le "$((HOURS * 3600))" ]; then
+      # nur bewertbar, wenn Logzeilen aus der Zeit vor dem Boot vorliegen (sonst fehlt die Vorgeschichte, keine Aussage)
+      _pre=$(catns $NSLOGS | before_syslog "$BOOT" 86400 | grep -c .)
+      _rb=$(catns $NSLOGS | before_syslog "$BOOT" 3600 | grep -aiE 'CMD_EXECUTED.*(reboot|shutdown|"reboot"|restart)|SHELL shell_command=(reboot|shutdown)|shutdown\[[0-9]+\]: (reboot|halt)|syslogd: exiting on signal 15' | grep -c .); [ "$_pre" -eq 0 ] && _rb=1
+      [ "$_rb" -eq 0 ] && { TRACES=1; flag_yel "Neustart am $(fmtdate "$BOOT") ohne reboot/shutdown-Befehl im Audit-Log des Fensters - Panic, Watchdog, Stromverlust oder Eingriff; Grund klaeren"; }
+    fi
+    # altes, weites Muster: Treffer nur dort = unbekanntes Format, einsenden
+    if [ -n "${NSAAAD_CRASH_LEGACY_RE:-}" ]; then
+      _leg=$(catns $NSLOGS | grep -aiE "$NSAAAD_CRASH_LEGACY_RE" | grep -avE "$PITBOSS_RE|$KERNEL_EXIT_RE" | grep -c .)
+      [ "$_leg" -gt 0 ] && inf "$_leg nsaaad-Zeile(n) in einem Format, das die verankerten Muster nicht kennen (Build $BUILD); bitte anonymisiert einsenden, damit das Muster ergaenzt wird" 1
+    fi
+  elif [ -n "${NSAAAD_CRASH_RE:-}" ]; then
+    # Rueckfall fuer Regeldateien vor 2026-10-27
+    SC=$(catns $NSLOGS | grep -aiE "$NSAAAD_CRASH_RE" | sort -u); NSC=$(echo "$SC" | grep -c .)
+    if [ "$NSC" -gt 0 ]; then TRACES=1; flag_yel "$NSC nsaaad-Crash-Zeile(n) (altes Muster; Regeldatei $RULES_VERSION kennt PITBOSS_RE/KERNEL_EXIT_RE nicht) - Ursache klaeren"; echo "$SC" | tail -5 | show 5 1
+    else grn "Keine nsaaad-Crashes im Fenster (altes Muster)"; fi
+  else inf "Prozessabstuerze nicht geprueft: Regeln PITBOSS_RE/KERNEL_EXIT_RE fehlen in der Regeldatei ($RULES_VERSION)" 1; fi
+  # --- CPU-Momentaufnahmen (nsprofmon_mgmt.pl): verdaechtige Prozesse mit Zeitstempel, Block 5 sieht nur den Moment des Laufs
+  if [ -s "$NSPROF_FILE" ] && [ -n "${SUSPECT_PROC_RE:-}" ]; then
+    _sp=$(grep -aE "$SUSPECT_PROC_RE" "$NSPROF_FILE" | grep -av 'ns_quickcheck' | sort -u); _nsp=$(echo "$_sp" | grep -c .)
+    if [ "$_nsp" -gt 0 ]; then TRACES=1; flag_yel "$_nsp CPU-Momentaufnahme(n) mit verdaechtigem Prozess (SUSPECT_PROC_RE) - Zeitreihe zu Block 5:"; echo "$_sp" | tail -5 | show 5 1
+    else grn "Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen"; fi
+  fi
 # Dropper-Transportpfade je Quell-IP (DROPPER_PATH_RE): legitime Downloads, aber im Angriffskontext relevant
 if [ -z "$ACCLOGS" ]; then inf "Dropper-Anfragen, Sondierungsquellen und Injection-Quellen nicht geprueft: keine httpaccess*-Datei im Fenster (${HOURS}h)" 1; fi
 if [ -n "$DROPPER_PATH_RE" ] && [ -n "$ACCLOGS" ]; then
@@ -1098,6 +1366,8 @@ if [ -n "$DROPPER_PATH_RE" ] && [ -n "$ACCLOGS" ]; then
     fi
     # Sperrliste: je Adresse Datum des letzten Requests; gesperrt vor dem letzten Request = abgedeckt (ORANGE),
     # gesperrt aber Requests danach = Sperre greift nicht (GELB); nicht gesperrt = Bewertung wie bisher
+    # vertraute Adressen: aus dem Befund heraus, in den [TRUST]-Block
+    awk -v t="$(cut -f1 "$TRUSTED_TAB" | tr '\n' ' ')" 'BEGIN { n=split(t, a, " ") } { keep=1; for (i=1;i<=n;i++) { ip=a[i]; sub(/\/.*/, "", ip); if ($2==ip) keep=0 } if (keep) print }' "$WORK/drop.txt" > "$WORK/drop2.txt" && mv "$WORK/drop2.txt" "$WORK/drop.txt"
     DROP_COV=""; DROP_LEAK=""; DROP_OPENLIST=""; DROP_NODATE=""; DROP_COVD=""; DROP_LEAKD=""
     while read -r _cnt _ip; do
       if [ "$BLOCKED_N" -gt 0 ] && [ -n "$(blocked_info "$_ip")" ]; then
@@ -1148,7 +1418,7 @@ if [ -n "$DROPPER_PATH_RE" ] && [ -n "$ACCLOGS" ]; then
     fi
   fi
 fi
-  if catlogs $NSLOGS | grep -aqE "$DTLS_FAIL_RE" && catlogs $NSLOGS | grep -aqE "$PPE_CRASH_RE"; then
+  if catns $NSLOGS | grep -aqE "$DTLS_FAIL_RE" && catns $NSLOGS | grep -aqE "$PPE_CRASH_RE"; then
     TRACES=1; flag_red "DTLS-Handshake-Fehler UND Packet-Engine-Neustart im Fenster - moeglicher CVE-2026-88772-Versuch, /var/core pruefen"
     out "          | Log:           $(log_hits "$DTLS_FAIL_RE|$PPE_CRASH_RE" $NSLOGS)" 1
   fi
@@ -1192,13 +1462,15 @@ fi
     HP=$(catlogs $ERRLOGS | grep -aE "$PROBE_RE" | grep -oE 'File does not exist: [^ ]+' | sed 's/^File does not exist: //' | sort | uniq -c | sort -rn)
     NHP=$(echo "$HP" | grep -c .)
     if [ "$NHP" -gt 0 ]; then
-      HPL=$(catlogs $ERRLOGS | grep -aE "$PROBE_RE"); _pf=$(echo "$HPL" | sort | head -1); _pl=$(echo "$HPL" | sort | tail -1)
-      _pd1=$(log_date "$_pf"); _pd2=$(log_date "$_pl"); NPROBE=$(echo "$HPL" | grep -c .)
+      HPL=$(catlogs $ERRLOGS | grep -aE "$PROBE_RE"); NPROBE=$(echo "$HPL" | grep -c .)
+      # Zeitspanne chronologisch: Apache-Zeilen beginnen mit "[Thu Oct 23 ...]", Textsortierung ist keine Zeitsortierung
+      _pdates=$(echo "$HPL" | while IFS= read -r _hl; do log_date "$_hl"; done | grep -E '^[0-9]{4}-' | sort); _pd1=$(echo "$_pdates" | head -1); _pd2=$(echo "$_pdates" | tail -1)
       # Quellen: dieselben Pfade im Access-Log (Client-Adresse dort), je Adresse Anzahl, Sperrstatus
       PSRC=""
       if [ -n "$ACCLOGS" ]; then
         _paths=$(echo "$HP" | awk '{print $2}' | sed 's#^/var/netscaler/logon#/logon#; s#^/netscaler/ns_gui#/#; s#^/var/netscaler/gui#/#' | sed 's/[.[\*^$]/\\&/g' | tr '\n' '|' | sed 's/|$//')
         [ -n "$_paths" ] && PSRC=$(catlogs $ACCLOGS | grep -aE "\"(GET|POST) [^\" ]*($_paths)" | awk '{print $1}' | sort | uniq -c | sort -rn | head -20)
+        PSRC=$(echo "$PSRC" | while read -r _c _ip; do [ -n "$_ip" ] || continue; if is_trusted_ip "$_ip"; then ip_note webshell_probe "$_ip" "$_c" "httpaccess Webshell-Pfad (vertraut)"; else echo "$_c $_ip"; fi; done)
       fi
       _lvl="${PROBE_LEVEL:-yellow}"
       if [ "$_lvl" = "info" ]; then inf "Webshell-Sondierung: $NPROBE Request(s) auf $NHP nicht existierende Webshell-Pfade (PROBE_LEVEL=info)" 1
@@ -1251,14 +1523,14 @@ fi
     if [ -n "$AF" ]; then flag_yel "SSH-Fehlversuche in Serie (Brute Force) von:"; echo "$AF" | show 8 1
       echo "$AF" | awk '{print $1}' | while read -r _ip; do ip_note ssh_bruteforce "$_ip" "$(echo "$AF" | grep -F "$_ip" | grep -oE '[0-9]+ Fehl' | cut -d' ' -f1)" "auth.log Failed"; done
       out "          | Zu tun:        SSH auf der NSIP nur aus Admin-Netzen zulassen (ACL oder Firewall); Adressen in die Sperrliste." 1; fi
-    [ -n "$AL" ] && [ -z "$AL_EXT" ] && [ -z "$AL_BD" ] && inf "Anmeldungen an der Appliance im Fenster: $(echo "$AL" | awk '{ s = s $2 " (" $1 ") " } END { print s }')nur interne Adressen" 1
+    [ -n "$AL" ] && [ -z "$AL_EXT" ] && [ -z "$AL_BD" ] && inf "Anmeldungen an der Appliance im Fenster: $(echo "$AL" | awk '{ if ($2=="console") s = s "console:" $3 " (" $1 ") "; else s = s $2 " (" $1 ") " } END { print s }')nur interne Adressen" 1
     [ -n "$AL" ] && { catlogs $AUTHLOGS | grep -aE "$AUTH_LOGIN_RE" | grep -v '#nsinternal#' > "$WORK/al_lines.txt"; out "          | Log:           $(log_lines_in "$WORK/al_lines.txt" $AUTHLOGS)" 1; }
     [ -z "$AL" ] && [ -z "$AF" ] && grn "Keine Anmeldungen oder Fehlversuche in auth.log im Fenster"
   fi
   # --- Gateway-Anmeldefehler (AAA): je Adresse Takt, Konten, Zeitraum, Erfolg danach; Mensch/Maschine; Treffer = Rot
   if [ -z "${AAA_FAIL_RE:-}" ] || [ -z "${AAA_OK_RE:-}" ]; then inf "Gateway-Anmeldefehler nicht geprueft: Regeln AAA_FAIL_RE/AAA_OK_RE fehlen in der Regeldatei ($RULES_VERSION; benoetigt $RULES_MIN oder neuer)" 1
   elif [ -n "$NSLOGS" ]; then
-    catlogs $NSLOGS | grep -aE "$AAA_FAIL_RE|$AAA_OK_RE" | grep -avE "$ADMIN_CMD_RE" > "$WORK/aaa_all.txt"
+    catns $NSLOGS | grep -aE "$AAA_FAIL_RE|$AAA_OK_RE" | grep -avE "$ADMIN_CMD_RE" > "$WORK/aaa_all.txt"
     # eigene Adressen: ns.conf (ns ip, vserver, server, HA, serverIP) mit Objektname; dazu RFC 1918 und MGMT_NET_RE zur Laufzeit
     : > "$WORK/own_ips.txt"
     if [ -r "$NSCONF" ]; then
@@ -1307,6 +1579,7 @@ fi
       _cumsl="$(dirname "${OUTFILE:-.}")/ns_quickcheck_observed_ips.tsv"
       while IFS="$(printf '\t')" read -r _ip _rest; do
         [ -n "$_ip" ] || continue
+        if is_trusted_ip "$_ip"; then ip_note "aaa_$(echo "$_rest" | cut -f7 | tr 'A-Z' 'a-z')" "$_ip" "$(echo "$_rest" | cut -f1)" "ns.log AAA Fehlversuche (vertraut)"; continue; fi
         if is_internal_ip "$_ip" || [ -n "$(own_obj "$_ip")" ]; then printf '%s\t%s\n' "$_ip" "$_rest" >> "$WORK/aaa_own.txt"; continue; fi
         _v=$(echo "$_rest" | cut -f7); _u=$(echo "$_rest" | cut -f2)
         if [ "$_v" = UNKLAR ] && [ "$_u" -ge 2 ] && [ -f "$_cumsl" ]; then _td=$(grep -v '^#' "$_cumsl" | awk -F'\t' -v i="$_ip" '$2==i && NF>=11 { if ($7>m) m=$7 } END { print m+0 }'); [ "$_td" -ge "${AAA_SLEEPER_DAYS:-2}" ] && _rest=$(echo "$_rest" | awk -F'\t' -v OFS='\t' -v d="$_td" '{ $7="SCHLAEFER"; $10=d; print }'); fi
@@ -1318,7 +1591,10 @@ fi
       cut -f2 "$WORK/aaa_users.txt" | grep -v '^$' | sort -u | while IFS= read -r _u; do anon_add user "$_u"; done
       # Brute Force auf einzelne Konten: viele Versuche auf ein Konto (AAA_BF_MIN) oder AAA_RATE/min auf ein Konto, von beliebig vielen Adressen
       # aaa_users.txt: USER, konto, fehl, erfolg-gleiche-adresse, adressen, erster, letzter, max/min, erfolg-danach-beliebig, adressliste, erfolgsadresse
-      awk -F'\t' -v bf="${AAA_BF_MIN:-20}" -v rate="${AAA_RATE:-10}" '$3 >= bf || $8 >= rate' "$WORK/aaa_users.txt" | sort -t"$(printf '\t')" -k3,3 -rn > "$WORK/aaa_bf.txt"
+      awk -F'\t' -v bf="${AAA_BF_MIN:-20}" -v rate="${AAA_RATE:-10}" '$3 >= bf || $8 >= rate' "$WORK/aaa_users.txt" | sort -t"$(printf '\t')" -k3,3 -rn > "$WORK/aaa_bf0.txt"
+      : > "$WORK/aaa_bf.txt"
+      while IFS="$(printf '\t')" read -r _l; do _ips=$(echo "$_l" | cut -f10 | tr ',' ' '); _alltr=1; for _ip in $_ips; do is_trusted_ip "$_ip" || _alltr=0; done
+        if [ "$_alltr" -eq 1 ] && [ -n "$_ips" ]; then for _ip in $_ips; do ip_note aaa_bruteforce "$_ip" "$(echo "$_l" | cut -f3)" "ns.log AAA Brute Force auf Konto (vertraut)"; done; else printf '%s\n' "$_l" >> "$WORK/aaa_bf.txt"; fi; done < "$WORK/aaa_bf0.txt"
       NBF=$(grep -c . "$WORK/aaa_bf.txt"); NBFHIT=$(awk -F'\t' '$9==1' "$WORK/aaa_bf.txt" | grep -c .)
       if [ "$NBFHIT" -gt 0 ]; then TRACES=1; COMPROMISE=1; flag_red "Erfolgreiche Anmeldung nach Brute Force auf ein Konto ($NBFHIT Konto/Konten): Passwort gefunden oder Nutzer nach Angriff angemeldet, ein Mensch muss das entscheiden:"
         awk -F'\t' '$9==1 { printf "Konto %s  %d Fehlversuche von %d Adresse(n), danach erfolgreich von %s\n", $2, $3, $5, $11 }' "$WORK/aaa_bf.txt" | LINE_MAX=0 show 10 1
@@ -1376,6 +1652,23 @@ fi
 fi
 
 # =============================================================================
+# Vertraute Adressen: gesammelte Ausgabe, ohne Verdict-Wirkung (TRUST_LEVEL=yellow: als Gelb)
+if [ -s "$TRUST_EVENTS" ]; then
+  _cumt="$(dirname "${OUTFILE:-.}")/ns_quickcheck_observed_ips.tsv"
+  cut -f1 "$TRUST_EVENTS" | sort -u | while read -r _tip; do
+    _ti=$(trusted_info "$_tip"); _tb=$(echo "$_ti" | cut -d'|' -f2); _tm=$(echo "$_ti" | cut -d'|' -f1)
+    if [ -f "$_cumt" ] && grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 !~ /^trusted_/ { f=1 } END { exit f ? 0 : 1 }'; then
+      _pc=$(grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 !~ /^trusted_/ { print $1 }' | sort -u | tr '\n' ',' | sed 's/,$//')
+      flag_yel "$_tip steht in trusted_ips, war in der Adressliste dieser Appliance aber als $_pc gefuehrt - Eintrag pruefen (Tippfehler? gewollt?)"; fi
+    flag_tru "Vertraute Adresse $_tip${_tb:+ (bis $_tb)} im Fenster aktiv [Bemerkung: ${_tm:-ohne}]:"
+    grep "^$_tip	" "$TRUST_EVENTS" | cut -f2 | sort | uniq -c | awk '{ c=$1; $1=""; sub(/^ /,""); print $0 (c>1 ? "  (" c "x)" : "") }' | show 10 1
+    out "          | Pruefen:       Ist der Eintrag richtig und noch gewollt? Falsch eingetragen = Zeile aus ns_quickcheck.trusted_ips loeschen, dann wird das beim naechsten Lauf wieder bewertet. Wirkungs-Befunde (Injection, Webshell 200, Erfolg nach Fehlserie, aktive Verbindung) bleiben auch fuer vertraute Adressen Rot." 1
+  done
+  # Zaehler ausserhalb der Subshell (die Schleife laeuft in einer Pipe)
+  TRUST_COUNT=$(cut -f1 "$TRUST_EVENTS" | sort -u | grep -c .)
+  if [ "${TRUST_LEVEL:-trust}" = yellow ]; then YEL_COUNT=$((YEL_COUNT + TRUST_COUNT)); fi
+  [ -f "$_cumt" ] && YEL_COUNT=$((YEL_COUNT + $(cut -f1 "$TRUST_EVENTS" | sort -u | while read -r _tip; do grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 !~ /^trusted_/ { f=1 } END { exit f ? 0 : 1 }' && echo x; done | grep -c x) ))
+fi
 hdr "5 Kompromittierungs-Schnellcheck"
 # =============================================================================
 for p in $PAYLOAD_PATHS; do
@@ -1401,7 +1694,19 @@ if [ -n "$WD" ]; then
       AGE=$(( (NOW - BOOT) / 60 - 15 )); [ "$AGE" -gt 0 ] || AGE=1
       find $WD -type f -mmin -"$AGE" 2>/dev/null | UPG="${UPG:-0}" perl -ne 'chomp; @s=stat($_); next unless @s; next if $ENV{UPG}>0 && $s[9] >= $ENV{UPG}-60 && $s[9] <= $ENV{UPG}+1800; print "$s[9]\t$_\n"' > "$WORK/neww.txt"
     fi
-    awk -F'\t' '{print $2}' "$WORK/neww.txt" | filter_wl "$WL_WEBFILE" > "$WORK/neww_paths.txt"
+    # Whitelist anwenden: Verzeichnisregeln (enden mit /) decken keinen Code ab; Dateiregeln auf Code gelten nur mit Pin
+    CODE_RE='\.(js|php|pl|sh|cgi|py)$|/plugins\.xml$'
+    WL_WEB_NOCODE=$(printf '%s' "$WL_WEBFILE" | tr '|' '\n' | grep -viE '\\?\.(js|php|pl|sh|cgi|py)\$$|plugins\\?\.xml\$$' | tr '\n' '|' | sed 's/|$//')
+    awk -F'\t' '{print $2}' "$WORK/neww.txt" | { grep -viE "$CODE_RE" | filter_wl "$WL_WEBFILE"; awk -F'\t' '{print $2}' "$WORK/neww.txt" | grep -iE "$CODE_RE" | awk -v pins="$WL_WEBPIN" 'BEGIN { while ((getline l < pins) > 0) { split(l, f, "\t"); re[++n]=f[1] } } { keep=1; for (i=1;i<=n;i++) if ($0 ~ re[i]) keep=0; if (keep) print }'; } | sort -u > "$WORK/neww_paths.txt"
+    # Hash-Pins: freigegebene Datei mit anderem Hash ist wieder ein Befund
+    if [ -s "$WL_WEBPIN" ]; then
+      awk -F'\t' '{print $2}' "$WORK/neww.txt" | while IFS= read -r _wp; do
+        while IFS="$(printf '\t')" read -r _re _h; do
+          if echo "$_wp" | grep -qE "$_re"; then _f="$ROOT$_wp"; [ -f "$_f" ] || continue; _hh=$(sha256 -q "$_f" 2>/dev/null || sha256sum "$_f" 2>/dev/null | cut -c1-64)
+            [ "$_hh" = "$_h" ] || { echo "$_wp"; printf '%s\t%s\n' "$_wp" "$_hh" >> "$WORK/wl_pinfail.txt"; }; fi; done < "$WL_WEBPIN"; done | sort -u >> "$WORK/neww_paths.txt"
+      sort -u "$WORK/neww_paths.txt" -o "$WORK/neww_paths.txt"
+      [ -s "$WORK/wl_pinfail.txt" ] && flag_yel "$(grep -c . "$WORK/wl_pinfail.txt") per Hash freigegebene Web-Datei(en) erneut geaendert (Whitelist-Pin passt nicht mehr): Inhalt pruefen, dann Pin aktualisieren" && cut -f1 "$WORK/wl_pinfail.txt" | show 5 1
+    fi
     NNEW=$(grep -c . "$WORK/neww_paths.txt")
     if [ "$NNEW" -gt 0 ]; then
       # Burst-Regel: liegen alle Aenderungen innerhalb von 30 s, ist es ein Rewrite (Theme, Upgrade-Nachlauf)
@@ -1413,16 +1718,29 @@ if [ -n "$WD" ]; then
       else
         if [ "$NNEW" -ge 20 ]; then flag_yel "$NNEW Web-Dateien seit Boot geaendert, verteilt ueber $(( (MX - MN) / 60 )) min - stichprobenartig pruefen:"
         else flag_yel "$NNEW Web-Datei(en) seit Boot (ausserhalb Upgrade-Fenster) geaendert - jede einzelne pruefen:"; fi
-        head -30 "$WORK/neww_paths.txt" | show 8 1
+        # alle nicht freigegebenen Dateien mit Aenderungszeit, neueste zuerst; ab 20 je Verzeichnis gruppiert (Code bleibt einzeln)
+        grep -F -f "$WORK/neww_paths.txt" "$WORK/neww.txt" | sort -rn | CODE_RE="$CODE_RE" perl -MPOSIX -e '
+          my (@l,%n,%mn,%mx,%done); my $code=$ENV{CODE_RE};
+          while (<STDIN>) { chomp; my ($t,$p)=split /\t/; next unless defined $p; (my $d=$p) =~ s{/[^/]*$}{}; $n{$d}++; $mn{$d}=$t if !defined $mn{$d} || $t<$mn{$d}; $mx{$d}=$t if !defined $mx{$d} || $t>$mx{$d}; push @l,[$t,$p,$d,($p =~ /$code/i ? 1 : 0)] }
+          for my $e (@l) { my ($t,$p,$d,$c)=@$e;
+            if ($n{$d} >= 20 && !$c) { next if $done{$d}++; printf "%d\t%s/: %d Dateien, %s bis %s\n", $mx{$d}, $d, $n{$d}, strftime("%Y-%m-%d %H:%M", localtime $mn{$d}), strftime("%Y-%m-%d %H:%M", localtime $mx{$d}) }
+            else { printf "%d\t%s  %s\n", $t, strftime("%Y-%m-%d %H:%M", localtime $t), $p } }' 2>/dev/null | sort -rn | cut -f2- > "$WORK/neww_show.txt"
+        [ -s "$WORK/neww_show.txt" ] || awk -F'\t' '{ print $2 }' "$WORK/neww.txt" | grep -F -f "$WORK/neww_paths.txt" > "$WORK/neww_show.txt"
+        # alle Zeilen in Report und Terminal (DETAIL_MAX in der Config begrenzt die Anzeige, der Report bleibt vollstaendig)
+        show 0 1 < "$WORK/neww_show.txt"
         _wfirst=$(grep -F -f "$WORK/neww_paths.txt" "$WORK/neww.txt" | cut -f1 | sort -n | head -1); _wlast=$(grep -F -f "$WORK/neww_paths.txt" "$WORK/neww.txt" | cut -f1 | sort -n | tail -1)
-        _wout=$(head -30 "$WORK/neww_paths.txt" | grep -vcE '^/var/netscaler/logon/themes/|favicon\.ico$|/images/'); _wphp=$(head -30 "$WORK/neww_paths.txt" | grep -ciE '\.php$')
+        # Einordnung ueber ALLE geaenderten Dateien, nicht nur die angezeigten
+        _wout=$(grep -vcE '^/var/netscaler/logon/themes/|favicon\.ico$|/images/' "$WORK/neww_paths.txt"); _wphp=$(grep -ciE '\.php$' "$WORK/neww_paths.txt")
+        _wexec=$(grep -iE '\.(js|php|pl|sh|cgi|py)$|/plugins\.xml$' "$WORK/neww_paths.txt" | grep -vciE '\.php$'); _wexecl=$(grep -iE '\.(js|pl|sh|cgi|py)$|/plugins\.xml$' "$WORK/neww_paths.txt" | head -5)
         out "          | Wann:          $( [ -n "$_wfirst" ] && fmtdate "$_wfirst" || echo ?) bis $( [ -n "$_wlast" ] && fmtdate "$_wlast" || echo ?), letzter Boot $(fmtdate "$BOOT")" 1
         if [ "${_wphp:-0}" -gt 0 ] && [ "${PHP_ANOM:-0}" -ge "${PHP_ANOMALY_MIN:-3}" ] && [ "$VULN63" -eq 1 ]; then TRACES=1; COMPROMISE=1; flag_red "Neue PHP-Datei(en) plus PHP-Speicher-/Fatal-Muster auf verwundbarem Build (CTX697263): Muster einer PHP2Shell-Ausnutzung"; out "          | Zu tun:        Incident-Prozess, nicht patchen, nicht neu starten; Dateien sichern (Pfad, Hash), Management-Adressen per ACL abschotten." 1; fi
         if [ "${_wphp:-0}" -gt 0 ]; then out "          | Ergebnis:      untypisch: $_wphp PHP-Datei(en) geaendert; das ist kein Theme." 1
         elif [ "${_wout:-0}" -gt 0 ]; then out "          | Ergebnis:      $_wout Datei(en) ausserhalb von Themes, Bildern und Favicons; einzeln einordnen." 1
+        elif [ "${_wexec:-0}" -gt 0 ]; then out "          | Ergebnis:      $_wexec ausfuehrbare Datei(en) darunter (Scripts, plugins.xml): kein Theme-Bild, ein Theme-Ticket erklaert das nicht von selbst." 1
         else out "          | Ergebnis:      alle Aenderungen in Theme-Ordnern, Bildern oder Favicons; Theme-Anpassung durch den Betreiber ist die wahrscheinliche Erklaerung." 1; fi
+        if [ "${_wexec:-0}" -gt 0 ]; then out "          | Code:          ausfuehrbarer Code, Diff gegen Vorversion (Snapshot-Set oder Backup) vor der Freigabe; Freigabe nur mit Hash-Pin, Zeilen erzeugt: sh ns_quickcheck.sh --pin <verzeichnis>" 1; grep -iE "$CODE_RE" "$WORK/neww_paths.txt" | head -5 | show 5 1; fi
         out "          | Zu tun:        1. Aenderungsdatum gegen das Ticket der Theme-Anpassung pruefen." 1
-        out "          |                2. Bestaetigte Dateien in ns_quickcheck.whitelist als webfile:<regex> eintragen; die Meldung verschwindet (README 15, Howto Whitelist)." 1
+        out "          |                2. Bestaetigte Dateien in ns_quickcheck.whitelist als webfile:<regex>$ eintragen, bei Code mit @sha256=<hash>; die Meldung verschwindet (README 15, Howto Whitelist)." 1
         [ "${_wphp:-0}" -gt 0 ] || [ "${_wout:-0}" -gt 0 ] && out "          |                3. Nicht erklaerbare Dateien: Inhalt ansehen, Hash bei VirusTotal nachschlagen (nur den Hash), bei Zweifel Incident-Prozess." 1
       fi
     else grn "Keine Web-Dateien seit Boot geaendert"; fi
@@ -1628,7 +1946,13 @@ if [ "$COMPROMISE" -eq 1 ]; then
   out "  3. Citrix Support einbinden, offiziellen IoC-Scan anfordern. Danach Rebuild, alle Secrets inkl. KEK rotieren, Zertifikate widerrufen." 1
 elif [ "$VULN" -eq 1 ] || [ "$VULN9" -eq 1 ]; then
   ACTION=UPDATE; RC=2; out "ACTION: UPDATE" 1 R
-  [ "$VULN" -eq 1 ] && out "Build $BUILD ist verwundbar (CTX697096, aktiv ausgenutzt, oeffentliches Tooling). Ziel: $REL-${FIXB:-$FIXA}." 1
+  if [ "$VULN" -eq 1 ]; then
+    _ocve=$(grep '^OPEN' "$WORK/cve.txt" 2>/dev/null | awk '{print $2}' | sort -u | tr '\n' ',' | sed 's/,$//; s/,/, /g'); _octx=$(grep '^OPEN' "$WORK/cve.txt" 2>/dev/null | awk '{print $3}' | sort -u | tr '\n' ',' | sed 's/,$//; s/,/, /g')
+    _oexp=""; grep '^OPEN' "$WORK/cve.txt" 2>/dev/null | grep -qE 'CVE-2026-(88771|88772|109618|109619) ' && _oexp=", aktiv ausgenutzt"
+    if [ "$EOL" -eq 1 ]; then out "Release $REL ist End-of-Life; kein Fix, Migration auf einen unterstuetzten Train." 1
+    elif [ -n "$_ocve" ]; then out "Build $BUILD ist verwundbar gegen $_ocve ($_octx$_oexp). Ziel: $TRAIN-${FIXMAX:-?}." 1
+    else out "Build $BUILD: Bewertung unvollstaendig (Build nicht ermittelbar oder Train nicht in der Regeldatei); Block 1 lesen." 1; fi
+  fi
   [ "$VULN9" -eq 1 ] && out "SAML konfiguriert und SAML-abhaengige CVE offen (siehe Block 1: $(grep '^SAMLOPEN' "$WORK/cve.txt" | awk '{print $2}' | sort -u | tr '\n' ' ')). Ziel: $REL-$FIXB." 1
   [ "$TRACES" -eq 1 ] && out "Angriffsspuren vorhanden: vor dem Upgrade Logs und /var/core extern sichern, das Upgrade ueberschreibt Spuren." 1
   [ "$TRACES" -eq 0 ] && out "Keine Spuren im Fenster: trotzdem vor dem Upgrade Logs extern sichern (Internet-exponierte Appliance = Assume Breach)." 1
@@ -1641,7 +1965,7 @@ elif [ "$ISN_OPEN" -eq 1 ] || { [ "$TRACES" -eq 1 ] && [ "$MITIG_OK" -eq 0 ]; } 
   out "Danach diesen Check wiederholen: sind die Punkte geklaert oder in der Whitelist, wird das Ergebnis OK." 1
   out "Offene Punkte:" 1
   [ "$ISN_OPEN" -eq 1 ] && out "  - Enhanced ISN Generation aktivieren (CVE-2026-88778 ist mit dem Build allein nicht geschlossen)." 1
-  [ "$TRACES" -eq 1 ] && [ "$MITIG_OK" -eq 0 ] && out "  - Angriffsversuche laufen, keine Mitigation-Policy gebunden: Responder-Policy mit -type AAA_REQUEST setzen, Hit-Counter beobachten." 1
+  [ "$TRACES" -eq 1 ] && [ "$MITIG_OK" -eq 0 ] && [ "$VULN" -eq 1 ] && out "  - Angriffsversuche laufen, keine Mitigation-Policy gebunden: Responder-Policy mit -type AAA_REQUEST setzen, Hit-Counter beobachten." 1
   [ "$TRACES" -eq 1 ] && out "  - Quell-IPs oben an Firewall/SOC geben; Download-Hosts in Firewall/DNS-Logs suchen." 1
   [ "$UNSAVED" -eq 1 ] && out "  - Ungespeicherte Config-Zeilen klaeren: eigene Aenderung dann save ns config, sonst Fund." 1
   out "  - Offizieller Citrix-IoC-Scan (Console oder Support) als zweite Meinung, falls die Appliance vor dem Fix exponiert war." 1
@@ -1663,12 +1987,15 @@ if [ -s "$JIPS" ]; then
       _st="neu"; if [ -n "$_cumf" ] && [ -f "$_cumf" ]; then _row=$(grep -v '^#' "$_cumf" | awk -F'\t' -v c="$_cat" -v i="$_ip" '$1==c && $2==i { if (NF>=11) print $8 "\t" $7 "\t" $9; else print $5 "\t" $4 "\t" $6; exit }')
         if [ -n "$_row" ]; then _f=$(echo "$_row" | cut -f1 | cut -c1-10); _d=$(echo "$_row" | cut -f2); _l=$(echo "$_row" | cut -f3 | cut -c1-10); [ "$_l" != "$(date +%Y-%m-%d)" ] && _d=$((_d + 1)); _st="bekannt seit $_f, an $_d Tag(en)"; fi; fi
       _bs="Sperrliste: nein"; [ -n "$_bl" ] && { _sd=$(echo "$_bl" | cut -d'|' -f2); _bs="Sperre ab ${_sd:-unbekannt}"; }
+      case "$_cat" in trusted_*) _tt=$(trusted_info "$_ip" | cut -d'|' -f2); _bs="trusted${_tt:+ bis $_tt}" ;; esac
       out "  $(printf '%-18s %-22s %-32s %s' "$_ip" "$_cat" "$_st" "$_bs")" 1
     done
-  _tot=$(sort "$JIPS" | cut -f1,2 | sort -u | grep -c .); out "  $_tot Eintrag/Eintraege; reine Liste: grep -v '^#' ns_quickcheck_observed_ips.tsv | cut -f2 | sort -u" 1
+  _tot=$(sort "$JIPS" | cut -f1,2 | sort -u | grep -c .); out "  $_tot Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u" 1
   out "" 1
 fi
-RESULT="RESULT host=$HOST build=${BUILD:-?} mode=$MODE cli=$CLI_MODE window=${HOURS}h saml=$SAML vuln96=$VULN vuln63=$VULN63 vuln79=$VULN9 isn_open=$ISN_OPEN traces=$TRACES mitigation=$MITIG_OK unsaved=$UNSAVED save_missing=$SAVE_MISSING compromise=$COMPROMISE red=$RED_COUNT yellow=$YEL_COUNT orange=$ORG_COUNT blocked_seen=${BLOCKED_SEEN:-0} coverage=$COVERAGE action=$ACTION rules=$RULES_VERSION script_sha256=${SCRIPT_SHA:-?} rules_sha256=${RULES_SHA:-?} custom=${CUSTOM_VERSION:-none} custom_sha256=${CUSTOM_SHA:-none} cve_custom=${CVE_CUSTOM_N:-0} cve_conflict=${CVE_CONFLICT_N:-0} runtime=$(( $(date +%s) - NOW ))s"
+VULN_OPEN=$(grep -c "^OPEN" "$WORK/cve.txt" 2>/dev/null); VULN_OPEN=${VULN_OPEN:-0}
+RESULT="RESULT host=$HOST build=${BUILD:-?} mode=$MODE cli=$CLI_MODE window=${HOURS}h saml=$SAML vuln96=$VULN96 vuln_open=$VULN_OPEN vuln63=$VULN63 vuln79=$VULN9 isn_open=$ISN_OPEN traces=$TRACES mitigation=$MITIG_OK unsaved=$UNSAVED save_missing=$SAVE_MISSING compromise=$COMPROMISE red=$RED_COUNT yellow=$YEL_COUNT orange=$ORG_COUNT blocked_seen=${BLOCKED_SEEN:-0} trusted_seen=$TRUST_COUNT crashes=${NCRASH:-0} coverage=$COVERAGE action=$ACTION rules=$RULES_VERSION script_sha256=${SCRIPT_SHA:-?} rules_sha256=${RULES_SHA:-?} custom=${CUSTOM_VERSION:-none} custom_sha256=${CUSTOM_SHA:-none} cve_custom=${CVE_CUSTOM_N:-0} cve_conflict=${CVE_CONFLICT_N:-0} runtime=$(( $(date +%s) - NOW ))s"
+[ "${FOOTER:-1}" -eq 1 ] && { out "" 1; out "Erstellt mit netscaler-quickcheck $VERSION (Regelstand $RULES_VERSION), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck" 1; }
 out "$RESULT" 1
 
 # --- JSON ----------------------------------------------------------------------
@@ -1698,7 +2025,7 @@ if [ "$NO_OUT" -eq 0 ]; then
       echo "# tage = Kalendertage, an denen ein Lauf die Adresse sah (mehrere Laeufe am Tag zaehlen einmal). Dateien von Script-Staenden vor 17.28 (Summe, Laeufe) werden uebernommen, die alten Zahlen sind zu hoch; fuer saubere Werte die Datei loeschen, sie baut sich neu auf."
       echo "# Kategorien: payload_download_host, injection_source, dropper_requester, outbound_hit (Bedeutung: README 5.2)"
       echo "# Vor einer Blockliste pruefen: geteilte Infrastruktur (CDN, Cloudflare WARP, Proxies, NAT) blockt Unbeteiligte mit. Keine eigene und keine RFC-1918-Adresse enthalten."
-      echo "# Reine Adressliste: grep -v '^#' ns_quickcheck_observed_ips.tsv | cut -f2 | sort -u"
+      echo "# Reine Adressliste ohne vertraute Adressen (Kategorie trusted_*): grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u"
       cat "$WORK/cum.tsv"; } > "$CUM"; chmod 600 "$CUM" 2>/dev/null
   fi
   [ -f "$WORK/hits.tsv" ] || : > "$WORK/hits.tsv"
@@ -1714,21 +2041,38 @@ if [ "$NO_OUT" -eq 0 ]; then
     print "  \"mitigation_hits\": $hits,\n";
     my @ips; if (open(my $ih,"<",$ENV{IPSFILE})) { while (<$ih>) { chomp; next if /^#/; my ($k,$ip,$n,$src,$bl)=split /\t/; push @ips, "{\"category\": ".j($k).", \"ip\": ".j($ip).", \"count\": ".($n+0).", \"observed_in\": ".j($src).", \"blocked\": ".j(defined $bl ? $bl : "")."}" if defined $ip } close $ih }
     print "  \"observed_ips\": [".join(",",@ips)."],\n";
-    my (@red,@yel,@org,$cur);
+    my (@red,@yel,@org,@tru,$cur);
     if (open(my $fh,"<",$ENV{JFIND})) { while (<$fh>) { chomp; my ($k,$t)=split /\t/,$_,2; next unless defined $t;
-        if ($k eq "R") { $cur={text=>$t,d=>[]}; push @red,$cur } elsif ($k eq "Y") { $cur={text=>$t,d=>[]}; push @yel,$cur } elsif ($k eq "O") { $cur={text=>$t,d=>[]}; push @org,$cur } elsif ($k eq "D" && $cur) { push @{$cur->{d}},$t } } close $fh }
+        if ($k eq "R") { $cur={text=>$t,d=>[]}; push @red,$cur } elsif ($k eq "Y") { $cur={text=>$t,d=>[]}; push @yel,$cur } elsif ($k eq "O") { $cur={text=>$t,d=>[]}; push @org,$cur } elsif ($k eq "T") { $cur={text=>$t,d=>[]}; push @tru,$cur } elsif ($k eq "D" && $cur) { push @{$cur->{d}},$t } } close $fh }
     sub fl { my @a=@_; return "[".join(",", map { "{\"text\": ".j($_->{text}).", \"details\": [".join(",", map { j($_) } @{$_->{d}})."]}" } @a)."]" }
-    print "  \"red\": ".fl(@red).",\n  \"yellow\": ".fl(@yel).",\n  \"orange\": ".fl(@org)."\n}\n";
+    print "  \"red\": ".fl(@red).",\n  \"yellow\": ".fl(@yel).",\n  \"orange\": ".fl(@org).",\n  \"trust\": ".fl(@tru).",\n  \"source_url\": \"https://ceterion.com/netscaler-quickcheck\"\n}\n";
   ' > "$JSONFILE" 2>/dev/null
   chmod 600 "$OUTFILE" "$JSONFILE" 2>/dev/null
   anon_map_build
   AHOST=$(awk -F'\t' -v h="$HOST" '$1=="host" && $2==h { print $3; exit }' "$ANON_MAP"); [ -n "$AHOST" ] || AHOST="gw-00"
   ANON_TXT="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_anon.txt"; ANON_JSON="${ANON_TXT%.txt}.json"
-  { echo "# anonymisiert nach Zuordnungstabelle ($(wc -l < "$ANON_MAP" | tr -d ' ') Eintraege); Angreifer-Werte, Hashes, Pfade und Regelstaende unveraendert. Stichprobe vor Weitergabe."; cat "$OUTFILE"; } > "$WORK/anon_in.txt"
+  _skipped=$(awk -F'\t' -v re="$ANON_RESERVED" '($1=="user" || $1=="mail") && (length($2) < 3 || tolower($2) ~ tolower(re)) { print $2 }' "$ANON_MAP" 2>/dev/null | tr '\n' ' ' | sed 's/ $//')
+  { echo "# anonymisiert nach Zuordnungstabelle ($(wc -l < "$ANON_MAP" | tr -d ' ') Eintraege$( [ -n "$_skipped" ] && echo "; uebergangen, weil zu kurz oder Reportwort: $_skipped")); Angreifer-Werte, Hashes, Pfade und Regelstaende unveraendert. Stichprobe vor Weitergabe."; cat "$OUTFILE"; } > "$WORK/anon_in.txt"
   anon_apply "$WORK/anon_in.txt" "$ANON_TXT"
   anon_apply "$JSONFILE" "$ANON_JSON"
+  # Adresslisten: anonymisierte Fassungen (Hostname, Bemerkungen der Sperr- und Vertrauensliste entfernt) und Share-Datei
+  anon_list() { # infile outfile  (Spalten beobachtung und gesperrt bereinigen, dann Zuordnungstabelle)
+    awk -F'\t' 'BEGIN { OFS="\t" } /^#/ { print; next }
+      { for (i=1;i<=NF;i++) { if ($i ~ /\(trusted/) { sub(/: [^)]*\)/, ")", $i) }
+          if ($i ~ /\|/ && $i !~ /^http/) { n=split($i, g, "|"); $i=(n>=2 ? g[2] : "") } } print }' "$1" > "$WORK/anon_list.tmp"
+    anon_apply "$WORK/anon_list.tmp" "$2"; chmod 600 "$2" 2>/dev/null; }
+  if [ -f "$IPSFILE" ]; then ANON_IPS="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_ips_anon.tsv"; anon_list "$IPSFILE" "$ANON_IPS"; fi
+  if [ -f "${CUM:-}" ]; then ANON_CUM="$(dirname "$OUTFILE")/ns_quickcheck_observed_ips_anon.tsv"; anon_list "$CUM" "$ANON_CUM"
+    SHARE="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_share.tsv"
+    { echo "# ns_quickcheck share $VERSION  stand $(date +%Y-%m-%d)  quelle ns_quickcheck  (keine Appliance-Kennung, keine Bemerkungen; nur belastbare Kategorien; vor dem Versand durchsehen)"
+      echo "# kategorie	ip	zuerst	zuletzt	tage	anzahl_max	max_fenster_h	anzahl_zuletzt	regeldatei"
+      grep -v '^#' "$CUM" | awk -F'\t' -v re="${ATTACKER_IP_RE:-^$}" 'BEGIN { OFS="\t" }
+        $1=="payload_download_host" || $1=="injection_source" || $1=="webshell_hit" || $1=="outbound_hit" || $1=="aaa_bruteforce" || $1=="aaa_maschine" || $1=="aaa_hit" || $1=="ssh_bruteforce" || ($1=="dropper_requester" && $5+0 >= 3) {
+          rf = ($2 ~ re) ? "ja" : "nein"; print $1, $2, substr($8,1,10), substr($9,1,10), $7, $5, $6, $3, rf }' | sort -u; } > "$SHARE"; chmod 600 "$SHARE" 2>/dev/null
+  fi
   [ "${NIPS:-0}" -gt 0 ] && echo "Adressliste dieses Laufs: ${OUTFILE%.txt}_ips.tsv ($NIPS Eintraege, davon ${NEWIPS:-0} neu gegenueber dem Bestand, ${BLOCKED_SEEN:-0} Adresse(n) in der Sperrliste; kumuliert seit ${SINCE:-heute}: ${CUMN:-0} Adressen in ns_quickcheck_observed_ips.tsv)"
   echo "Report: $OUTFILE  JSON: $JSONFILE (defanged)  anon: $ANON_TXT und $ANON_JSON (fuer Weitergabe)"
+  [ -n "${ANON_CUM:-}" ] && echo "Adresslisten anon: ${ANON_IPS:-} und $ANON_CUM; Share-Datei fuer ceterion (nach Durchsicht): ${SHARE:-}"
   [ "$MODE" = online ] && find "$REPORT_DIR" -maxdepth 1 -type f -name 'ns_quickcheck_*' -mtime +"$REPORT_KEEP_DAYS" -delete 2>/dev/null
 fi
 CLI_PW=""

@@ -39,3 +39,9 @@ dom-boundary.log:ATTACKER_DOM_RE:3
 aaa-fail.log:AAA_OK_RE:1
 httperror-php.log:HTTPERR_PHP_ANOMALY_RE:4
 httperror-php.log:HTTPERR_EXEC_RE:3
+pitboss-crash.log:PITBOSS_RE:10
+pitboss-crash.log:KERNEL_EXIT_RE:4
+pitboss-crash.log:NSAAAD_CRASH_LEGACY_RE:2
+crash-extra.log:HTTPERR_CRASH_RE:2
+crash-extra.log:KERNEL_MEM_RE:2
+crash-extra.log:KERNEL_PANIC_RE:2

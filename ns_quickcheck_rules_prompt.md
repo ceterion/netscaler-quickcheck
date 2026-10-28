@@ -1,6 +1,6 @@
 # Prompt: Regeldatei aus einem Citrix-Bulletin erweitern
 
-Version 7, 2026-10-14, passend zur Regeldatei-Struktur von `ns_quickcheck_V15.sh` (CVE-Tabelle `CVE_TABLE`, `FIX_*` nur noch Fallback) und zum Patch-Format von `docs/rules-apply.sh`. Gegenstück zu `ns_quickcheck_research_prompt.md`. Ablauf für Betreiber: `WORKFLOW.de.md`.
+Version 8, 2026-10-28, passend zu Script ab 17.37 und Regeldatei Format 2 (`docs/rules-format-2.md` 1.4: CVE-Tabelle `CVE_TABLE` mit Fix-Build oder `pending`, Indikatorzeilen mit sieben Feldern, `FIX_*` nur noch Fallback) und zum Patch-Format von `docs/rules-apply.sh`. Gegenstück zu `ns_quickcheck_research_prompt.md`. Ablauf für Betreiber: `WORKFLOW.de.md`.
 
 ## Bedienung (nicht mitschicken)
 
@@ -41,22 +41,22 @@ Liefere zuerst diese Tabelle; jede Zelle mit wörtlichem Zitat (maximal 20 Wört
 Phase 1, Fragen an den Betreiber. Stelle höchstens diese drei Fragen, nummeriert, und beende deine Antwort danach. Antwortet der Betreiber mit "Standard", gelten die Annahmen in Klammern.
 1. Welche Release-Trains laufen bei Ihnen: 14.1, 13.1, 13.1-FIPS, 14.1-FIPS? (Annahme: ich fülle alle Trains aus dem Bulletin aus und markiere in D, welche Sie prüfen müssen.)
 2. Welche Bulletins enthält Ihre Regeldatei bereits? Ich lese RULES_SOURCE und CVE_TABLE aus Block 1; bitte bestätigen, damit ich nichts doppelt anhänge. (Annahme: Block 1 ist vollständig und aktuell.)
-3. Sollen zusätzliche Berichte aus Block 2 (Threat-Intel, Community-Tools) als Sekundärquelle einfließen? (Annahme: ja, falls Block 2 gefüllt ist, mit Kennzeichnung; sonst nein.)
+3. Liegen in Block 2 Erstveröffentlichungen von Threat-Intel-Anbietern (CISA, Unit 42, Zscaler, watchTowr, Mandiant, CERT-EU, LevelBlue) vor, aus denen Indikatoren übernommen werden sollen? (Annahme: ja, falls Block 2 gefüllt ist, jede Zeile mit URL und Datum; Zusammenstellungen Dritter und Community-Werkzeuge sind keine Quelle.)
 Danach Phase 2 nach den folgenden Regeln.
 
 Zwei Klassen von Variablen:
 Klasse 1, Übertragung: CVE_TABLE, FIX_*, EOL_RELEASES, ATTACKER_IP_RE, ATTACKER_DOM_RE, PAYLOAD_PATHS.
 Quellenregel nach Wirkung eines falschen Eintrags:
 - CVE_TABLE, FIX_*, EOL_RELEASES: nur aus dem Citrix-Bulletin, wörtlich belegt. Nie aus einem Bericht Dritter.
-- PAYLOAD_PATHS, ATTACKER_IP_RE, ATTACKER_DOM_RE: auch aus einem mitgegebenen Bericht (Threat-Intel, Community-Tool); Herkunftszeile dann "<quelle>, Sekundärquelle, Primärquelle ausstehend". Ein falscher Eintrag bleibt ohne Wirkung, solange nichts darauf trifft.
-Klasse 2, Muster: TRIGGER_RE, OBFUSC_RE, CMD_NAMES, LOGIN_PATH_RE, MITIGATION_RULE_RE, NSAAAD_CRASH_RE, DTLS_FAIL_RE, PPE_CRASH_RE, SUSPECT_LISTENER_RE. Sie wirken auf Logzeilen oder Prozesslisten; ein falscher Eintrag erzeugt Fehlalarme auf jeder Appliance. Ein Vorschlag ist nur zulässig, wenn die Quelle die beobachtete Zeile zeigt (Hersteller-Threat-Intel, benannter Forscher mit Logauszug, Community-Tool mit Quellenangabe); zitiere diese Zeile. Du formulierst die Erweiterung als Regex im ERE-Dialekt; sie gilt als Vorschlag, bis der Betreiber sie mit `--testlog` geprüft hat. Zu jedem Muster lieferst du zwei Dinge für docs/testlogs/: mindestens eine Logzeile im Originalformat, die das Muster trifft, mit Fundstelle (aus dem Bulletin oder dem mitgegebenen Bericht, nicht konstruiert), und eine Zeile für expected.txt im Format <datei>:<prüfung>:<mindestanzahl>. Findest du keine belegte Zeile, schlägst du das Muster trotzdem vor, markierst es "ohne Testzeile", und der Betreiber erzeugt die Zeile im Lab, bevor es in die Regeldatei kommt.
+- PAYLOAD_PATHS, ATTACKER_IP_RE, ATTACKER_DOM_RE (im Format 2: IOC-Zeilen): nur aus der Veröffentlichung des Erstautors (Hersteller, CISA, Threat-Intel-Anbieter mit eigener Beobachtung); Herkunftszeile dann "<quelle>, Sekundärquelle, Primärquelle ausstehend". Ein falscher Eintrag bleibt ohne Wirkung, solange nichts darauf trifft.
+Klasse 2, Muster: TRIGGER_RE, OBFUSC_RE, CMD_NAMES, LOGIN_PATH_RE, MITIGATION_RULE_RE, DTLS_FAIL_RE, PPE_CRASH_RE, SUSPECT_LISTENER_RE, SUSPECT_PROC_RE, HTTPERR_EXEC_RE, HTTPERR_PROBE_RE, HTTPERR_PHP_ANOMALY_RE, AUTH_LOGIN_RE, AUTH_FAIL_RE, MGMT_PATH_RE, MGMT_ACL_RE, AAA_FAIL_RE, AAA_OK_RE, PITBOSS_RE, KERNEL_EXIT_RE (NSAAAD_CRASH_RE und NSAAAD_CRASH_LEGACY_RE nur Rückfall). Sie wirken auf Logzeilen oder Prozesslisten; ein falscher Eintrag erzeugt Fehlalarme auf jeder Appliance. Ein Vorschlag ist nur zulässig, wenn die Quelle die beobachtete Zeile zeigt (Hersteller-Threat-Intel, benannter Forscher mit Logauszug); zitiere diese Zeile. Du formulierst die Erweiterung als Regex im ERE-Dialekt; sie gilt als Vorschlag, bis der Betreiber sie mit `--testlog` geprüft hat. Zu jedem Muster lieferst du zwei Dinge für docs/testlogs/: mindestens eine Logzeile im Originalformat, die das Muster trifft, mit Fundstelle (aus dem Bulletin oder dem mitgegebenen Bericht, nicht konstruiert), und eine Zeile für expected.txt im Format <datei>:<prüfung>:<mindestanzahl>. Findest du keine belegte Zeile, schlägst du das Muster trotzdem vor, markierst es "ohne Testzeile", und der Betreiber erzeugt die Zeile im Lab, bevor es in die Regeldatei kommt.
 
-Regeldatei-Struktur (Version V3):
+Regeldatei-Struktur (Format 2, `docs/rules-format-2.md`):
 - POSIX-sh, nur Zuweisungen NAME="wert" oder NAME='wert'. Keine Befehle. CVE_TABLE ist die einzige mehrzeilige Variable.
 - Über jeder Variable steht eine Herkunftszeile "# +<datum> <quelle>: <was>". Jede Erweiterung bekommt eine neue Herkunftszeile direkt über der Variable, die bestehenden bleiben. Bei CVE_TABLE steht die Herkunftszeile über der Variable, nicht innerhalb.
 - CVE_TABLE: eine Zeile je CVE und Train, sechs Felder mit "::" getrennt:
     Bulletin::CVE::Train::Fix-Build::Bedingung::Text
-  Train ist 14.1, 13.1, 14.1-FIPS oder 13.1-FIPS (FIPS-Trains haben eigene Build-Nummern der Form 37.x und stehen im Bulletin in einer eigenen Zeile). Fix-Build ist die Build-Nummer ohne Release, zum Beispiel 73.45. Bedingung ist genau eines von:
+  Train ist 14.1, 13.1, 14.1-FIPS oder 13.1-FIPS (FIPS-Trains haben eigene Build-Nummern der Form 37.x und stehen im Bulletin in einer eigenen Zeile). Fix-Build ist die Build-Nummer ohne Release, zum Beispiel 73.45, und kommt ausschließlich aus dem Abschnitt "What Customers Should Do" des CTX-Artikels; nennt der Artikel keinen Fix-Build, lautet das Feld `pending` (das Script bewertet dann jeden Build des Trains als verwundbar, bis ein Regelstand den Build nachträgt). Nie den Fix-Build eines anderen Bulletins oder einer Blog-Übersicht eintragen. Bedingung ist genau eines von:
     all                                  gilt für jede Appliance
     conf:<ERE gegen ns.conf>             gilt nur, wenn ns.conf eine passende Zeile hat (Beispiel SAML: conf:^add authentication saml(Action|IdPProfile) )
     tcpparam:<Parameter Wert>            gilt für alle, und auf gefixtem Build bleibt ein Konfigurationsschritt offen, bis "set ns tcpParam -<Parameter Wert>" gesetzt ist
@@ -168,6 +168,13 @@ Der Prompt wird gegen einen Fall mit bekanntem Ergebnis geprüft. Eingabe: `ns_q
 | Durchgefallen, wenn | Slot A verändert wird; eine Build-Nummer außerhalb des Bulletins auftaucht; eine bestehende CVE_TABLE-Zeile oder ein Muster gekürzt wird; eine Herkunftszeile fehlt; ein Konfigurationsschritt erfunden wird; die KI eine Betroffenheitsaussage macht; die KI in Phase 1 nicht anhält |
 
 Das Ergebnis ist bekannt (`ns_quickcheck.rules` Stand 2026-10-08b zeigt die Zielzeilen), jede Abweichung ist sofort sichtbar. Ergebnis je getesteter KI im Changelog unter "Test" festhalten.
+
+## Versionen des Prompts
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 8 | 2026-10-28 | Format 2 (sieben Felder, Erstveröffentlicher-Pflicht), Fix-Build `pending`, keine Community-Werkzeuge als Quelle, Klasse-2-Liste mit den Variablen seit 17.19 bis 17.32, Abnahmetest gegen Format 2 |
+| 7 | 2026-10-14 | CVE-Tabelle `CVE_TABLE`, `FIX_*` als Fallback, Patch-Format |
 
 ## Nach der KI-Ausgabe
 

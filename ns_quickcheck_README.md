@@ -2,7 +2,7 @@
 
 Ein Lauf auf der Appliance, ein Verdict: Build gegen die Citrix-Bulletins, Angriffsspuren, Kompromittierungs-Schnellcheck, Adresslisten, anonymisierte Reports. Regelgesteuert, offline-fähig, erweiterbar durch eigene Indikatoren. Entstanden im Oktober 2026 für CTX697096, CTX697174 und CTX697191, gebaut für die Bulletins danach.
 
-Script V17.30, Regeldatei Format 2 (Stand 2026-10-23), README v27 (2026-10-23); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
+Script V17.42, Regeldatei Format 2 (Stand 2026-10-28e), README v36 (2026-10-28); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
 
 Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen lässt): 1 bis 7, 10, 11, 12, 15, 16; wer Schwellen anpasst: 4.2 und 4.3. **Betreiber mit eigenen Indikatoren**: zusätzlich 8.4 bis 8.6 und WORKFLOW.de.md. **ceterion und Power-User** (Regelpflege, Abnahme, Tests): 8, 9, 13.
 
@@ -16,7 +16,7 @@ Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen läs
    sh ns_quickcheck.sh
    ```
 3. Exit-Code lesen (`echo $?` direkt nach dem Lauf): 0 `OK`, 1 `INVESTIGATE`, 2 `UPDATE` oder `FORENSICS_FIRST`, 3 Abbruch mit Grund auf stderr (Regeldatei fehlt, Kernvariable fehlt, Option ohne Wert). 1 und 2 sind Verdicts, keine Fehler. Bricht der Lauf ohne `RESULT`-Zeile ab, mit `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt` wiederholen und beide Dateien anonymisiert einsenden (`--anon`, Abschnitt 5.3).
-4. Kopfzeile lesen: `ns_quickcheck 17.30  host=<name>  modus=online  regeln=2026-10-23`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
+4. Kopfzeile lesen: `ns_quickcheck 17.42  host=<name>  modus=online  regeln=2026-10-28e`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
 5. Ans Ende blättern: `ACTION: OK`, `UPDATE`, `INVESTIGATE` oder `FORENSICS_FIRST`. Was das heißt, steht in Abschnitt 7, Tabelle "Jetzt tun".
 6. Vor der `RESULT`-Zeile stehen die fremden Adressen dieses Laufs mit Status (neu oder bekannt seit) und Sperrstatus; `coverage=full` in `RESULT` bestätigt, dass alle Kernprüfungen Daten hatten.
 7. Alle weiteren Dateien (Config, Whitelist, Sperrliste, Custom-Datei, Zuordnungstabelle) gehören in dasselbe Verzeichnis. Die Dateien dieses Laufs liegen in `/var/nssnapshot/quickcheck/`: Report, JSON, Adressliste, anonymisierte Fassungen. Nach außen geht nur `_anon.*` (Abschnitt 5.3).
@@ -24,7 +24,7 @@ Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen läs
 So sieht ein sauberer Lauf aus (gekürzt, anonymisiert; `fenster=168h` stammt hier aus `HOURS=168` in der Config, die Vorgabe des Scripts ist 72 h):
 
 ```
-ns_quickcheck 17.30  host=gw-01  modus=online  fenster=168h  regeln=2026-10-23  cli=nscli (user01, cli_user aus ns_snapshot.conf)
+ns_quickcheck 17.42  host=gw-01  modus=online  fenster=168h  regeln=2026-10-28e  cli=nscli (user01, cli_user aus ns_snapshot.conf)
   [INFO]  Custom-Datei des Betreibers geladen: 78 aktive Indikator-Zeile(n), 0 CVE-Zeile(n) (betreiber-2026-10-20)
   [INFO]  Sperrliste: 3 Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)
 Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
@@ -52,7 +52,7 @@ Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
 == 6 Verdict ==
 ACTION: OK
 Build gefixt, keine Spuren. Naechster Lauf nach dem naechsten Bulletin oder taeglich per Cron.
-RESULT host=gw-01 build=14.1-73.46 ... compromise=0 red=0 yellow=0 orange=0 coverage=full action=OK rules=2026-10-23 ...
+RESULT host=gw-01 build=14.1-73.46 ... compromise=0 red=0 yellow=0 orange=0 coverage=full action=OK rules=2026-10-28e ...
 ```
 
 Ein exponiertes Gateway sieht an den meisten Tagen nicht so aus: Sondierungen, Dropper-Anfragen und Anmeldefehler sind Alltag. Was dann zu tun ist, steht in den "Zu tun"-Zeilen der Befunde und in Abschnitt 15 unter "Alles ist Gelb".
@@ -173,6 +173,9 @@ Optional, neben dem Script, 600; jede Zeile `NAME=wert`, fehlende Zeilen nehmen 
 | `LINE_MAX` | 400 | Zeichen je Logzeile in Terminal und Report; 0 = ungekürzt; Injection-Zeilen immer vollständig |
 | `MGMT_NET_RE` | leer (nur RFC 1918 gilt als intern) | ERE der Admin-Netze und Sprungserver; gilt für Management-Zugriffe, SSH-Logins, Webserver-Direktzugriffe und eigene Adressen bei Anmeldefehlern |
 | `PROBE_LEVEL` | `yellow` | `info` stuft Webshell-Sondierungen auf eine INFO-Zeile ab |
+| `CORE_BOOT_LEVEL` | `info` | leeres Core-Verzeichnis `/var/core/<n>` innerhalb 15 min nach Boot als INFO (Boot-Nachlauf) oder `yellow` als Absturz-Ereignis |
+| `TRUST_LEVEL` | `trust` | vertraute Adressen als eigene Stufe `[TRUST]` ohne Verdict-Wirkung; `yellow` macht Gelb daraus |
+| `FOOTER` | 1 | Fußzeile "Erstellt mit netscaler-quickcheck ..." im Report und in den anon-Fassungen; 0 schaltet ab |
 | `PHP_ANOMALY_MIN` | 3 | PHP-Speicher-/Fatal-Muster im Management-Portal (CTX697263), ab so vielen Zeilen im Fenster gemeldet; auf gefixtem Build nur INFO |
 | `AAA_FAIL_IP` | 5 | Gateway-Anmeldefehler je Adresse, ab denen die Adresse bewertet wird |
 | `AAA_FAIL_USERS` | 10 | verschiedene Konten je Adresse, ab denen sie Maschine ist |
@@ -217,8 +220,10 @@ Jede Option mit Wert gibt es in zwei Schreibweisen: `--option wert` und `--optio
 | `--from` | Pfad | Offline-Lauf gegen ein entpacktes Snapshot-Set (Archiv 1, optional Archiv 3) | online |
 | `--compare` | `cron`, `latest` oder Pfad | Vergleich gegen das jüngste vollständige Set, das jüngste Set oder ein entpacktes Archiv 1: neue oder geänderte Web-Dateien, neue System-User, neue Listener | kein Vergleich |
 | `--rules` | Pfad | Regeldatei; `ns_quickcheck.rules.custom` wird im selben Ordner gesucht | neben dem Script, sonst `/var/nssnapshot/` |
+| `--pin`, `--pin-all` | Pfad | gibt Pin-Zeilen (`webfile:...$@sha256=<hash>`) für alle Code-Dateien (`--pin`) oder alle Dateien (`--pin-all`) unter dem Pfad aus und beendet sich; für die Whitelist (Howto Whitelist) | |
 | `--whitelist` | Pfad | Whitelist je Appliance (`user:`, `listener:`, `path:`, `cron:`, `webfile:`) | neben dem Script |
 | `--blocked` | Pfad | Sperrliste des Betreibers (5.4) | `ns_quickcheck.blocked_ips` neben dem Script |
+| `--trusted` | Pfad | Vertrauensliste des Betreibers (5.5) | `ns_quickcheck.trusted_ips` neben dem Script |
 | `--conf` | Pfad | Konfigurationsdatei (`BASE_DIR`, `WORK_BASE`, `REPORT_KEEP_DAYS`, `ACCESS_LOG_MAX_MB`, `CLI_TIMEOUT`, `DETAIL_MAX`, `MGMT_NET_RE`, `PROBE_LEVEL`, `LINE_MAX`, `AAA_FAIL_IP`, `AAA_FAIL_USERS`, `AAA_RATE`, `AAA_OK_WIN`, `AAA_BF_MIN`, `AAA_SLEEPER_DAYS`, `CLI_USER`, `CLI_SECRET_FILE`); wird vor allen anderen Optionen geladen | neben dem Script |
 | `--out` | Pfad | Reportdatei; JSON, Adressliste und anon-Fassungen daneben | `/var/nssnapshot/quickcheck/ns_quickcheck_<host>_<zeit>.txt` |
 | `--no-out` | | kein Report, nur Bildschirm; keine anon-Dateien, keine Adressliste | |
@@ -265,6 +270,8 @@ Je Lauf schreibt das Script `ns_quickcheck_<host>_<zeit>_ips.tsv` in das Reportv
 | `outbound_hit` | aktive Verbindung zu bekannter Angreifer-Adresse | hoch |
 
 Dazu führt das Script je Appliance die kumulierte Liste `ns_quickcheck_observed_ips.tsv` im selben Verzeichnis, je Lauf fortgeschrieben, ohne Löschung durch die Report-Retention: elf Spalten: `kategorie`, `adresse`, `anzahl_zuletzt` (Treffer des letzten Laufs), `zuletzt_fenster_h`, `anzahl_max`, `max_fenster_h`, `tage` (Kalendertage mit Beobachtung, mehrere Läufe am Tag zählen einmal), `zuerst_gesehen`, `zuletzt_gesehen`, `beobachtung`, `gesperrt` (Bemerkung und Datum aus der Sperrliste; intern, vor Weitergabe entfernen). Keine Summe: Jeder Lauf liest dieselben Logs erneut. Dieselbe Adresse kann in zwei Kategorien stehen, das sind zwei Rollen. Die Terminalzeile "Adressliste dieses Laufs: n Einträge, davon m neu gegenüber dem Bestand" ist die Zeile, auf die ein Admin reagiert: eine Adresse, die seit Wochen täglich Dropper-Pfade abfragt, ist ein anderer Befund als eine, die heute zum ersten Mal auftaucht.
+
+**Anonymisierte Fassungen und Share-Datei.** Je Lauf entstehen zusätzlich `..._ips_anon.tsv` und `ns_quickcheck_observed_ips_anon.tsv` (ohne Hostname, Bemerkungen der Sperr- und Vertrauensliste entfernt, Zuordnungstabelle angewandt; weitergabefähig wie der anon-Report) sowie `..._share.tsv`: die kumulierte Liste reduziert auf die belastbaren Kategorien (`payload_download_host`, `injection_source`, `webshell_hit`, `outbound_hit`, `aaa_bruteforce`, `aaa_maschine`, `aaa_hit`, `ssh_bruteforce`, `dropper_requester` ab 3 Treffern) mit Spalten `kategorie`, `ip`, `zuerst`, `zuletzt`, `tage`, `anzahl_max`, `max_fenster_h`, `anzahl_zuletzt`, `regeldatei`; keine Appliance-Kennung, keine Bemerkungen, keine `trusted_*`- oder Sondierungs-Einträge. Die Share-Datei ist für die Weitergabe an ceterion gedacht (nach Durchsicht, bewusst, per Mail an die Kontaktadresse); daraus entsteht ein bestätigter Adress-Feed, in den eine Adresse erst nach Meldung von zwei unabhängigen Appliances aufgenommen wird.
 
 Für den Firewall-Import: `grep -v '^#' ns_quickcheck_observed_ips.tsv | cut -f2 | sort -u` liefert die reine Adressliste.
 
@@ -320,6 +327,20 @@ Wirkung, als vierte Stufe ORANGE "abgedeckt":
 Orange zählt nicht als Spur und nicht als Kompromittierungszeichen. Bleiben nur Orange-Befunde, lautet das Verdict `OK` mit dem Hinweis, dass der nächste Lauf prüft, ob die Sperren halten. Ohne Datum (ACL der Appliance, leeres Feld) wird eine Adresse nur markiert ("gesperrt, Datum unbekannt: nur markiert"), nicht abgedeckt. Adresslisten bekommen die Spalte `gesperrt` (`bemerkung|seit`, intern, vor Weitergabe entfernen), RESULT die Felder `orange=` und `blocked_seen=`, das JSON die Liste `orange` und je Adresse `blocked`.
 
 Das Script setzt keine Sperre und prüft nicht, ob die Firewall-Regel existiert; die Datei dokumentiert, was der Betreiber sagt, und das Access-Log zeigt, ob es stimmt.
+
+### 5.5 Vertrauensliste: Adressen, deren Verhalten gewollt ist
+
+`ns_quickcheck.trusted_ips` neben dem Script (Vorlage `ns_quickcheck.trusted_ips.example`, 600, bleibt beim Update, nie verteilt): Schwachstellenscanner, Pentester im Auftragsfenster, Monitoring, Partner-Gateways, Admin-Netze. Zeile `adresse_oder_netz ; bis ; Bemerkung`; `bis` ist ein Ablaufdatum (`YYYY-MM-DD`, leer = unbefristet), abgelaufene Einträge werden übergangen und in der Kopfzeile gezählt. Steht eine Adresse auch in der Sperrliste, meldet die Kopfzeile WARN, die Sperrliste gilt.
+
+Wirkung je Befundart:
+
+| Befundart | vertraute Adresse |
+|---|---|
+| Management-Zugriffe, SSH-Logins, Webserver direkt, Anmeldefehler eigener Adressen | wie intern, kein Gelb |
+| Sondierung, Dropper-Anfragen, Spraying, Brute Force, Schläfer | aus dem Gelb-Befund herausgenommen; der Befund bleibt für die übrigen Adressen |
+| Injection-Zeile, Webshell-Pfad mit 200, Erfolg nach Fehlserie, aktive Verbindung | **bleibt Rot**, mit Zusatz "Adresse in trusted_ips" |
+
+Alles, was eine vertraute Adresse im Fenster getan hat, steht gesammelt in einem `[TRUST]`-Block (blau, ohne Verdict-Wirkung; `TRUST_LEVEL=yellow` macht Gelb daraus) mit der Frage, ob der Eintrag richtig und noch gewollt ist. Stand die Adresse laut kumulierter Adressliste vorher als Angreifer (etwa `dropper_requester`), erscheint einmalig eine Gelb-Zeile, damit ein Tippfehler auffällt. In den Adresslisten tragen vertraute Adressen die Kategorie `trusted_<art>`; der Import-Befehl im Dateikopf schließt sie aus. `trusted_seen=` in RESULT, Liste `trust` im JSON. Die Bemerkung steht nur im Original-Report.
 
 ## 6. Die sechs Blöcke
 
@@ -429,7 +450,7 @@ Abschnitt 7.
 
 `RESULT host=... build=... mode=online|offline cli=... window=<h>h saml=0|1 vuln96=0|1 vuln79=0|1 isn_open=0|1 traces=0|1 mitigation=0|1 unsaved=0|1 save_missing=0|1 compromise=0|1 red=<n> yellow=<n> orange=<n> blocked_seen=<n> coverage=full|partial action=<Verdict> rules=<Regelstand> script_sha256=... rules_sha256=... custom=<Version|none> custom_sha256=... cve_custom=<n> cve_conflict=<n> runtime=<s>s`
 
-`coverage`: `full`, oder `partial`, wenn eine Kernprüfung ohne Daten blieb (ns.log- oder httpaccess-Familie fehlt im Fenster, Datei nicht lesbar); bei `partial` wird das Verdict nie `OK`. `vuln96`: eine CVE aus CTX697096 offen. `vuln63`: eine CVE aus CTX697263 (PHP2Shell) offen. `vuln79`: mindestens eine SAML-abhängige CVE offen. `cve_conflict`: Regeldatei und Custom-Datei bewerten eine CVE unterschiedlich.
+`coverage`: `full`, oder `partial`, wenn eine Kernprüfung ohne Daten blieb (ns.log- oder httpaccess-Familie fehlt im Fenster, Datei nicht lesbar); bei `partial` wird das Verdict nie `OK`. `vuln96`: eine CVE aus CTX697096 offen (seit 17.38 nur dieses Bulletin). `vuln_open`: Zahl offener CVE-Zeilen über alle Bulletins. `vuln63`: eine CVE aus CTX697263 (PHP2Shell) offen. `vuln79`: mindestens eine SAML-abhängige CVE offen. `cve_conflict`: Regeldatei und Custom-Datei bewerten eine CVE unterschiedlich.
 
 Zwei Regeln über den Befunden: `coverage=partial` (siehe oben) macht das Verdict nie `OK`; Orange-Befunde (durch Sperren abgedeckt) zählen nicht als Spur, ein Lauf mit nur Orange ist `OK`.
 
@@ -462,6 +483,8 @@ Regelvariablen, die das Script erwartet (fehlt eine Kernvariable, Exit 3; fehlt 
 | seit 2026-10-21 (Logs) | `HTTPERR_EXEC_RE`, `HTTPERR_PROBE_RE`, `AUTH_LOGIN_RE`, `AUTH_FAIL_RE`, `MGMT_PATH_RE` |
 | seit 2026-10-21c/d (AAA) | `AAA_FAIL_RE`, `AAA_OK_RE` |
 | seit 2026-10-23 (CTX697263) | `HTTPERR_PHP_ANOMALY_RE`, `MGMT_ACL_RE` |
+| seit 2026-10-27 (Abstürze) | `PITBOSS_RE`, `KERNEL_EXIT_RE`, `NSAAAD_CRASH_LEGACY_RE` |
+| seit 2026-10-28d (weitere Belege) | `HTTPERR_CRASH_RE`, `KERNEL_MEM_RE`, `KERNEL_PANIC_RE` |
 | IOC-Abschnitt | Zeilen `ip`, `dom`, `hash`, `path`; daraus baut das Script `ATTACKER_IP_RE`, `ATTACKER_DOM_RE` (mit Grenzen, ohne Groß-/Kleinschreibung) und die Pfad- und Hashlisten |
 
 ### 8.2 Herkunftsprotokoll
@@ -481,7 +504,7 @@ Regelvariablen, die das Script erwartet (fehlt eine Kernvariable, Exit 3; fehlt 
 - Zusammenstellungen Dritter (Community-Scanner, Sammelseiten) sind Verweise, keine Quellen; Fundstelle ist immer die Veröffentlichung des Erstautors. Werte ohne Erstautor bleiben inaktiv (`PRUEFEN`).
 - Die Regeldatei wird nur erweitert, nie gekürzt; eine Entfernung braucht einen Changelog-Eintrag mit Begründung.
 - Das Script prüft beim Start, dass die Kernvariablen der Regeldatei vorhanden sind (`RULES_VERSION`, `TRIGGER_RE`, `OBFUSC_RE`, `CMD_NAMES`, `LOGON_HINT_RE`, `ADMIN_CMD_RE`, `CVE_TABLE`); fehlt eine, bricht es mit Exit 3 ab, statt mit leeren Mustern zu laufen.
-- Jeder Regelstand durchläuft `docs/release.sh`: Plattform-Lints 1 bis 3, Format-2-Lint, Präfix-Prüfung, 57 Testlogs, 7 Fixtures, Herkunftsprotokoll.
+- Jeder Regelstand durchläuft `docs/release.sh`: Plattform-Lints 1 bis 3, Format-2-Lint, Präfix-Prüfung, 69 Testlogs, 10 Fixtures, Herkunftsprotokoll.
 - Regex: POSIX ERE ohne GNU-Erweiterungen, Semantik immer "Zeile passt ja/nein" (`rules-format-2.md`).
 
 ### 8.4 Custom-Datei des Betreibers
@@ -502,7 +525,7 @@ Community-Werkzeuge prüfen dieselben Bulletins mit eigenen Indikatorsammlungen.
 
 ## 9. Validierungsstand und Abnahme-Protokoll
 
-**Validiert:** NetScaler 14.1-73.41 und 14.1-73.46 (MPX, Lab): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 57 Testlogs, 7 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
+**Validiert:** NetScaler 14.1-73.41 und 14.1-73.46 (MPX, Lab): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 69 Testlogs, 10 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
 
 **Abnahme auf jeder neuen Appliance vor der ersten Bewertung:**
 1. Erster Lauf mit Trace: `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt; echo EXIT=$?`. Exit 139 heißt Absturz; `tail /tmp/qc_trace.txt` zeigt die Zeile; Issue mit Trace.
@@ -527,6 +550,8 @@ Budget: 15 Minuten je Appliance-Typ. Wer das überspringt, bekommt beim Betreibe
 
 **Zugangsdaten.** Die CLI-Ebene nutzt den Service-User aus `ns_snapshot.conf`, falls der Snapshot läuft, sonst aus `ns_quickcheck.conf` (beide root-owned, 600). Bekannte Schwäche: `nscli -U %%:user:passwort` übergibt das Passwort als Argument; es ist für die Dauer des Befehls (Sekunden) in der Prozessliste sichtbar. Deshalb ein eigener Service-User mit Read-only-Command-Policy, nie `nsroot`; `cli_script.sh` ohne Passwort, wo verfügbar. Reports enthalten keine Passwörter oder Hashes; der Config-Diff maskiert sie.
 
+**Fußzeile.** Report und anon-Fassungen enden mit "Erstellt mit netscaler-quickcheck <Version> (Regelstand <Stand>), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck"; `FOOTER=0` in der Config schaltet sie ab, der Report bleibt vollständig.
+
 **Daten in den Ausgaben.** Original-Report und JSON enthalten Hostnamen, interne Adressen, Objektnamen, Logzeilen mit Benutzernamen und seit 17.25 die Kontonamen aus Gateway-Anmeldefehlern (Personendaten): betreiberintern, Aufbewahrung nach eigener Regel, `REPORT_KEEP_DAYS` löscht nach 30 Tagen. Die anon-Fassungen ersetzen, was in `ns.conf` steht oder privat ist, nicht mehr. Nach außen nur anon, nach Stichprobe (5.3).
 
 **Nachvollziehbarkeit.** Jede RESULT-Zeile trägt SHA-256 von Script, Regeldatei und Custom-Datei; der Betreiber kann prüfen, dass lief, was er freigegeben hat. Laufzeit 5 bis 30 Sekunden, kurze CPU-Last, keine Auswirkung auf den Datenverkehr; bei sehr großen Access-Logs begrenzt `ACCESS_LOG_MAX_MB` die Lesemenge.
@@ -543,7 +568,7 @@ Hash-Prüfung gemeldeter Dateien: nur den SHA-256 bei VirusTotal nachschlagen, n
 4. HA-Paar: beide Knoten prüfen; HA-File-Sync kopiert Webshells.
 5. Upgrade: Ziel-Build aus Block 1, Secondary zuerst, Failover, Primary. Danach `save ns config`, `set ns tcpParam -enhancedISNGeneration ENABLED` in jeder Partition, `save ns config -all`.
 6. Nachlauf: Quickcheck wiederholen, Verdict `OK` oder `INVESTIGATE` ohne Rot. Adressliste an Firewall und SOC.
-7. Zweite Meinung bei exponierter Appliance: Community-Checker und der offizielle Citrix-IoC-Scan (Funktion "Indicators of Compromise" der NetScaler Console, https://docs.netscaler.com/en-us/netscaler-console-service/instance-advisory/ioc; ohne Console über ein Support-Ticket).
+7. Zweite Meinung bei exponierter Appliance: der offizielle Citrix-IoC-Scan (Funktion "Indicators of Compromise" der NetScaler Console, https://docs.netscaler.com/en-us/netscaler-console-service/instance-advisory/ioc; ohne Console über ein Support-Ticket).
 8. Ticket: `_anon.txt` und `_anon.json` anhängen, RESULT-Zeile in die Zusammenfassung, Regelstand nennen.
 
 ## 12. Grenzen und bekannte Schwächen
@@ -606,17 +631,43 @@ Was danach noch Gelb ist, ist neu oder braucht eine Entscheidung; das Verdict wi
 
 ### Howto Whitelist: bestätigte Web-Dateien ausnehmen
 
-Datei `ns_quickcheck.whitelist` neben dem Script (600), eine Regel je Zeile `<typ>:<regex>`, Typen `webfile`, `user`, `listener`, `path`, `cron`. Der Regex ist POSIX ERE und wird gegen den vollen Pfad geprüft.
+Datei `ns_quickcheck.whitelist` neben dem Script (Vorlage `ns_quickcheck.whitelist.example`, Rechte 600), eine Regel je Zeile `<typ>:<regex>`, Typen `webfile`, `user`, `listener`, `path`, `cron`. Fehlt die Datei, steht "Whitelist: nicht vorhanden" im Kopf, und jeder Befund bleibt ungefiltert.
+
+**Drei Regelformen für `webfile`, keine andere:**
+
+| Form | So sieht sie aus | Was sie freigibt | Wofür |
+|---|---|---|---|
+| Verzeichnis | `webfile:^/var/netscaler/logon/themes/MeinTheme/` (endet mit `/`) | alles darunter, auch künftige Dateien und Änderungen; **nie Code** (`.js`, `.php`, `.pl`, `.sh`, `.cgi`, `.py`, `plugins.xml`) | **unterstützt, nicht empfohlen**: eine neue Bilddatei mit Nutzlast bliebe unsichtbar; stattdessen `--pin-all <ordner>` (WORKFLOW, Whitelist) |
+| Datei | `webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/style\.css$` (endet mit `$`) | genau diese Datei, auch nach Änderungen | einzelne Bilder, CSS, JSON, Favicons |
+| Datei mit Pin | `webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/script\.js$@sha256=<64 hex>` | genau diesen Stand der Datei; die nächste Änderung ist wieder ein Befund | **Pflicht für Code** |
+
+Eine Regel, die weder mit `/` noch mit `$` endet, trifft mehr als gewollt (`themes/obj108` trifft auch `obj1080`); der Kopf warnt. Eine Dateiregel auf Code ohne Pin ist wirkungslos; der Kopf warnt.
+
+**Pflege in fünf Schritten:**
+
+1. Befund in Block 5 lesen: Welche Dateien, wann geändert (jede Zeile trägt die Änderungszeit, neueste zuerst), gibt es dazu ein Ticket oder einen Vorgang? Ohne Vorgang keine Regel; dann Schritt 3 der "Zu tun"-Zeile.
+2. Für Bilder, CSS, JSON, Favicons und ganze Theme-Ordner: Verzeichnis- oder Dateiregel eintragen, darüber eine Kommentarzeile mit Datum und Ticket.
+3. Für Code: erst den Inhalt gegen die Vorversion vergleichen (Snapshot-Set oder Backup), dann die Pin-Zeilen erzeugen lassen und übernehmen:
+   ```
+   sh /var/nssnapshot/ns_quickcheck.sh --pin /var/netscaler/logon/LogonPoint_workspace/custom/ >> /var/nssnapshot/ns_quickcheck.whitelist
+   ```
+   Die Zeilen enthalten den aktuellen Hash; was nicht gewollt ist, vor dem Übernehmen löschen.
+4. Lauf wiederholen: Der Befund ist weg, oder der Kopf nennt eine Regel, die keiner Form entspricht.
+5. Nach einem Theme- oder Portal-Update: Verzeichnisregeln bleiben gültig; für geänderten Code meldet der Lauf "per Hash freigegebene Web-Datei erneut geändert", dann Schritt 3 für genau diese Dateien.
+
+Beispiel einer gepflegten Datei:
 
 ```
-# Theme-Anpassung 2026-10-15, Ticket CHG-1234: die Theme-Ordner und die Favicons
+# 2026-10-15 CHG-1234 Theme MeinTheme (Bilder, CSS, Strings)
 webfile:^/var/netscaler/logon/themes/MeinTheme/
-webfile:^/var/netscaler/logon/themes/MeinTheme_2025/
-webfile:/images/common/favicon\.ico$
 webfile:^/var/netscaler/gui/admin_ui/common/images/favicon\.ico$
+# 2026-10-23 CHG-1301 Workspace-Portal; Code gepinnt nach Diff gegen Snapshot vom 22.10.
+webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/
+webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/script\.js$@sha256=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/strings\.de\.js$@sha256=89abcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567
 ```
 
-Regeln: Pfade so eng wie möglich (ein Theme-Ordner, nicht `/var/netscaler/logon/`), Punkte maskieren (`\.`), Kommentar mit Datum und Ticket darüber. Nach dem Eintrag ein Lauf; die Kopfzeile zeigt `Whitelist: ... (4 Regeln)`, die Dateien fehlen in Block 5. Eine Whitelist-Regel nimmt die Datei aus der Änderungsprüfung, nicht aus der Webshell- und PHP-Prüfung; eine `.php` im Theme-Ordner bleibt Rot. Die Whitelist bleibt beim Update, gilt je Appliance und wird nie verteilt.
+Regeln: Pfade so eng wie möglich (ein Theme-Ordner, nicht `/var/netscaler/logon/`), Punkte maskieren (`\.`), nie `.*` am Anfang. Die Whitelist wirkt nur auf "Web-Dateien seit Boot"; die Prüfung "PHP außerhalb admin_ui" und die Pfad-Indikatoren der Regeldatei lassen sich nicht ausnehmen.
 
 ### Howto Responder-Quelle: Client-Adresse in der Responder-Zeile
 
@@ -703,7 +754,16 @@ Ein Feldbefund gehört nie in ein Issue (die Adresse ist dein Befund, die Fundst
 
 | Version | Datum | Änderung |
 |---|---|---|
-| v27 | 2026-10-23 | Script 17.30 und Regelstand 2026-10-23: CTX697263 (PHP2Shell) in Block 1, 2, 4b und 5; `PHP_ANOMALY_MIN`; `vuln63` |
+| v36 | 2026-10-28 | Script 17.42: Cores (`.gz`, Verzeichnisse, `CORE_BOOT_LEVEL`), Regelstand e |
+| v35 | 2026-10-28 | Script 17.41: Abstürze "lieber mehr", Bewertung, `crashes=`, kumulierte Absturzdatei |
+| v34 | 2026-10-28 | Script 17.38: Verdict-Text, `vuln_open`, Anonymisierung von URLs und Domänen |
+| v33 | 2026-10-28 | Script 17.37: Fix-Build `pending` in der CVE-Tabelle; Runbook Schritt 7 nur noch Citrix-IoC-Scan |
+| v32 | 2026-10-27 | Script 17.36: Verzeichnisregeln nicht empfohlen (15, WORKFLOW ACHTUNG-Block), Zeitstempel je Web-Datei auf der Appliance |
+| v31 | 2026-10-27 | Script 17.34: Howto Whitelist neu (drei Regelformen, fünf Schritte, `--pin`), Web-Dateien mit Änderungszeit und Gruppierung, Zuordnungstabelle übergeht ungültige Einträge |
+| v30 | 2026-10-27 | Script 17.33: Whitelist-Hash-Pin und `$`-Warnung (15), Web-Dateien-Einordnung über alle Dateien, Anonymisierer-Schutz für Reportwörter |
+| v29 | 2026-10-27 | Script 17.32 und Regelstand 2026-10-27: Selbsttreffer durch nsprofmon beseitigt, Prozessabstürze als Ereignisse (Block 4), anonymisierte Adresslisten und Share-Datei (5.2) |
+| v28 | 2026-10-27 | Script 17.31: Vertrauensliste (5.5), `TRUST_LEVEL`, `FOOTER`, `--trusted`; Fußzeile im Report |
+| v27 | 2026-10-23 | Script 17.30 und Regelstand 2026-10-23: CTX697263 (PHP2Shell, Fix 14.1-73.49 / 13.1-64.32 seit Regelstand 2026-10-28) in Block 1, 2, 4b und 5; `PHP_ANOMALY_MIN`; `vuln63` |
 | v26 | 2026-10-22 | Schnellstart nach `/var/nssnapshot/`; 8.7 ohne Nennung einzelner Community-Werkzeuge; englische Fassung `ns_quickcheck_README.en.md` |
 | v25 | 2026-10-22 | Korrekturen nach Review: Sperrliste 5.4 auf drei Felder, `--hours`-Vorgabe 72 (plus `HOURS` in 4.2), `webshell_hit` in 5.2, elf Spalten der kumulierten Liste, Verdict-Regeln nach 7.1, Service-User-Quellen in 4.2 und 10 |
 | v24 | 2026-10-21 | Für Script 17.29 und Regelstand 2026-10-21d: gelesene Logs (3), Konfiguration (4.2) und Schwellen (4.3) als Tabellen, Block 4 in vier Gruppen mit den AAA-Befunden (Treffer, Brute Force, Schläfer, Spraying, intern), `coverage`, Sperrliste, Adressliste mit 11 Spalten, Howtos Responder-Quelle und Lockout, FAQ "Alles ist Gelb" und "Wen rufe ich an", Glossar |

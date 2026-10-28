@@ -1,0 +1,7 @@
+198.51.100.40 - - [05/Oct/2026:09:01:10 +0000] "POST /nf/auth/doAuthentication.do HTTP/1.1" 302 0 "-" "Mozilla/5.0"
+198.51.100.40 - - [05/Oct/2026:09:01:12 +0000] "GET /vpn/index.html HTTP/1.1" 200 2048 "-" "Mozilla/5.0"
+198.51.100.44 -> 203.0.113.10 - - [21/Oct/2026:03:14:41 +0200] [1] "GET /vpn/scripts/linux/nsgsupport.deb HTTP/1.1" 200 1097 "-" "-" "Time: 5370 microsecs"
+198.51.100.44 -> 203.0.113.10 - - [21/Oct/2026:03:14:41 +0200] [1] "GET /vpn/scripts/linux/nsgser18.deb HTTP/1.1" 200 1097 "-" "-" "Time: 5370 microsecs"
+198.51.100.44 -> 203.0.113.10 - - [21/Oct/2026:03:14:41 +0200] [1] "GET /vpn/scripts/linux/nsgpackage64.deb HTTP/1.1" 200 1097 "-" "-" "Time: 5370 microsecs"
+198.51.100.44 -> 203.0.113.10 - - [21/Oct/2026:03:14:41 +0200] [1] "GET /vpn/scripts/linux/nsgclient18.deb HTTP/1.1" 200 1097 "-" "-" "Time: 5370 microsecs"
+198.51.100.45 -> 203.0.113.10 - - [21/Oct/2026:03:15:41 +0200] [1] "GET /vpn/scripts/linux/nsgclient18.deb HTTP/1.1" 200 1097 "-" "-" "Time: 5370 microsecs"

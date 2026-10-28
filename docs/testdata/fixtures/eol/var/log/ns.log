@@ -12,3 +12,4 @@ Oct  5 09:05:00 <local0.info> 198.51.100.44 10/05/2026:09:05:00 GMT gw-01 0-PPE-
 Oct  5 09:06:00 <local0.info> 198.51.100.45 10/05/2026:09:06:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5107 0 :  Request from client 198.51.100.45 for user "müller.jörg" vserver gw-vs
 Oct  5 09:07:00 <local0.info> 198.51.100.46 10/05/2026:09:07:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5108 0 :  Request from client 198.51.100.46 for user "sh.arma" vserver gw-vs
 Oct  5 09:08:00 <local0.info> 198.51.100.47 10/05/2026:09:08:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5109 0 :  Request from client 198.51.100.47 for user "grep.thomas" vserver gw-vs
+Oct  6 12:50:00 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=reboot user=nsroot

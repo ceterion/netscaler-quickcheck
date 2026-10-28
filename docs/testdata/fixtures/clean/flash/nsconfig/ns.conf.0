@@ -1,4 +1,4 @@
-#NS14.1 Build 73.41
+#NS14.1 Build 73.49
 enable ns feature LB SSL SSLVPN AAA RESPONDER
 add ns ip 192.0.2.10 255.255.255.0 -type SNIP
 add vpn vserver gw-vs SSL 192.0.2.20 443

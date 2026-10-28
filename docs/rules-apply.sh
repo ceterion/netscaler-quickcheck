@@ -1,5 +1,6 @@
 #!/bin/sh
-# rules-apply.sh 2.4 - wendet einen Regel-Patch additiv auf die Regeldatei an und prueft das Ergebnis.
+# rules-apply.sh 2.5 - wendet einen Regel-Patch additiv auf die Regeldatei an und prueft das Ergebnis.
+# 2.5 (2026-10-28): Fix-Build "pending" in CVE_TABLE-Zeilen zugelassen.
 # 2.4 (2026-10-22): Pfade absolut, Testlog-Schritt schlug mit relativem Ziel aus dem Repo-Stamm fehl.
 # Aufruf: sh docs/rules-apply.sh <ziel> <patch>   (Ziel wird gesichert und aktualisiert; Ziel ist ns_quickcheck.rules oder ns_quickcheck.rules.custom)
 #         sh docs/rules-apply.sh <alte Regeldatei> <neue Regeldatei> <Patch>   (Ergebnis in neue Datei, Ziel bleibt unveraendert)
@@ -39,7 +40,7 @@ grep -vE '^#|^[[:space:]]*$' "$PATCH" | tr -d '\r' | while IFS= read -r line; do
     *_RE) grep -qE "^$key=" "$OLD" || { echo "ERROR: Variable nicht in der Regeldatei, nicht anhaengbar: $key" >&2; exit 4; } ;;
     *) echo "ERROR: unbekannte Anweisung: $key" >&2; exit 4 ;;
   esac
-  case "$key" in CVE_TABLE) echo "$val" | grep -qE '^CTX[0-9]+::CVE-[0-9]{4}-[0-9]+::[0-9.]+(-FIPS)?::[0-9]+\.[0-9]+::' || { echo "ERROR: CVE_TABLE-Zeile nicht im Format CTX::CVE::Train::Fix::Bedingung::Text: $line" >&2; exit 4; } ;; esac
+  case "$key" in CVE_TABLE) echo "$val" | grep -qE '^CTX[0-9]+::CVE-[0-9]{4}-[0-9]+::[0-9.]+(-FIPS)?::([0-9]+\.[0-9]+|pending)::' || { echo "ERROR: CVE_TABLE-Zeile nicht im Format CTX::CVE::Train::Fix::Bedingung::Text: $line" >&2; exit 4; } ;; esac
 done
 
 # ---- anwenden

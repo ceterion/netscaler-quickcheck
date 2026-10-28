@@ -124,6 +124,36 @@ Ein neuer Regelstand erscheint als Release mit Tag `rules-<datum>` (nur die Rege
 
 Was du an Firewall, Blocklist oder Appliance gesperrt hast, trägst du in `ns_quickcheck.blocked_ips` ein (Vorlage `ns_quickcheck.blocked_ips.example`): `adresse_oder_netz ; seit ; Bemerkung`. Der Quickcheck zeigt Befunde zu diesen Adressen als ORANGE "abgedeckt", wenn die Beobachtung vor dem Sperrdatum liegt, und als GELB "Sperre greift nicht", wenn die Adresse danach wiederkommt. Die Datei bleibt bei dir; die Bemerkung steht nur im Original-Report. Aufbau der Datei und die Regeln dazu: `ns_quickcheck_README.md`, Abschnitt 5.4.
 
+## Whitelist: mit Hash je Datei
+
+Die Whitelist gibt Dateien frei, nicht Ordner: je Datei genau der geprüfte Stand mit seinem SHA-256. Verzeichnisregeln werden vom Script noch unterstützt, aber nicht empfohlen (siehe ACHTUNG unten); Code (`.js`, `.php`, `.pl`, `.sh`, `.cgi`, `.py`, `plugins.xml`) decken sie ohnehin nie ab.
+
+Ablauf nach einem Befund "Web-Dateien seit Boot":
+1. Vorgang zuordnen (Ticket, Deploy-Protokoll). Ohne Vorgang keine Freigabe; dann "Zu tun" Schritt 3 des Befunds.
+2. Diff gegen die Vorversion (Snapshot-Set oder Backup); bei Code jede Zeile lesen.
+3. Pin-Zeilen erzeugen und anhängen:
+   ```
+   sh /var/nssnapshot/ns_quickcheck.sh --pin /var/netscaler/logon/LogonPoint_workspace/custom/ >> /var/nssnapshot/ns_quickcheck.whitelist
+   ```
+   Ergebnis, eine Zeile je Datei:
+   ```
+   webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/script\.js$@sha256=4c0e8d1f3b7a2c9e5d6f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d
+   webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/strings\.de\.js$@sha256=b7d2e4f6a8c0d2e4f6a8c0d2e4f6a8c0d2e4f6a8c0d2e4f6a8c0d2e4f6a803ee
+   ```
+   `--pin-all` statt `--pin` nimmt auch Bilder, CSS und JSON, wenn der Ordner klein ist und jede Änderung gemeldet werden soll.
+4. Kommentarzeile mit Datum und Ticket darüber, Lauf wiederholen, Befund weg.
+5. Nach dem nächsten Update meldet der Lauf "per Hash freigegebene Web-Datei erneut geändert" mit den Dateinamen; Schritt 2 und 3 nur für diese.
+
+**ACHTUNG, drei Dinge, die eine Whitelist gefährlich machen:**
+
+1. **Ein Pin ist eine Freigabe für genau diesen Inhalt.** Wer eine Datei pinnt, ohne sie vorher gegen die Vorversion verglichen zu haben, kann eine bereits manipulierte Datei freigeben; ab dann meldet kein Lauf sie mehr, auch nicht der Collector. Deshalb: erst Diff (Snapshot-Set oder Backup), bei Code jede Zeile lesen, erst dann `--pin` oder `--pin-all`. Im Zweifel nicht pinnen.
+2. **Eine Dateiregel ohne Hash (`...$` ohne `@sha256=`) gibt den Namen frei, nicht den Inhalt.** Die Datei kann danach beliebig oft geändert werden, der Lauf schweigt. Für Code ist diese Form seit 17.34 wirkungslos; für Bilder, CSS und JSON ist sie erlaubt, aber `--pin-all` ist die bessere Wahl.
+3. **Verzeichnisregeln (`.../`) nicht verwenden.** Sie geben alles darunter frei, auch Dateien, die es heute noch nicht gibt. Seit 17.34 deckt eine Verzeichnisregel keinen Code mehr ab, aber eine neue Bilddatei mit Nutzlast im Theme-Ordner bleibt unsichtbar. Bestehende Verzeichnisregeln durch Pins ersetzen: `--pin-all <theme-ordner>` nach dem Diff, die Verzeichnisregel löschen. Die Kopfzeile des Laufs zählt Verzeichnisregeln als INFO.
+
+Prüfen, ob die Whitelist noch stimmt: `grep -c '@sha256=' ns_quickcheck.whitelist` gegen `grep -c '^webfile:' ns_quickcheck.whitelist`; die Differenz sind Regeln ohne Hash.
+
+Was der Hash leistet: Er bindet die Freigabe an einen Inhalt, nicht an einen Namen. Ein Angreifer, der eine freigegebene Datei überschreibt, erzeugt einen Befund; mit einer Verzeichnisregel täte er das nicht. Regelformen und Pflege im Detail: `ns_quickcheck_README.md`, Abschnitt 15, Howto Whitelist.
+
 ## Reports und Weitergabe
 
 Jeder Lauf schreibt Original (`.txt`, `.json`, `_ips.tsv`) und anonymisierte Fassung (`_anon.txt`, `_anon.json`). Nach außen (Issue, Ticket, Recherche-Prompt, ceterion) geht nur die anonymisierte Fassung, nach Stichprobe; die Zuordnungstabelle `ns_quickcheck.anon.<host>.map` bleibt auf der Appliance. Weitere Logauszüge vorher mit `sh ns_quickcheck.sh --anon <datei>` behandeln.

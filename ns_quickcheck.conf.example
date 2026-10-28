@@ -63,3 +63,9 @@ AAA_RATE=10
 LINE_MAX=400
 # PHP-Speicher-/Fatal-Muster im Management-Portal (CTX697263): ab so vielen Zeilen im Fenster wird gemeldet; auf gefixtem Build nur INFO
 PHP_ANOMALY_MIN=3
+# Vertraute Adressen (ns_quickcheck.trusted_ips): trust = eigene Stufe [TRUST] ohne Verdict-Wirkung, yellow = als Gelb
+TRUST_LEVEL=trust
+# Fusszeile "Erstellt mit netscaler-quickcheck ..." im Report und in den anon-Fassungen; 0 = aus
+FOOTER=1
+# leeres Core-Verzeichnis /var/core/<n> innerhalb 15 min nach Boot: info (Boot-Nachlauf, Vorgabe) oder yellow (als Absturz-Ereignis)
+CORE_BOOT_LEVEL=info

@@ -124,6 +124,36 @@ A new rules stand is published as a release tagged `rules-<date>` (rules file on
 
 What you have blocked at the firewall, a blocklist or the appliance goes into `ns_quickcheck.blocked_ips` (template `ns_quickcheck.blocked_ips.example`): `address_or_network ; since ; remark`. The quick check shows findings for these addresses as ORANGE "covered" when the observation predates the block date, and as YELLOW "block not effective" when the address returns afterwards. The file stays with you; the remark appears only in the original report. File layout and rules: `ns_quickcheck_README.md`, section 5.4.
 
+## Whitelist: with a hash per file
+
+The whitelist releases files, not folders: per file exactly the reviewed version with its SHA-256. Directory rules are still supported by the script but not recommended (see WARNING below); they never cover code (`.js`, `.php`, `.pl`, `.sh`, `.cgi`, `.py`, `plugins.xml`) anyway.
+
+After a "web files since boot" finding:
+1. Assign the change (ticket, deployment log). No record, no release; then step 3 of the finding's "Zu tun".
+2. Diff against the previous version (snapshot set or backup); for code read every line.
+3. Generate pin lines and append them:
+   ```
+   sh /var/nssnapshot/ns_quickcheck.sh --pin /var/netscaler/logon/LogonPoint_workspace/custom/ >> /var/nssnapshot/ns_quickcheck.whitelist
+   ```
+   Result, one line per file:
+   ```
+   webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/script\.js$@sha256=4c0e8d1f3b7a2c9e5d6f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d
+   webfile:^/var/netscaler/logon/LogonPoint_workspace/custom/strings\.de\.js$@sha256=b7d2e4f6a8c0d2e4f6a8c0d2e4f6a8c0d2e4f6a8c0d2e4f6a8c0d2e4f6a803ee
+   ```
+   `--pin-all` instead of `--pin` also takes images, CSS and JSON when the folder is small and every change should be reported.
+4. Comment line with date and ticket above, rerun, finding gone.
+5. After the next update the run reports "per Hash freigegebene Web-Datei erneut geaendert" (whitelisted file changed again) with the file names; steps 2 and 3 for those only.
+
+**WARNING, three things that make a whitelist dangerous:**
+
+1. **A pin releases exactly that content.** Pinning a file without diffing it against the previous version can release an already manipulated file; from then on no run reports it, nor does the Collector. So: diff first (snapshot set or backup), for code read every line, only then `--pin` or `--pin-all`. When in doubt, do not pin.
+2. **A file rule without a hash (`...$` without `@sha256=`) releases the name, not the content.** The file can change any number of times afterwards and the run stays silent. For code this form has been ineffective since 17.34; for images, CSS and JSON it is allowed, but `--pin-all` is the better choice.
+3. **Do not use directory rules (`.../`).** They release everything below, including files that do not exist yet. Since 17.34 a directory rule never covers code, but a new image file with a payload inside a theme folder stays invisible. Replace existing directory rules with pins: `--pin-all <theme folder>` after the diff, then delete the directory rule. The run header counts directory rules as INFO.
+
+Check whether the whitelist is still sound: `grep -c '@sha256=' ns_quickcheck.whitelist` against `grep -c '^webfile:' ns_quickcheck.whitelist`; the difference is the number of rules without a hash.
+
+What the hash does: it binds the release to a content, not to a name. An attacker overwriting a released file produces a finding; with a directory rule he would not. Rule forms and maintenance in detail: `ns_quickcheck_README.md`, section 15, Howto Whitelist (German).
+
 ## Reports and sharing
 
 Every run writes the original (`.txt`, `.json`, `_ips.tsv`) and an anonymised version (`_anon.txt`, `_anon.json`). Only the anonymised version leaves the appliance (issue, ticket, research prompt, ceterion), after a spot check; the mapping table `ns_quickcheck.anon.<host>.map` stays on the appliance. Run further log excerpts through `sh ns_quickcheck.sh --anon <file>` first.

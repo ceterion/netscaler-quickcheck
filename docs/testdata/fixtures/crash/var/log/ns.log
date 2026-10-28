@@ -1,0 +1,30 @@
+Oct  5 09:00:01 <local0.notice> 192.0.2.5 10/05/2026:09:00:01 GMT gw-01 0-PPE-0 : default GUI CMD_EXECUTED 5001 0 :  User nsroot - Remote_ip 192.0.2.5 - Command "add system user ops-ro" - Status "Success"
+Oct  5 09:00:02 <local0.notice> 192.0.2.5 10/05/2026:09:00:02 GMT gw-01 0-PPE-0 : default CLI CMD_EXECUTED 5002 0 :  User nsroot - Remote_ip 192.0.2.5 - Command "shell" - Status "Success"
+Oct  5 09:00:03 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=grep -c . /var/log/ns.log user=nsroot
+Oct  5 09:00:04 <local0.notice> gw-01 0-PPE-0 : default SHELL sh_command=sh /var/nssnapshot/ns_quickcheck.sh --no-out user=nsroot
+Oct  5 09:01:10 <local0.info> 198.51.100.40 10/05/2026:09:01:10 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5101 0 :  Request from client 198.51.100.40 for user "user03" vserver gw-vs
+Oct  5 09:01:11 <local0.info> 198.51.100.40 10/05/2026:09:01:11 GMT gw-01 0-PPE-0 : default AAA Message 5102 0 :  "authenticate user: succeeded for user user03"
+Oct  5 09:02:00 <local0.info> 198.51.100.41 10/05/2026:09:02:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5103 0 :  Request from client 198.51.100.41 for user "o'neill.sean" vserver gw-vs
+Oct  5 09:03:00 <local0.info> 198.51.100.42 10/05/2026:09:03:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5104 0 :  Request from client 198.51.100.42 for user "user04" User-Agent "CitrixReceiver/26.9.0 Windows/10.0 X1Class"
+Oct  5 09:04:00 <local0.info> 198.51.100.43 10/05/2026:09:04:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5105 0 :  Request from client 198.51.100.43 for user "DOMAIN\user05" vserver gw-vs
+Oct  5 09:05:00 <local0.info> 198.51.100.44 10/05/2026:09:05:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5106 0 :  Request from client 198.51.100.44 for user "user06+ext@example.net" vserver gw-vs
+Oct  5 09:06:00 <local0.info> 198.51.100.45 10/05/2026:09:06:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5107 0 :  Request from client 198.51.100.45 for user "müller.jörg" vserver gw-vs
+Oct  5 09:07:00 <local0.info> 198.51.100.46 10/05/2026:09:07:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5108 0 :  Request from client 198.51.100.46 for user "sh.arma" vserver gw-vs
+Oct  5 09:08:00 <local0.info> 198.51.100.47 10/05/2026:09:08:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5109 0 :  Request from client 198.51.100.47 for user "grep.thomas" vserver gw-vs
+Oct 27 10:56:22 <local0.alert> 192.0.2.5  10/27/2026:09:56:22 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:22 2026 nsaaad (974) unexpectedly died due to receiving signal"
+Oct 27 10:56:22 <local0.alert> 192.0.2.5  10/27/2026:09:56:22 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:22 2026 There may be a delay restarting process while collecting core dump on nsaaad (974)"
+Oct 27 10:56:23 <kern.info> gw-01 kernel: pid 974 (nsaaad), jid 0, uid 0: exited on signal 11 (core dumped)
+Oct 27 10:56:23 <local0.alert> 192.0.2.5  10/27/2026:09:56:23 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:23 2026 Restarting process nsaaad old pid (974) action (/netscaler/nsaaad nsaaad -n 10 -p 8766)"
+Oct 27 10:56:23 <local0.alert> 192.0.2.5  10/27/2026:09:56:23 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:23 2026 New pid (85771) for (nsaaad) restarts (1)"
+Oct 27 09:39:53 <local0.notice> gw-01 nsprofmon_mgmt.pl: *** ps -eo pcpu,pid,user,args | sort -rn | head -5 *** 19.8 1813 root grep -aiE \(nsaaad\).*exited on signal|proc nsaaad.*(SIGNALED_EXITED)|monitored processes have exited|maximum number of restarts|nsaaad unexpectedly died|Pitboss declaring system failure
+Oct 27 09:39:54 <local0.notice> gw-01 nsprofmon_mgmt.pl: *** ps -eo pcpu,pid,user,args *** 12.1 1815 root perl -MTime::Local -e while (<STDIN>) { my $k = /$ENV{AAA_FAIL_RE}/ ? fail : ok }
+Oct 27 11:30:00 <local0.alert> 192.0.2.5  10/27/2026:10:30:00 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 11:30:00 2026 httpd (1200) unexpectedly died due to receiving signal"
+Oct 27 11:30:01 <kern.info> gw-01 kernel: pid 1200 (httpd), jid 0, uid 0: exited on signal 11 (core dumped)
+Oct 28 09:12:20 <kern.info> gw-01 kernel: Core dump of pid 85771 (nsaaad) uid 0 could not be done at (null); switching core dump pattern to default: /var/core/%N-%P
+Oct 28 09:12:20 <local0.alert> 192.0.2.5  10/28/2026:08:12:20 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Wed Oct 28 09:12:20 2026 There may be a delay restarting process while collecting core dump on nsaaad (85771)"
+Oct 28 09:12:20 <kern.info> gw-01 kernel: pid 85771 (nsaaad), jid 0, uid 0: exited on signal 11 (core dumped)
+Oct 28 09:12:21 <local0.alert> 192.0.2.5  10/28/2026:08:12:21 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Wed Oct 28 09:12:21 2026 New pid (67056) for (nsaaad) restarts (2)"
+Oct 28 09:12:22 <local0.alert> 192.0.2.5  10/28/2026:08:12:22 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Wed Oct 28 09:12:22 2026 Adding pitboss watch on (67059) for (/netscaler/nsaaad nsaaad -n 10 -p 8766)"
+Oct 28 09:12:22 <local0.info> gw-01 pitboss[28]: proc nsaaad (67056) SIGNALED
+Oct 28 09:12:22 <local0.info> gw-01 pitboss[28]: proc nsaaad (67056) EXITED with status 0x8b
+Oct  6 12:50:00 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=reboot user=nsroot

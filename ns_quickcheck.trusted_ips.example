@@ -1,0 +1,10 @@
+# ns_quickcheck.trusted_ips - Vertrauensliste des Betreibers. Neben das Script legen (Rechte 600), wie Sperrliste und Config.
+# Adressen, deren Angriffsverhalten gewollt ist: Schwachstellenscanner, Pentester im Auftragsfenster, Monitoring, Partner-Gateways, Admin-Netze.
+# Zeile: adresse_oder_netz ; bis (YYYY-MM-DD, Ablaufdatum, leer = unbefristet) ; Bemerkung (intern, nicht in anon-Fassungen)
+# Wirkung: bei Management, SSH und Anmeldefehlern wie intern; Versuchs-Befunde (Sondierung, Dropper, Spraying, Brute Force, Schlaefer)
+#   erscheinen gesammelt als [TRUST] ohne Verdict-Wirkung (TRUST_LEVEL=yellow in der Config macht Gelb daraus);
+#   Wirkungs-Befunde (Injection, Webshell mit 200, Erfolg nach Fehlserie, aktive Verbindung) bleiben Rot.
+# Abgelaufene Eintraege werden uebergangen; eine Adresse, die auch in der Sperrliste steht, meldet WARN, die Sperrliste gilt.
+# Beispiele (RFC 5737):
+# 203.0.113.50 ; 2026-10-31 ; Pentest Firma X, Auftrag 4711, Ansprechpartner intern: Hr. M.
+# 192.0.2.0/24 ;  ; Schwachstellenscanner des SOC, unbefristet

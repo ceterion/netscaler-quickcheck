@@ -1,0 +1,6 @@
+[Wed Oct 28 10:15:00.100000 2026] [core:notice] [pid 1200] AH00052: child pid 1234 exit signal Segmentation fault (11)
+[Wed Oct 28 10:15:30.100000 2026] [core:notice] [pid 1200] AH00052: child pid 1240 exit signal Bus error (10)
+Oct 28 10:16:00 <kern.crit> gw-01 kernel: swap_pager: out of swap space
+Oct 28 10:16:00 <kern.crit> gw-01 kernel: pid 1250 (httpd), jid 0, uid 0, was killed: out of swap space
+Oct 28 10:20:00 <kern.crit> gw-01 kernel: panic: page fault
+Oct 28 10:20:00 <kern.crit> gw-01 kernel: Fatal trap 12: page fault while in kernel mode

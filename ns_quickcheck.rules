@@ -29,9 +29,9 @@
 # Bestehende Werte werden nie gekuerzt oder ersetzt (Ausnahme FIX_*), damit alte Vektoren pruefbar bleiben.
 # Aenderungshistorie mit Belegen: ns_quickcheck.rules.changelog.md
 
-RULES_VERSION="2026-10-23"
+RULES_VERSION="2026-10-28e"
 RULES_FORMAT="2"
-RULES_SOURCE="CTX697096, CTX697174, CTX697191, CISA KEV, CISA SIGMA 261399 r1, CERT-EU 28.09., Mandiant/GTIG 29.09., watchTowr 28.09. und 07.10., Unit 42 30.09., LevelBlue 02.10., Sygnia 01.10., SOCRadar 07.10. (Daten nur mit Fundstelle beim Erstautor; Zusammenstellungen Dritter sind Verweise), Zscaler ThreatLabz 16.10., CTX697263 22.10."
+RULES_SOURCE="Lab 27.10. (Crash-Formate), CTX697096, CTX697174, CTX697191, CISA KEV, CISA SIGMA 261399 r1, CERT-EU 28.09., Mandiant/GTIG 29.09., watchTowr 28.09. und 07.10., Unit 42 30.09., LevelBlue 02.10., Sygnia 01.10., SOCRadar 07.10. (Daten nur mit Fundstelle beim Erstautor; Zusammenstellungen Dritter sind Verweise), Zscaler ThreatLabz 16.10., CTX697263 22.10."
 
 # --- CVE-Tabelle (ab Script-V3): eine Zeile je CVE und Train, Felder durch :: getrennt
 #   Bulletin :: CVE :: Train (14.1, 13.1, 14.1-FIPS, 13.1-FIPS) :: Fix-Build :: Bedingung :: Text   (Trenner ist ::, weil Regex | enthalten darf)
@@ -95,14 +95,14 @@ CTX697096::CVE-2026-88772::13.1-FIPS::37.279::conf:^add vpn vserver [^ ]+ (SSL|D
 CTX697096::CVE-2026-88772::14.1-FIPS::73.37::conf:^add vpn vserver [^ ]+ (SSL|DTLS) ::DTLS RCE CVSS 9.5, seit Anfang September ausgenutzt
 CTX697096::CVE-2026-88778::13.1-FIPS::37.279::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
 CTX697096::CVE-2026-88778::14.1-FIPS::73.37::tcpparam:enhancedISNGeneration ENABLED::ISN-Schwaeche, Fix erfordert zusaetzlich den Parameter
-CTX697263::CVE-2026-109618::14.1::73.41::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
-CTX697263::CVE-2026-109618::13.1::64.28::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
-CTX697263::CVE-2026-109618::14.1-FIPS::73.41::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
-CTX697263::CVE-2026-109618::13.1-FIPS::37.282::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
-CTX697263::CVE-2026-109619::14.1::73.41::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
-CTX697263::CVE-2026-109619::13.1::64.28::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
-CTX697263::CVE-2026-109619::14.1-FIPS::73.41::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
-CTX697263::CVE-2026-109619::13.1-FIPS::37.282::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109618::14.1::73.49::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109618::13.1::64.32::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109618::14.1-FIPS::73.49::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109618::13.1-FIPS::37.286::all::PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::14.1::73.49::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::13.1::64.32::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::14.1-FIPS::73.49::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+CTX697263::CVE-2026-109619::13.1-FIPS::37.286::all::PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
 '
 
 # --- Gefixte Builds je Release-Train (Fallback fuer Script-V2 und wenn CVE_TABLE leer ist): "<Slot A> <Slot B>"
@@ -144,6 +144,32 @@ ADMIN_CMD_RE='shell_command=|sh_command=|nsprofmon_mgmt\.pl|CMD_EXECUTED.* - Com
 
 # --- SAML-Angriff CVE-2026-88779: Crash-Zeilen des Authentifizierungsdaemons
 # +2026-10-03 CTX697174 und Community-Berichte 04.10.: nsaaad-Neustarts und Pitboss-Meldungen bei SAML-Angriff
+# +2026-10-27 Prozessabstuerze verankert (Lab ns-lab-141, 14.1, kill -SEGV auf nsaaad; Formate verifiziert):
+#   Kernel:  kernel: pid 974 (nsaaad), jid 0, uid 0: exited on signal 11 (core dumped)
+#   Pitboss: PITBOSS1 Message 0 0 :  "... nsaaad (974) unexpectedly died due to receiving signal" / "Restarting process nsaaad old pid (974) ..." / "New pid (85771) for (nsaaad) restarts (1)"
+#   +2026-10-28b (Lab 28.10., zwei weitere kill -SEGV): "There may be a delay restarting process while collecting core dump on nsaaad (974)",
+#   "Adding pitboss watch on (67059) for (/netscaler/nsaaad ...)", Kernel "Core dump of pid 85771 (nsaaad) uid 0 could not be done at (null);
+#   switching core dump pattern to default: /var/core/%N-%P" (Cores liegen als Dateien /var/core/<proc>-<pid>, nicht als Verzeichnis).
+#   +2026-10-28b (Lab 28.10., zwei weitere kill -SEGV): "There may be a delay restarting process while collecting core dump on nsaaad (974)",
+#   "Adding pitboss watch on (67059) for (/netscaler/nsaaad ...)", Kernel "Core dump of pid 85771 (nsaaad) uid 0 could not be done at (null);
+#   switching core dump pattern to default: /var/core/%N-%P" (Cores liegen als Dateien /var/core/<proc>-<pid>, nicht als Verzeichnis).
+#   +2026-10-28c (Lab 28.10.): Zeilen des Pitboss-Prozesses selbst, "pitboss[28]: proc nsaaad (974) SIGNALED" und "proc nsaaad (974) EXITED with
+#   status 0x8b" (0x8b = 128 + Signal 11); dritte Zeilenart desselben Absturzes, liefert das Signal auch ohne Kernel-Zeile.
+#   Die Eskalationstexte (maximum number of restarts, declaring system failure) sind NICHT verifiziert, Annahme aus Citrix-Doku.
+#   Das Script bildet daraus Ereignisse je Prozess und PID; das alte, weite Muster bleibt als NSAAAD_CRASH_LEGACY_RE fuer die INFO "unbekanntes Format".
+PITBOSS_RE='PITBOSS[0-9]* Message .*(unexpectedly died|collecting core dump on [^ ]+ \([0-9]+\)|Restarting process [^ ]+ old pid \([0-9]+\)|New pid \([0-9]+\) for \([^)]+\) restarts \([0-9]+\)|Adding pitboss watch on \([0-9]+\) for \(|maximum number of restarts|declaring system failure)|pitboss\[[0-9]+\]: proc [^ ]+ \([0-9]+\) (SIGNALED|EXITED with status 0x[0-9a-f]+)'
+KERNEL_EXIT_RE='kernel: pid [0-9]+ \([^)]+\), jid [0-9]+, uid [0-9]+: exited on signal [0-9]+|kernel: Core dump of pid [0-9]+ \([^)]+\)'
+NSAAAD_CRASH_LEGACY_RE='\(nsaaad\).*exited on signal|proc nsaaad.*(SIGNALED|EXITED)|monitored processes have exited|maximum number of restarts|nsaaad unexpectedly died|Pitboss declaring system failure'
+
+# +2026-10-28d Weitere Absturz- und Speicherdruck-Belege (Formate aus Apache- und FreeBSD-Doku, nicht aus dem Lab; als Standard markiert):
+#   Apache-Worker: "[core:notice] [pid 1200] AH00052: child pid 1234 exit signal Segmentation fault (11)" im Webserver-Fehlerlog;
+#   fuer PHP2Shell (Out-of-Memory und Speicherkorruption im PHP-Worker) die wahrscheinlichste Spur.
+#   Kernel-Speicherdruck: "swap_pager: out of swap space", "pid 1234 (httpd), jid 0, uid 0, was killed: out of swap space".
+#   Kernel-Panic/Trap im messages: "panic:", "Fatal trap".
+HTTPERR_CRASH_RE='AH00052: child pid [0-9]+ exit signal [A-Za-z ]+ \([0-9]+\)'
+KERNEL_MEM_RE='swap_pager: out of swap space|was killed: out of swap space|swap_pager_getswapspace'
+KERNEL_PANIC_RE='kernel: panic:|Fatal trap [0-9]+|kernel trap [0-9]+ with interrupts disabled'
+# NSAAAD_CRASH_RE: nur noch fuer Scripts vor 17.32 (Rueckfall), identisch mit dem Legacy-Muster
 NSAAAD_CRASH_RE='\(nsaaad\).*exited on signal|proc nsaaad.*(SIGNALED|EXITED)|monitored processes have exited|maximum number of restarts|nsaaad unexpectedly died|Pitboss declaring system failure'
 # --- DTLS CVE-2026-88772
 # +2026-09-29 Mandiant/GTIG: DTLSv1.0-Handshake-Fehler vor Packet-Engine-Neustart
@@ -225,8 +251,10 @@ HTTPERR_PHP_ANOMALY_RE='Allowed memory size of [0-9]+ bytes exhausted|PHP Fatal 
 MGMT_ACL_RE='^add ns acl [^ ]+ DENY .*-destIP (= )?NSIP_PLACEHOLDER .*-destPort (= )?(80|443)'
 # Stock-Hashes von Systemdateien je Build (ab Script-V12): '<pfad relativ zu />::<sha256>::<build>' je Zeile, leer = nur Ausgabe
 # des Ist-Hashes im Report ohne Bewertung. Erster Kandidat: netscaler/ns_monuploadd_err.pl (Mechanismus von CVE-2026-88771).
+# +2026-10-28e 14.1-73.49: derselbe Wert, bestaetigt von zwei unabhaengigen Appliances (Lab nach Upgrade 28.10. und ein Betreiber-Gateway 28.10.).
 # +2026-10-14b Lab 14.1-73.46, Erstinstallation 2026-10-14, kein SAML, keine Spuren. FIPS-Builds: Wert nicht bekannt (dann nur Info).
-STOCK_FILE_HASHES='netscaler/ns_monuploadd_err.pl::02b24a9923a6cee1fbee48137b7f81b7e0f5169246728b7368fc3a066c43a708::14.1-73.46'
+STOCK_FILE_HASHES='netscaler/ns_monuploadd_err.pl::02b24a9923a6cee1fbee48137b7f81b7e0f5169246728b7368fc3a066c43a708::14.1-73.46
+netscaler/ns_monuploadd_err.pl::02b24a9923a6cee1fbee48137b7f81b7e0f5169246728b7368fc3a066c43a708::14.1-73.49'
 STOCK_HASH_FILES='netscaler/ns_monuploadd_err.pl'
 # Bekannte Payload- und Webshell-Hashes (SHA-256) fuer die Pruefung neuer Dateien in Web- und Temp-Pfaden (ab Script-V16).
 # Werte und Herkunft je Hash im IOC-Abschnitt (Unit 42 30.09., CISA 261399 r1 07.10.).

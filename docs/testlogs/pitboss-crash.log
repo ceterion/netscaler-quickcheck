@@ -1,0 +1,16 @@
+Oct 27 10:56:22 <local0.alert> 192.0.2.5  10/27/2026:09:56:22 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:22 2026 nsaaad (974) unexpectedly died due to receiving signal"
+Oct 27 10:56:22 <local0.alert> 192.0.2.5  10/27/2026:09:56:22 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:22 2026 There may be a delay restarting process while collecting core dump on nsaaad (974)"
+Oct 27 10:56:23 <kern.info> gw-01 kernel: pid 974 (nsaaad), jid 0, uid 0: exited on signal 11 (core dumped)
+Oct 27 10:56:23 <local0.alert> 192.0.2.5  10/27/2026:09:56:23 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:23 2026 Restarting process nsaaad old pid (974) action (/netscaler/nsaaad nsaaad -n 10 -p 8766)"
+Oct 27 10:56:23 <local0.alert> 192.0.2.5  10/27/2026:09:56:23 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 10:56:23 2026 New pid (85771) for (nsaaad) restarts (1)"
+Oct 27 09:39:53 <local0.notice> gw-01 nsprofmon_mgmt.pl: *** ps -eo pcpu,pid,user,args | sort -rn | head -5 *** 19.8 1813 root grep -aiE \(nsaaad\).*exited on signal|proc nsaaad.*(SIGNALED_EXITED)|monitored processes have exited|maximum number of restarts|nsaaad unexpectedly died|Pitboss declaring system failure
+Oct 27 09:39:54 <local0.notice> gw-01 nsprofmon_mgmt.pl: *** ps -eo pcpu,pid,user,args *** 12.1 1815 root perl -MTime::Local -e while (<STDIN>) { my $k = /$ENV{AAA_FAIL_RE}/ ? fail : ok }
+Oct 27 11:30:00 <local0.alert> 192.0.2.5  10/27/2026:10:30:00 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Tue Oct 27 11:30:00 2026 httpd (1200) unexpectedly died due to receiving signal"
+Oct 27 11:30:01 <kern.info> gw-01 kernel: pid 1200 (httpd), jid 0, uid 0: exited on signal 11 (core dumped)
+Oct 28 09:12:20 <kern.info> gw-01 kernel: Core dump of pid 85771 (nsaaad) uid 0 could not be done at (null); switching core dump pattern to default: /var/core/%N-%P
+Oct 28 09:12:20 <local0.alert> 192.0.2.5  10/28/2026:08:12:20 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Wed Oct 28 09:12:20 2026 There may be a delay restarting process while collecting core dump on nsaaad (85771)"
+Oct 28 09:12:20 <kern.info> gw-01 kernel: pid 85771 (nsaaad), jid 0, uid 0: exited on signal 11 (core dumped)
+Oct 28 09:12:21 <local0.alert> 192.0.2.5  10/28/2026:08:12:21 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Wed Oct 28 09:12:21 2026 New pid (67056) for (nsaaad) restarts (2)"
+Oct 28 09:12:22 <local0.alert> 192.0.2.5  10/28/2026:08:12:22 GMT gw-01 0-PPE-0 : default PITBOSS1 Message 0 0 :  "Wed Oct 28 09:12:22 2026 Adding pitboss watch on (67059) for (/netscaler/nsaaad nsaaad -n 10 -p 8766)"
+Oct 28 09:12:22 <local0.info> gw-01 pitboss[28]: proc nsaaad (67056) SIGNALED
+Oct 28 09:12:22 <local0.info> gw-01 pitboss[28]: proc nsaaad (67056) EXITED with status 0x8b

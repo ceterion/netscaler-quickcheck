@@ -1,4 +1,4 @@
-# Herkunftsprotokoll ns_quickcheck.rules 2026-10-23
+# Herkunftsprotokoll ns_quickcheck.rules 2026-10-28e
 
 Erzeugt aus der Regeldatei durch docs/provenance.sh (Beschreibung: ns_quickcheck_README.md, Abschnitt 8.2); je Wert Quelle, Veroeffentlichungsdatum beim Erstautor, Fundstelle, Status und Regelstand der Aufnahme. Status PRUEFEN = Fundstelle noch nicht verifiziert, Wert inaktiv; ENTFERNEN = keine Primaerquelle, wird beim naechsten Regelstand geloescht.
 
@@ -206,11 +206,11 @@ Erzeugt aus der Regeldatei durch docs/provenance.sh (Beschreibung: ns_quickcheck
 | cve | CVE-2026-88772 14.1-FIPS Fix 73.37 | Citrix |  | https://support.citrix.com/external/article/CTX697096/ | belegt |  |
 | cve | CVE-2026-88778 13.1-FIPS Fix 37.279 | Citrix |  | https://support.citrix.com/external/article/CTX697096/ | belegt |  |
 | cve | CVE-2026-88778 14.1-FIPS Fix 73.37 | Citrix |  | https://support.citrix.com/external/article/CTX697096/ | belegt |  |
-| cve | CVE-2026-109618 14.1 Fix 73.41 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
-| cve | CVE-2026-109618 13.1 Fix 64.28 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
-| cve | CVE-2026-109618 14.1-FIPS Fix 73.41 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
-| cve | CVE-2026-109618 13.1-FIPS Fix 37.282 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
-| cve | CVE-2026-109619 14.1 Fix 73.41 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
-| cve | CVE-2026-109619 13.1 Fix 64.28 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
-| cve | CVE-2026-109619 14.1-FIPS Fix 73.41 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
-| cve | CVE-2026-109619 13.1-FIPS Fix 37.282 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109618 14.1 Fix 73.49 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109618 13.1 Fix 64.32 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109618 14.1-FIPS Fix 73.49 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109618 13.1-FIPS Fix 37.286 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109619 14.1 Fix 73.49 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109619 13.1 Fix 64.32 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109619 14.1-FIPS Fix 73.49 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |
+| cve | CVE-2026-109619 13.1-FIPS Fix 37.286 | Citrix |  | https://support.citrix.com/external/article/CTX697263/ | belegt |  |

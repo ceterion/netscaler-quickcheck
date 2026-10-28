@@ -30,7 +30,7 @@ Sicherheits-Triage für Citrix NetScaler ADC und Gateway, auf der Appliance: Bui
 - **Die Firewall füttern und dann prüfen, ob es hält.** Jeder Lauf schreibt die fremden Adressen, die er gesehen hat, nach Kategorie (Download-Host, Dropper-Anfrage, Sondierungsquelle, Spraying-Maschine, Schläfer, Treffer) in eine Liste je Lauf und eine kumulierte Liste je Appliance: zuerst gesehen, zuletzt gesehen, Tage, Anzahl je Fenster. Was du sperrst, kommt mit Datum in `ns_quickcheck.blocked_ips`; der nächste Lauf markiert abgedeckte Befunde Orange und meldet "Sperre greift nicht" für jede Adresse, die trotzdem noch ankommt.
 - **Weitergeben können.** Anonymisierte Fassungen mit stabiler Zuordnung je Appliance; Konten- und Hostnamen maskiert, Angreiferwerte erhalten, Adresslisten nach Kategorie für Firewall und SOC.
 - **Zwei Prompts, eine Regeldatei.** Das Repository enthält die zwei Prompts, mit denen die Regeln entstehen: einen Recherche-Prompt, der die Fakten eines Bulletins nur bei Erstveröffentlichern sammelt, mit URL und Datum je Wert, und einen Regel-Prompt, der daraus einen Patch im Format der Regeldatei macht. Jeder kann sie auf das nächste Bulletin oder auf eigene Befunde anwenden, den Patch mit `rules-apply.sh` einspielen und bekommt denselben Lint, dieselbe Herkunftsprüfung und dieselbe Dublettenprüfung wie wir. Die Methode liegt im Repo, nicht nur das Ergebnis.
-- **Den Regeln trauen.** Jeder Indikator auf seinen Erstveröffentlicher zurückgeführt, jedes Release durch 57 Testlogs, 7 Fixtures und drei Plattform-Lints; jede Schwelle dokumentiert und einstellbar.
+- **Den Regeln trauen.** Jeder Indikator auf seinen Erstveröffentlicher zurückgeführt, jedes Release durch 69 Testlogs, 10 Fixtures und drei Plattform-Lints; jede Schwelle dokumentiert und einstellbar.
 
 ## Was es prüft
 
@@ -43,7 +43,7 @@ Ein Lauf, sechs Blöcke, ein Verdict (`OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_
 - **Betreiberkontext**: eine Sperrliste (an der Firewall bereits gesperrte Adressen) macht abgedeckte Befunde Orange, eine Whitelist nimmt bestätigte Änderungen heraus, die Schwellen der Kontenprüfungen stehen in einer Config.
 - **Ausgaben**: Report, JSON, Adresslisten je Lauf und kumuliert nach Kategorie, anonymisierte Fassungen für die Weitergabe. `coverage=partial` in der RESULT-Zeile heißt, eine Kernprüfung hatte keine Daten; das Verdict ist dann nie `OK`.
 
-Testbasis: 57 Testlogs, 7 Fixtures und drei Plattform-Lints vor jedem Release (`docs/release.sh`). Details: `ns_quickcheck_README.md`, Abschnitte 4.3 (Schwellen) und 6 (Blöcke).
+Testbasis: 69 Testlogs, 10 Fixtures und drei Plattform-Lints vor jedem Release (`docs/release.sh`). Details: `ns_quickcheck_README.md`, Abschnitte 4.3 (Schwellen) und 6 (Blöcke).
 
 ## Schnellstart
 
@@ -91,6 +91,7 @@ Alle Dateien tragen unversionierte Namen; die Version des Scripts steht im Heade
 
 | Datei | Zweck |
 |---|---|
+| `ns_quickcheck.trusted_ips.example` | Vorlage der Vertrauensliste: Adressen, deren angriffsähnliches Verhalten gewollt ist (Scanner, Pentests mit Ablaufdatum); erscheinen als `[TRUST]`, Wirkungs-Befunde bleiben Rot |
 | `ns_quickcheck.blocked_ips.example` | Vorlage für die Sperrliste des Betreibers (an Firewall, Blocklist oder Appliance bereits gesperrte Adressen); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE "abgedeckt", Requests nach dem Sperrdatum GELB "Sperre greift nicht" |
 | `ns_quickcheck.rules.custom.example` | Vorlage für eigene Indikatoren des Betreibers (gleiches Format wie der IOC-Abschnitt); als `ns_quickcheck.rules.custom` neben die Regeldatei kopieren, wird additiv geladen, nie verteilt und beim Update nicht ersetzt |
 | `<BASE_DIR>/tmp/` | Arbeitsverzeichnis für Zwischendateien und das Entpacken bei `--compare` (konfigurierbar `WORK_BASE`); nie `/tmp`, das auf NetScaler auf dem kleinen Root-Dateisystem liegt |

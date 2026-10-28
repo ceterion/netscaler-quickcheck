@@ -15,6 +15,7 @@ done
 # Gleichlauf pruefen
 echo "$pairs" | while IFS=: read -r src dst; do cmp -s "$src" "$dst" || { echo "ABWEICHUNG: $src $dst" >&2; exit 1; }; done
 echo "release.sh: Kopien aktuell"
+rm -f ns_quickcheck.anon.*.map 2>/dev/null   # Zuordnungstabellen aus Testlaeufen gehoeren nicht ins Repo
 # liegengebliebene Laufdateien im Baum (Reports, Adresslisten, Zuordnungstabellen) duerfen nicht ins Paket
 _stray=$(find . -maxdepth 2 \( -name 'ns_quickcheck_*_20*' -o -name '*_ips.tsv' -o -name 'ns_quickcheck_observed_ips.tsv' -o -name 'ns_quickcheck.anon.*.map' \) 2>/dev/null | grep -v '^./docs/testdata/' || true)
 [ -z "$_stray" ] || { echo "release.sh: FAIL: Laufdateien im Baum: $_stray" >&2; exit 1; }
@@ -24,6 +25,8 @@ _v=$(grep -m1 '^VERSION=' ns_quickcheck.sh | sed 's/VERSION="\([0-9.]*\)".*/\1/'
 _hs=$(sha256sum ns_quickcheck.sh | cut -c1-64); _hr=$(sha256sum ns_quickcheck.rules | cut -c1-64)
 grep -q "$_hs" "$_rn" || { echo "release.sh: FAIL: $_rn nennt nicht den Hash von ns_quickcheck.sh ($_hs)" >&2; exit 1; }
 grep -q "$_hr" "$_rn" || { echo "release.sh: FAIL: $_rn nennt nicht den Hash von ns_quickcheck.rules ($_hr)" >&2; exit 1; }
+# Plattform-Lint 4: BWK-awk kennt keine GNU-Funktionen (strftime, systime, gensub, asort, mktime)
+perl -ne 'next if /^\s*#/; if (/awk\b/ && /'"'"'(.*?)'"'"'/s) { my $p=$1; if ($p =~ /\b(strftime|systime|gensub|asorti?|mktime)\s*\(/) { print "$.: $_"; $bad=1 } } END { exit($bad?1:0) }' ns_quickcheck.sh || { echo "release.sh: Plattform-Lint FAIL: GNU-awk-Funktion in awk-Programm (BWK-awk)" >&2; exit 1; }
 # Changelog-Hash: der oberste Eintrag der Regel-Historie muss den Hash der aktuellen Regeldatei tragen
 _h=$(sha256sum ns_quickcheck.rules | cut -c1-64); _c=$(grep -o 'Nachher:\*\* SHA-256 [0-9a-f]*' ns_quickcheck.rules.changelog.md | head -1 | awk '{print $3}')
 [ "$_h" = "$_c" ] || { echo "release.sh: Changelog-Hash FAIL: ns_quickcheck.rules.changelog.md nennt $_c, Regeldatei hat $_h" >&2; exit 1; }
@@ -85,7 +88,6 @@ rules_lint() {
 }
 
 rules_lint ns_quickcheck.rules || { echo "release.sh: Format-2-Lint FAIL (docs/rules-format-2.md)" >&2; exit 1; }
-rm -f ns_quickcheck.anon.*.map 2>/dev/null   # Zuordnungstabellen aus Testlaeufen gehoeren nicht ins Repo
 sh docs/provenance.sh ns_quickcheck.rules
 sh ns_quickcheck.sh --testlog docs/testlogs/ | tail -1
 sh ns_quickcheck.sh --testlog docs/testlogs/ >/dev/null 2>&1 || { echo "release.sh: --testlog FAIL" >&2; exit 1; }
@@ -94,10 +96,11 @@ sh ns_quickcheck.sh --testlog docs/testlogs/ >/dev/null 2>&1 || { echo "release.
 while IFS=: read -r fx want fields; do
   [ -n "$fx" ] || continue; case "$fx" in \#*) continue ;; esac
   # Fixture mit Betreiberdatei: Regeldatei und ns_quickcheck.rules.custom der Fixture nebeneinander in ein Arbeitsverzeichnis
-  if [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.rules.custom" ] || [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.blocked_ips" ]; then
+  if [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.rules.custom" ] || [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.blocked_ips" ] || [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.trusted_ips" ]; then
     fxd=$(mktemp -d /tmp/qcfx.XXXXXX); cp ns_quickcheck.rules "$fxd/r"; chmod 600 "$fxd/r"
     [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.rules.custom" ] && { cp "docs/testdata/fixtures/$fx/ns_quickcheck.rules.custom" "$fxd/r.custom"; chmod 600 "$fxd/r.custom"; }
     blk=""; [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.blocked_ips" ] && { cp "docs/testdata/fixtures/$fx/ns_quickcheck.blocked_ips" "$fxd/b"; chmod 600 "$fxd/b"; blk="--blocked $fxd/b"; }
+    [ -f "docs/testdata/fixtures/$fx/ns_quickcheck.trusted_ips" ] && { cp "docs/testdata/fixtures/$fx/ns_quickcheck.trusted_ips" "$fxd/t"; chmod 600 "$fxd/t"; blk="$blk --trusted $fxd/t"; }
     outp=$(sh ns_quickcheck.sh --from "docs/testdata/fixtures/$fx" --rules "$fxd/r" $blk --hours 100000 --no-out 2>/dev/null || true); rm -rf "$fxd"
   else
   outp=$(sh ns_quickcheck.sh --from "docs/testdata/fixtures/$fx" --hours 100000 --no-out 2>/dev/null || true)

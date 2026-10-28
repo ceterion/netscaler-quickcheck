@@ -54,3 +54,7 @@ Rejects a file or patch when: a line is neither assignment, comment, blank nor i
 - 1.2 2026-10-21 custom file with IOC and optional CVE block, both evaluated additively, stricter result decides
 - 1.1 2026-10-20 required variables, `[:punct:]`, uppercase GNU classes, IOC value formats, EOL fixture (Collector-chat handover)
 - 1.0 2026-10-20 first version, from the Collector-chat handover (96 of 96 prototype cells identical to `--testlog`)
+
+## 1.4 (2026-10-28): fix build `pending`
+
+A `CVE_TABLE` row may carry `pending` instead of a fix build: `CTX697263::CVE-2026-109618::14.1::pending::all::...`. It means the vendor has published the advisory but no fixed build yet. Scripts from 17.37 rate every build of that train as vulnerable and say "kein Fix-Build veroeffentlicht (Stand <rules version>)"; older scripts skip the row with a SKIP line. `rules-apply.sh` 2.5 accepts the value. Fix builds themselves come only from the CTX article, section "What Customers Should Do"; never from blogs or from the overview of another bulletin.

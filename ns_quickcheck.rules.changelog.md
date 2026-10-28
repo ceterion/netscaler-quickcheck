@@ -4,6 +4,108 @@ Ein Eintrag je Änderung ab dem ersten veröffentlichten Regelstand (2026-10-19)
 
 ---
 
+## 2026-10-28e - RULES_VERSION 2026-10-28e
+
+**Anlass:** Stock-Hash fuer 14.1-73.49.
+
+| Variable | Änderung | Quelle |
+|---|---|---|
+| `STOCK_FILE_b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4dES` | `netscaler/ns_monuploadd_err.pl` fuer 14.1-73.49: `02b24a99...` (derselbe Wert wie 73.46) | zwei unabhaengige Appliances, Lab nach Upgrade und ein Betreiber-Gateway, 28.10. |
+
+Keine Indikatoren geändert.
+
+**Vorher:** 2026-10-28d | **Nachher:** SHA-256 b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d
+**Test (Bearbeiter):** Fixtures grün, Lab-Lauf 73.49 zeigt OK statt INFO
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-10-28d - RULES_VERSION 2026-10-28d
+
+**Anlass:** Linie "lieber mehr reporten": jeder Hinweis auf einen Prozess, der nicht freiwillig gegangen ist. Formate aus Apache- und FreeBSD-Doku, nicht aus dem Lab; als Standard markiert, Testlog `crash-extra.log`.
+
+| Variable | Inhalt | Quelle |
+|---|---|---|
+| `HTTPERR_CRASH_RE` | Apache-Worker-Absturz `AH00052: child pid <pid> exit signal <name> (<n>)` im Webserver-Fehlerlog; fuer PHP2Shell die wahrscheinlichste Spur | Apache-Doku (Standard) |
+| `KERNEL_MEM_RE` | `swap_pager: out of swap space`, `was killed: out of swap space` | FreeBSD (Standard) |
+| `KERNEL_PANIC_RE` | `kernel: panic:`, `Fatal trap <n>`, `kernel trap <n> with interrupts disabled` | FreeBSD (Standard) |
+
+Keine Indikatoren geändert.
+
+**Vorher:** 2026-10-28c | **Nachher:** SHA-256 9f445666a48ad5c990ffef872649002a524e7f486d0b5a196fb784b669561524
+**Test (Bearbeiter):** --testlog mit `crash-extra.log`, Fixtures grün
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-10-28c - RULES_VERSION 2026-10-28c
+
+**Anlass:** Lab 28.10., Zeilen des Pitboss-Prozesses selbst, die nur das alte Muster kannte.
+
+| Variable | Änderung | Quelle |
+|---|---|---|
+| `PITBOSS_RE` | plus `pitboss[<n>]: proc <proc> (<pid>) SIGNALED` und `EXITED with status 0x<hex>` (0x8b = 128 + Signal 11); dritte Zeilenart desselben Absturzes, liefert das Signal auch ohne Kernel-Zeile | Lab-Zeilen 28.10. (verifiziert) |
+
+Keine Indikatoren geändert. Damit sind alle im Lab beobachteten Pitboss- und Kernel-Zeilen eines nsaaad-Absturzes verankert; die INFO "unbekanntes Format" sollte auf 14.1 nicht mehr erscheinen.
+
+**Vorher:** 2026-10-28b | **Nachher:** SHA-256 6a8fc3882fa3d82ec6bc6737b4922e8699dd10b86e110f9ab704ad9450c5a6b7
+**Test (Bearbeiter):** --testlog 63 PASS, Fixture `crash` 4 Ereignisse
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-10-28b - RULES_VERSION 2026-10-28b
+
+**Anlass:** zwei weitere `kill -SEGV` im Lab (ns-lab-141, 28.10.): drei Zeilenarten, die das Script bisher als "unbekanntes Format" meldete.
+
+| Variable | Änderung | Quelle |
+|---|---|---|
+| `PITBOSS_RE` | plus `collecting core dump on <proc> (<pid>)` (Beleg zum selben Absturz) und `Adding pitboss watch on (<pid>) for (` (Neustart abgeschlossen, kein Ereignis) | Lab-Zeilen 28.10. (verifiziert) |
+| `KERNEL_EXIT_RE` | plus `kernel: Core dump of pid <pid> (<proc>)`; die Zeile nennt das Core-Muster `/var/core/%N-%P`, Cores liegen als Dateien `<proc>-<pid>` | Lab-Zeile 28.10. (verifiziert) |
+
+Keine Indikatoren geändert.
+
+**Vorher:** 2026-10-28 | **Nachher:** SHA-256 48838e67d7afa4a99cf0ad4b623cba7c75adfbd447960636de8a5877436b33a4
+**Test (Bearbeiter):** --testlog 63 PASS (pitboss-crash.log um die drei Zeilenarten erweitert), Fixture `crash` mit Core-Datei im Manifest
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-10-28 - RULES_VERSION 2026-10-28
+
+**Anlass:** CTX697263 am 27.10. aktualisiert ("Updated remediation versions"): Die Fix-Builds für PHP2Shell sind **14.1-73.49, 13.1-64.32, 14.1-FIPS 73.49, 13.1-FIPS/NDcPP 37.286**. Der Regelstand 2026-10-23 hatte 73.41 / 64.28 / 37.282 eingetragen; das waren die Fix-Builds des SAML-Bulletins CTX697191, die der Citrix-Blog in derselben Übersicht nannte, nicht die von CTX697263. Am 23.10. gab es noch keinen Fix-Build für PHP2Shell; jede Appliance unter 73.49 bzw. 64.32 war und ist verwundbar, auch 73.46.
+
+| Typ | Änderung | Quelle |
+|---|---|---|
+| `CVE_TABLE` (8) | CVE-2026-109618 und 109619: Fix 14.1-73.49, 13.1-64.32, 14.1-FIPS 73.49, 13.1-FIPS 37.286 (NDcPP wie FIPS) | CTX697263, Stand 27.10.2026, Abschnitt "What Customers Should Do" |
+
+Folge für Betreiber: Appliances auf 14.1-73.41 bis 73.46 und 13.1-64.28 bis 64.31 melden ab diesem Regelstand `UPDATE` mit `vuln63=1`; Block 2 zeigt die Management-Adressen ohne DENY-ACL als Gelb. Bis zum Update: Port 80/443 der NSIP und der Management-SNIPs per ACL auf Admin-Netze begrenzen (Citrix-Empfehlung). Der Fehler ist ceterion-intern dokumentiert; die Regeldatei 2026-10-23 und 2026-10-27 sollte nicht mehr verwendet werden.
+
+**Vorher:** 2026-10-27 | **Nachher:** SHA-256 0a74bd585228dab07efa6069c42ee9b847a1d559f576c0519fa7d17b9bbaaabd
+**Test (Bearbeiter):** Fixtures und Testlogs grün; `php2shell` (73.37) weiter `FORENSICS_FIRST`
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-10-27 - RULES_VERSION 2026-10-27
+
+**Anlass:** Selbsttreffer durch `nsprofmon_mgmt.pl` (CPU-Momentaufnahmen mit den Kommandozeilen von grep und perl des Quickcheck) und Verankerung der Crash-Muster an verifizierten Formaten (Lab ns-lab-141, 14.1, `kill -SEGV` auf nsaaad, 27.10.).
+
+| Variable | Änderung | Quelle |
+|---|---|---|
+| `PITBOSS_RE` | neu: `PITBOSS[0-9]* Message` mit `unexpectedly died`, `Restarting process ... old pid (n)`, `New pid (n) for (proc) restarts (n)`, Eskalation | Lab-Zeilen 27.10. (verifiziert); Eskalationstexte Annahme aus Citrix-Doku, im Kommentar so markiert |
+| `KERNEL_EXIT_RE` | neu: `kernel: pid n (proc), jid n, uid n: exited on signal n` | Lab-Zeile 27.10. (verifiziert) |
+| `NSAAAD_CRASH_LEGACY_RE` | neu, identisch mit dem bisherigen `NSAAAD_CRASH_RE`; Treffer nur dort ergeben INFO "unbekanntes Format" | bisheriges Muster |
+| `NSAAAD_CRASH_RE` | unverändert, nur noch Rückfall für Scripts vor 17.32 | |
+
+Keine Indikatoren geändert.
+
+**Vorher:** 2026-10-23 | **Nachher:** SHA-256 b3097a1f993daeb22dd9a5295a28b749b71afa5767141aecb716e8689da3c394
+**Test (Bearbeiter):** --testlog 63 PASS (neu: pitboss-crash.log mit Selbsttreffer-Zeilen), 9 Fixtures grün (neu: crash), Provenance neu
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
 ## 2026-10-23 - RULES_VERSION 2026-10-23
 
 **Anlass:** CTX697263 (22.10.2026): PHP2Shell, CVE-2026-109618 und CVE-2026-109619 im Management-Portal (PHP). Erstquellen: Citrix-Blog "Protecting NetScaler Management Access from PHP CVE-2026-109618 & CVE-2026-109619" (die CTX-Seite ist nur per Browser lesbar), Unit 42 und Zscaler 21.10. zum Mechanismus, Red Hat CVE-Eintrag.
