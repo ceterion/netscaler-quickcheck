@@ -2,7 +2,7 @@
 
 Ein Lauf auf der Appliance, ein Verdict: Build gegen die Citrix-Bulletins, Angriffsspuren, Kompromittierungs-Schnellcheck, Adresslisten, anonymisierte Reports. Regelgesteuert, offline-fähig, erweiterbar durch eigene Indikatoren. Entstanden im Oktober 2026 für CTX697096, CTX697174 und CTX697191, gebaut für die Bulletins danach.
 
-Script V17.42, Regeldatei Format 2 (Stand 2026-10-28e), README v36 (2026-10-28); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
+Script V17.43, Regeldatei Format 2 (Stand 2026-10-28e), README v36 (2026-10-28); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
 
 Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen lässt): 1 bis 7, 10, 11, 12, 15, 16; wer Schwellen anpasst: 4.2 und 4.3. **Betreiber mit eigenen Indikatoren**: zusätzlich 8.4 bis 8.6 und WORKFLOW.de.md. **ceterion und Power-User** (Regelpflege, Abnahme, Tests): 8, 9, 13.
 
@@ -16,7 +16,7 @@ Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen läs
    sh ns_quickcheck.sh
    ```
 3. Exit-Code lesen (`echo $?` direkt nach dem Lauf): 0 `OK`, 1 `INVESTIGATE`, 2 `UPDATE` oder `FORENSICS_FIRST`, 3 Abbruch mit Grund auf stderr (Regeldatei fehlt, Kernvariable fehlt, Option ohne Wert). 1 und 2 sind Verdicts, keine Fehler. Bricht der Lauf ohne `RESULT`-Zeile ab, mit `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt` wiederholen und beide Dateien anonymisiert einsenden (`--anon`, Abschnitt 5.3).
-4. Kopfzeile lesen: `ns_quickcheck 17.42  host=<name>  modus=online  regeln=2026-10-28e`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
+4. Kopfzeile lesen: `ns_quickcheck 17.43  host=<name>  modus=online  regeln=2026-10-28e`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
 5. Ans Ende blättern: `ACTION: OK`, `UPDATE`, `INVESTIGATE` oder `FORENSICS_FIRST`. Was das heißt, steht in Abschnitt 7, Tabelle "Jetzt tun".
 6. Vor der `RESULT`-Zeile stehen die fremden Adressen dieses Laufs mit Status (neu oder bekannt seit) und Sperrstatus; `coverage=full` in `RESULT` bestätigt, dass alle Kernprüfungen Daten hatten.
 7. Alle weiteren Dateien (Config, Whitelist, Sperrliste, Custom-Datei, Zuordnungstabelle) gehören in dasselbe Verzeichnis. Die Dateien dieses Laufs liegen in `/var/nssnapshot/quickcheck/`: Report, JSON, Adressliste, anonymisierte Fassungen. Nach außen geht nur `_anon.*` (Abschnitt 5.3).
@@ -24,7 +24,7 @@ Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen läs
 So sieht ein sauberer Lauf aus (gekürzt, anonymisiert; `fenster=168h` stammt hier aus `HOURS=168` in der Config, die Vorgabe des Scripts ist 72 h):
 
 ```
-ns_quickcheck 17.42  host=gw-01  modus=online  fenster=168h  regeln=2026-10-28e  cli=nscli (user01, cli_user aus ns_snapshot.conf)
+ns_quickcheck 17.43  host=gw-01  modus=online  fenster=168h  regeln=2026-10-28e  cli=nscli (user01, cli_user aus ns_snapshot.conf)
   [INFO]  Custom-Datei des Betreibers geladen: 78 aktive Indikator-Zeile(n), 0 CVE-Zeile(n) (betreiber-2026-10-20)
   [INFO]  Sperrliste: 3 Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)
 Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
@@ -457,7 +457,7 @@ Zwei Regeln über den Befunden: `coverage=partial` (siehe oben) macht das Verdic
 ### 7.2 JSON
 
 ```
-{ "script": "ns_quickcheck", "version": "17.29", "host": "...", "ts": "...",
+{ "script": "ns_quickcheck", "version": "17.43", "host": "...", "ts": "...",
   "result": { ...alle RESULT-Felder... },
   "mitigation_hits": { "<policy>": "<hits>" },
   "observed_ips": [ { "category": "dropper_requester", "ip": "...", "count": 24, "observed_in": "httpaccess DROPPER_PATH_RE", "blocked": "fw-zentral|2026-10-21" } ],
@@ -525,7 +525,7 @@ Community-Werkzeuge prüfen dieselben Bulletins mit eigenen Indikatorsammlungen.
 
 ## 9. Validierungsstand und Abnahme-Protokoll
 
-**Validiert:** NetScaler 14.1-73.41 und 14.1-73.46 (MPX, Lab): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 69 Testlogs, 10 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
+**Validiert:** NetScaler 14.1-73.41, 73.46 und 73.49 (MPX, Lab und Kundengateway): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 69 Testlogs, 10 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
 
 **Abnahme auf jeder neuen Appliance vor der ersten Bewertung:**
 1. Erster Lauf mit Trace: `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt; echo EXIT=$?`. Exit 139 heißt Absturz; `tail /tmp/qc_trace.txt` zeigt die Zeile; Issue mit Trace.

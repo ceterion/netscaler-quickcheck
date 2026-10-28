@@ -1,5 +1,9 @@
 # Changelog
 
+## v17.43 (2026-10-28)
+
+Leere Boot-Cores (INFO) zählen nicht mehr als Core-Beleg; ohne Ereignis kein Gelb-Block.
+
 ## v17.42 (2026-10-28)
 
 Cores: komprimierte Dateien dem Ereignis zugeordnet; Verzeichnis-Cores `/var/core/<n>` leer und kurz nach Boot als INFO (`CORE_BOOT_LEVEL`), sonst Gelb; Verdict-Satz zur Mitigation nur bei offener CVE; Regelstand 2026-10-28e mit Stock-Hash 73.49. Freeze.

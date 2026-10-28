@@ -16,7 +16,7 @@
 # NetScaler ADC / Gateway - Sicherheits-Triage auf der Appliance: ein Lauf, ein Verdict. Entstanden fuer CTX697096,
 # CTX697174 und CTX697191, gebaut fuer die Bulletins danach.
 #
-# Version : 17.42 (2026-10-28)
+# Version : 17.43 (2026-10-28)
 # Autor   : ceterion AG, Jens Miltenberger
 # Plattform: NetScaler 13.1 / 14.1 (FreeBSD), /bin/sh. Offline auch Linux/macOS/WSL.
 # Dateien : ns_quickcheck.conf (optional), ns_quickcheck.rules, ns_quickcheck.whitelist (optional)
@@ -59,6 +59,8 @@
 # Exit-Codes: 0 OK, 1 INVESTIGATE, 2 UPDATE oder FORENSICS_FIRST, 3 Fehler
 #
 # Changelog
+#   17.43 2026-10-28 Boot-Cores (INFO) zaehlen nicht mehr als Core-Beleg; ohne Ereignis kein Gelb-Block ("0 Ereignisse,
+#                    1 Beleg" beim Betreiber). Core-Belegliste ohne Boot-Cores.
 #   17.42 2026-10-28 Cores: komprimierte Dateien (<proc>-<pid>.gz) werden dem Ereignis zugeordnet statt als Phantom-
 #                    Ereignis gezaehlt; nummerierte Verzeichnisse /var/core/<n> gelten als Verzeichnis-Core (Prozess
 #                    unbekannt): leer und innerhalb 15 min nach Boot = INFO "Boot-Nachlauf" (CORE_BOOT_LEVEL=info, Vorgabe;
@@ -314,7 +316,7 @@
 PATH=/netscaler:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin; export PATH
 LC_ALL=C; export LC_ALL
 umask 077
-VERSION="17.42"; RULES_MIN="2026-10-23"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
+VERSION="17.43"; RULES_MIN="2026-10-23"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
 SELF="$0"; case "$SELF" in /*) ;; *) SELF="$(pwd)/$SELF" ;; esac
 SELFDIR=$(cd "$(dirname "$SELF")" 2>/dev/null && pwd || dirname "$SELF")
 BASE_DIR=/var/nssnapshot
@@ -1281,7 +1283,10 @@ else
       grep -q "	$_cp	$_cpid	" "$WORK/crash_events.tsv" 2>/dev/null && continue
       printf '%s\t%s\t%s\tCore ohne Logzeile\t-\n' "$_ct" "$_cp" "$_cpid" >> "$WORK/crash_events.tsv"; done
     sort -r "$WORK/crash_events.tsv" -o "$WORK/crash_events.tsv"; NCR=$(grep -c . "$WORK/crash_events.tsv")
-    if [ "$NCR" -gt 0 ] || [ "$NCORED" -gt 0 ]; then
+    # Boot-Cores (INFO) sind keine Belege: aus Liste und Zaehler nehmen; der Gelb-Block oeffnet nur mit Ereignissen
+    if [ -s "$WORK/core_boot.txt" ]; then cut -f1 "$WORK/core_boot.txt" > "$WORK/core_boot_paths.txt"; CORED=$(echo "$CORED" | grep -vxF -f "$WORK/core_boot_paths.txt"); fi
+    NCORED=$(echo "$CORED" | grep -c .)
+    if [ "$NCR" -gt 0 ]; then
       TRACES=1
       _nsa=$(awk -F'\t' '$2=="nsaaad"' "$WORK/crash_events.tsv" | grep -c .); _htd=$(awk -F'\t' '$2=="httpd"' "$WORK/crash_events.tsv" | grep -c .); _ppe=$(awk -F'\t' '$2 ~ /^nsppe|^NSPPE/' "$WORK/crash_events.tsv" | grep -c .)
       _ddt=0; catns $NSLOGS | grep -aqE "$DTLS_FAIL_RE" && _ddt=1

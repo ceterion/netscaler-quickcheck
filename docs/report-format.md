@@ -1,4 +1,4 @@
-# Report format (script 17.29)
+# Report format (script 17.43)
 
 Binding description of what `ns_quickcheck.sh` writes per run, for the Collector and anyone reading reports by machine. German text in the report is data; field names are stable.
 
@@ -38,7 +38,7 @@ Space-separated `key=value`, one line, always last in the report:
 ## JSON
 
 ```
-{ "script": "ns_quickcheck", "version": "17.29", "host": "...", "ts": "...",
+{ "script": "ns_quickcheck", "version": "17.43", "host": "...", "ts": "...",
   "result": { all RESULT keys as strings },
   "mitigation_hits": { "<policy>": "<hits>" },
   "observed_ips": [ { "category": "...", "ip": "...", "count": n, "observed_in": "...", "blocked": "<remark>|<since>" or "" } ],
