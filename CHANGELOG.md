@@ -1,138 +1,138 @@
 # Changelog
 
+English summary. The German version [CHANGELOG.de.md](CHANGELOG.de.md) is leading and carries the full detail per version; this file is brought in line at the latest with each release. Full release notes per release: `docs/releases/` (also the text of the GitHub release). The rule changelog `ns_quickcheck.rules.changelog.md` is kept in German only.
+
+## Planned (V18)
+
+- Stock manifest per build (hashes of all web and management files from a fresh installation; block 5 distinguishes stock file, modified stock file and new file; solves the whitelist maintenance problem)
+- Address feed from operators' share files (collector: dedupe, two-appliance rule, expiry, abuse process)
+- `WEBSHELL_NAME_RE`: webshell names as patterns across the web directories instead of exact paths; trigger Zscaler 16.10. (`Nx_<number>.php/.pl/.html`, number differs per attack instance)
+- "New since last run": findings unchanged for n runs marked as known; only new findings on top
+- `--language en` with message catalogue; English main documentation
+- Shell logs (`bash.log`, `sh.log`) with `SHELL_CMD_RE`, only with a whitelist built from real lines
+- `--compare` with hash diff instead of mtime, cron and `httpd.conf` included in the comparison
+- Stock lists and stock hashes for 13.1 and FIPS
+
 ## v17.43 (2026-10-28)
 
-Leere Boot-Cores (INFO) zählen nicht mehr als Core-Beleg; ohne Ereignis kein Gelb-Block.
+Empty boot cores (INFO) no longer count as core evidence; no yellow block without an event.
 
 ## v17.42 (2026-10-28)
 
-Cores: komprimierte Dateien dem Ereignis zugeordnet; Verzeichnis-Cores `/var/core/<n>` leer und kurz nach Boot als INFO (`CORE_BOOT_LEVEL`), sonst Gelb; Verdict-Satz zur Mitigation nur bei offener CVE; Regelstand 2026-10-28e mit Stock-Hash 73.49. Freeze.
+Cores: compressed files assigned to their event; directory cores `/var/core/<n>` that are empty and shortly after boot reported as INFO (`CORE_BOOT_LEVEL`), otherwise yellow; verdict sentence on mitigation only with an open CVE; rules 2026-10-28e with stock hash for 73.49. Freeze.
 
 ## v17.41 (2026-10-28)
 
-Abstürze: jedes Ereignis mindestens Gelb; Rot bei nsaaad mit SAML ab dem zweiten Ereignis am Tag, httpd bei offenem PHP2Shell, nsppe mit DTLS, drei Ereignissen eines Prozesses am Tag, demselben Prozess an drei Tagen (`ns_quickcheck_observed_crashes.tsv`), Anfrage von außen in den 120 s davor (`crash_trigger`). Neue Belege: Apache-Worker-Abstürze (`HTTPERR_CRASH_RE`), Core ohne Logzeile, Kernel-Panic (`KERNEL_PANIC_RE`), Speicherdruck (`KERNEL_MEM_RE`), Neustart ohne Befehl. `crashes=` in RESULT. Regelstand 2026-10-28d.
+Crashes: every event at least yellow; red for nsaaad with SAML from the second event per day, httpd with open PHP2Shell, nsppe with DTLS, three events of one process per day, the same process on three days (`ns_quickcheck_observed_crashes.tsv`), or an external request in the 120 s before (`crash_trigger`). New evidence: Apache worker crashes (`HTTPERR_CRASH_RE`), core without log line, kernel panic (`KERNEL_PANIC_RE`), memory pressure (`KERNEL_MEM_RE`), reboot without command. `crashes=` in RESULT. Rules 2026-10-28d.
 
 ## v17.40 (2026-10-28)
 
-Pitboss-Prozesszeilen (`proc <name> (<pid>) SIGNALED` / `EXITED with status 0x8b`) im Ereignis, Signal aus dem Exit-Status; Ereigniszeiten einheitlich aus dem Syslog-Kopf (Lokalzeit). Regelstand 2026-10-28c.
+Pitboss process lines (`proc <name> (<pid>) SIGNALED` / `EXITED with status 0x8b`) attached to the event, signal derived from the exit status; event times taken consistently from the syslog header (local time). Rules 2026-10-28c.
 
 ## v17.39 (2026-10-28)
 
-Prozessabstürze: Restart-Zähler je Ereignis, Core-Belege als Dateien `/var/core/<proc>-<pid>` und Verzeichnisse, je Ereignis angehängt; Regelstand 2026-10-28b mit drei weiteren Pitboss-/Kernel-Zeilenarten aus dem Lab.
+Process crashes: restart counter per event, core evidence as files `/var/core/<proc>-<pid>` and as directories, attached per event; rules 2026-10-28b with three more pitboss and kernel line types from the lab.
 
 ## v17.38 (2026-10-28)
 
-Verdict nennt offene CVEs, Bulletins und Ziel-Build; `vuln96` nur noch CTX697096, neues Feld `vuln_open`; Anmelde-Zusammenfassung mit Konto je Quelle; Anonymisierung maskiert Hostnamen aus URLs und NT-/DNS-Domänen aus Config-Werten (Lab-Lauf: StoreFront-URL und Domäne standen im Klartext).
+Verdict names open CVEs, bulletins and target build; `vuln96` now covers CTX697096 only, new field `vuln_open`; logon summary with account per source; anonymisation masks host names from URLs and NT/DNS domains from config values.
 
 ## v17.37 (2026-10-28)
 
-CVE-Tabelle: Fix-Build `pending` (kein Fix-Build veröffentlicht, jeder Build des Trains verwundbar), `rules-apply.sh` 2.5, Format 2 1.4. Research-Prompt v17 (Fix-Builds nur aus dem CTX-Artikel, `pending`, "Updated On" lesen), Regel-Prompt v8 (echter Schnitt auf Format 2). Kleinkram: Testlog-Platzhalter `1.1.1.1` ersetzt, `docs/testdata/README.md` ohne gelöschte Stände, Runbook Schritt 7 nur Citrix-IoC-Scan, `release.sh` räumt Zuordnungstabellen vor der Laufdatei-Prüfung.
+CVE table: fix build `pending` (no fix build published, every build of the train vulnerable); `rules-apply.sh` 2.5, format 2 version 1.4. Research prompt v17, rule prompt v8. Minor fixes in test logs, `docs/testdata/README.md`, runbook step 7 and `release.sh`.
 
 ## v17.36 (2026-10-27)
 
-Regelstand 2026-10-28: Fix-Builds für PHP2Shell (CTX697263, Update vom 27.10.) auf 14.1-73.49, 13.1-64.32, 14.1-FIPS 73.49, 13.1-FIPS 37.286 korrigiert; die Stände 2026-10-23 und 2026-10-27 hatten die Fix-Builds des SAML-Bulletins eingetragen und Appliances auf 73.41 bis 73.46 fälschlich als gefixt gemeldet. Fixtures für gefixte Appliances auf 73.49.
-
-Zeitstempel je Web-Datei über perl (awk-`strftime` fehlte auf der Appliance), Plattform-Lint 4 gegen GNU-awk-Funktionen; Verzeichnisregeln der Whitelist nicht empfohlen (INFO im Kopf, ACHTUNG-Block in WORKFLOW beider Sprachen, Vorlage nur mit Pins).
+Rules 2026-10-28: fix builds for PHP2Shell (CTX697263, update of 27.10.) corrected to 14.1-73.49, 13.1-64.32, 14.1-FIPS 73.49, 13.1-FIPS 37.286. Rules 2026-10-23 and 2026-10-27 carried the fix builds of the SAML bulletin and wrongly reported appliances on 73.41 to 73.46 as fixed. Web file timestamps via perl, platform lint 4 against GNU awk functions; directory rules in the whitelist discouraged.
 
 ## v17.35 (2026-10-27)
 
-`--pin-all <pfad>` (Pin-Zeilen für alle Dateien, nicht nur Code); WORKFLOW beider Sprachen mit Abschnitt "Whitelist: mit Hash je Datei".
+`--pin-all <path>` (pin lines for all files, not only code); WORKFLOW in both languages with a section on whitelist entries with a hash per file.
 
 ## v17.34 (2026-10-27)
 
-Whitelist mit drei Regelformen (Verzeichnis `/`, Datei `$`, Datei mit Pin `$@sha256=`); Verzeichnisregeln decken keinen Code ab, Dateiregeln auf Code nur mit Pin; WARN nur noch für Regeln, die keiner Form entsprechen. `--pin <pfad>` erzeugt Pin-Zeilen. Web-Dateien mit Änderungszeit, vollständig im Report, ab 20 je Verzeichnis gruppiert. Zuordnungstabelle übergeht ungültige `user`-/`mail`-Einträge beim Laden. README 15 Howto Whitelist als Fünf-Schritte-Anleitung, Vorlage neu.
+Whitelist with three rule forms (directory `/`, file `$`, file with pin `$@sha256=`); directory rules never cover code, file rules on code only with a pin. `--pin <path>` generates pin lines. Web files listed with modification time, grouped from 20 per directory. README section 15 whitelist howto as five steps, new template.
 
 ## v17.33 (2026-10-27)
 
-Anonymisierer: Konten unter 3 Zeichen und reservierte Reportwörter kommen nicht in die Zuordnungstabelle (vorher machte ein Konto `info` aus `[INFO]` ein `[userNNN]`, ein Konto `-` ersetzte jeden Bindestrich). Web-Dateien: Einordnung über alle geänderten Dateien statt nur die angezeigten; ausführbare Dateien nie als Theme-Anpassung, eigener Hinweis "Diff gegen Vorversion". Whitelist: Hash-Pin `webfile:<regex>@sha256=<hash>`, WARN bei Regeln ohne `$`, Kopfzeile "Whitelist: nicht vorhanden". Zeitspanne der Sondierung chronologisch. Fixture `aaa-dup` (Doppelzählung über `ns.log` und `messages` ausgeschlossen).
+Anonymiser: accounts shorter than 3 characters and reserved report words no longer enter the mapping table (an account `info` had turned `[INFO]` into `[userNNN]`). Web files classified across all changed files; executables never classed as theme customisation. Whitelist hash pin, probing time span in chronological order, fixture `aaa-dup`.
 
 ## v17.32 (2026-10-27)
 
-Selbsttreffer beseitigt: `nsprofmon_mgmt.pl`-Zeilen (CPU-Momentaufnahmen mit den Kommandozeilen von grep und perl des Quickcheck samt Suchmustern) werden beim Lesen der Syslog-Familie abgezweigt und nur noch mit `SUSPECT_PROC_RE` geprüft; identische Zeilen aus `ns.log` und `messages` zählen einmal. Block 4 zeigt deshalb weniger Treffer als 17.31, nicht weil weniger passiert. Prozessabstürze generisch als Ereignisse je Prozess und PID (Pitboss, Kernel, `/var/core/<n>`), Regelstand 2026-10-27 mit verankerten Mustern; nsaaad wie bisher bewertet, httpd mit Bezug CTX697263, nsppe mit DTLS Rot. Anonymisierte Adresslisten (`_ips_anon.tsv`, `ns_quickcheck_observed_ips_anon.tsv`) und Share-Datei `_share.tsv` für die Weitergabe an ceterion (belastbare Kategorien, keine Appliance-Kennung). Testlog `pitboss-crash.log`, Fixture `crash`.
+Self-hits removed: `nsprofmon_mgmt.pl` lines (CPU snapshots containing the quickcheck's own grep and perl command lines) are checked only against `SUSPECT_PROC_RE`; identical lines from `ns.log` and `messages` count once, so block 4 shows fewer hits than 17.31. Process crashes as events per process and PID; anonymised address lists and share file `_share.tsv` for submission to ceterion. Rules 2026-10-27.
 
 ## v17.31 (2026-10-27)
 
-Vertrauensliste `ns_quickcheck.trusted_ips` (`adresse ; bis ; Bemerkung`, `--trusted`): vertraute Adressen gelten bei Management, SSH und Anmeldefehlern als intern, fallen aus Versuchs-Befunden heraus und erscheinen gesammelt als `[TRUST]` in Blau ohne Verdict-Wirkung (`TRUST_LEVEL=yellow` macht Gelb daraus); Wirkungs-Befunde bleiben Rot. Ablaufdatum, Konflikt mit der Sperrliste als WARN, einmaliges Gelb beim Wechsel von Angreifer- zu Vertrauensliste, `trusted_<art>` in den Adresslisten, `trusted_seen=` in RESULT, Liste `trust` im JSON. Fußzeile mit Werkzeug, Version, Regelstand und Quelle (`FOOTER=1` Vorgabe), `source_url` im JSON. Fixture `trusted`.
+Trust list `ns_quickcheck.trusted_ips` (`--trusted`): trusted addresses count as internal for management, SSH and logon failures and appear as blue `[TRUST]` without verdict effect; impact findings stay red. Footer with tool, version, rules and source (`FOOTER=1` default), `source_url` in JSON. Fixture `trusted`.
 
 ## v17.30 (2026-10-23)
 
-CTX697263 (PHP2Shell, CVE-2026-109618 und 109619 im Management-Portal), Regelstand 2026-10-23. Script: `vuln63` in RESULT; Block 2 zeigt Management-Adressen und die Citrix-Mitigation (DENY-ACLs auf Port 80/443, `MGMT_ACL_RE`); Block 4b prüft PHP-Speicher- und Fatal-Muster auch im `admin_ui` (`HTTPERR_PHP_ANOMALY_RE`, Schwelle `PHP_ANOMALY_MIN`): INFO auf gefixtem Build, Gelb auf verwundbarem, Rot mit neuer PHP-Datei im Fenster (Block 5). Heuristik, keine veröffentlichte Signatur. Testlog `httperror-php.log`, Fixture `php2shell`. Bestehende Prüfungen unverändert.
+CTX697263 (PHP2Shell, CVE-2026-109618 and 109619 in the management portal), rules 2026-10-23. Script: `vuln63` in RESULT; block 2 shows management addresses and the Citrix mitigation (DENY ACLs on ports 80/443, `MGMT_ACL_RE`); block 4b checks PHP memory and fatal patterns also in `admin_ui` (`HTTPERR_PHP_ANOMALY_RE`, threshold `PHP_ANOMALY_MIN`): INFO on a fixed build, yellow on a vulnerable one, red with a new PHP file in the window (block 5). Heuristic, no published signature. Test log `httperror-php.log`, fixture `php2shell`. Existing checks unchanged.
 
 ## v17.29 (2026-10-21)
 
-Erstes Release nach dem zurückgezogenen v15.1; Regelstand 2026-10-22b. Die Einzelschritte 17.0 bis 17.29 stehen im Kopf des Scripts, die Release-Notes in `docs/releases/`.
+First release after the withdrawn v15.1; rules 2026-10-22b. The individual steps 17.0 to 17.29 are listed in the script header, the release notes in `docs/releases/`.
 
-**Regeldatei und Herkunft**
-- Regeldatei Format 2: jede Indikatorzeile trägt Quelle, Veröffentlichungsdatum, Fundstelle beim Erstautor und Regelstand; Zeilen ohne Fundstelle sind inaktiv. Verbindliche Beschreibung `docs/rules-format-2.md`, Lint in `rules-apply.sh` und `release.sh`
-- Herkunftsprotokoll `ns_quickcheck.rules.provenance.csv/.md`, aus der Regeldatei erzeugt bei jedem Release
-- Regelstand 2026-10-20: nur belegte Werte (111 Indikatoren, 40 CVE-Zeilen); Zusammenstellungen Dritter gelten als Verweis, nicht als Quelle
-- Werte aus Blöcken Dritter eines Community-Checkers entfernt (siehe Regel-Changelog 2026-10-19); `CREDITS.md` neu, README-Abschnitt Credits
+**Rule file and provenance**
+- Rule file format 2: every indicator line carries source, publication date, location at the original author and rules state; lines without a location are inactive. Binding description `docs/rules-format-2.md`, lint in `rules-apply.sh` and `release.sh`
+- Provenance log `ns_quickcheck.rules.provenance.csv/.md`, generated from the rule file at every release
+- Rules 2026-10-20: attested values only (111 indicators, 40 CVE rows); third-party compilations count as a reference, not as a source
+- Values from third-party blocks of a community checker removed (see rule changelog 2026-10-19); new `CREDITS.md`, README section Credits
 
-**Custom-Datei des Betreibers**
-- `ns_quickcheck.rules.custom` neben der Regeldatei, additiv geladen, nie verteilt, bleibt beim Update; IOC-Block und CVE-Block; identische Zeilen einmal, abweichende beide, das strengere Ergebnis zählt; Kopfzeile und RESULT (`custom`, `custom_sha256`, `cve_custom`, `cve_conflict`)
-- `docs/rules-apply.sh` 2.3: `<ziel> <patch>` sichert als `<ziel>.bak_<stand>` und aktualisiert an Ort und Stelle; Dubletten, Fundstelle, CVE-Zeilen geprüft; Hinweis bei Abweichung zur Regeldatei
-- WORKFLOW beider Sprachen neu: Betreiber pflegt Indikatoren und Fix-Builds in der Custom-Datei
+**Operator custom file**
+- `ns_quickcheck.rules.custom` next to the rule file, loaded additively, never distributed, kept on update; IOC block and CVE block; identical lines count once, differing lines both, the stricter result applies; header line and RESULT (`custom`, `custom_sha256`, `cve_custom`, `cve_conflict`)
+- `docs/rules-apply.sh` 2.3: `<target> <patch>` backs up as `<target>.bak_<state>` and updates in place; duplicates, locations and CVE rows checked; notice on deviation from the rule file
+- WORKFLOW in both languages rewritten: the operator maintains indicators and fix builds in the custom file
 
-**Reports, Anonymisierung, Adressen**
-- Terminal zeigt alles, was in den Report geht; `--brief` für die Kurzfassung
-- Je Lauf anonymisierte Fassung (`_anon.txt`, `_anon.json`, Dateiname mit Ersatzhost) nach Zuordnungstabelle `ns_quickcheck.anon.<host>.map`: Adressen, Hosts, User, Domains, Objektnamen, Themes; `--anon <datei>` für Logauszüge
-- 17.12: `--anon` auch für `ns.conf`: Geheimnisse hinter Secret-Parametern, Passwort-Hashes, SNMP-Communities werden ohne Tabelle `***`; FQDNs, Zertifikatsdateien, DN-Komponenten, Server-Namen in der Zuordnungstabelle; Kommentarzeilen reduziert
-- Adressliste je Lauf (`_ips.tsv`, im JSON `observed_ips`) und kumuliert je Appliance (`ns_quickcheck_observed_ips.tsv`)
-- JSON je Befund `text` und `details`, `mitigation_hits`
-- Erklärzeilen je Befund; 17.17: Befundblöcke mit festen Beschriftungen (Wann, Ergebnis, Download-Host oder Adresse mit Sperrliste, Regeldatei und Adressliste, Quelle, Zu tun) für Injection, Dropper-Anfragen und Web-Dateien; vor RESULT die Adressen dieses Laufs mit Status gegenüber dem Bestand und Sperrliste; Quelle beim Treffer auf Payload-Pfad
+**Reports, anonymisation, addresses**
+- The terminal shows everything that goes into the report; `--brief` for the short version
+- Anonymised version per run (`_anon.txt`, `_anon.json`, file name with substitute host) based on the mapping table `ns_quickcheck.anon.<host>.map`: addresses, hosts, users, domains, object names, themes; `--anon <file>` for log extracts
+- 17.12: `--anon` also for `ns.conf`: secrets behind secret parameters, password hashes and SNMP communities become `***` without a table entry; FQDNs, certificate files, DN components and server names go into the mapping table; comment lines reduced
+- Address list per run (`_ips.tsv`, `observed_ips` in JSON) and cumulative per appliance (`ns_quickcheck_observed_ips.tsv`)
+- JSON per finding `text` and `details`, `mitigation_hits`
+- Explanation lines per finding; 17.17: finding blocks with fixed labels (when, result, download host or address with block list, rule file and address list, source, to do) for injection, dropper requests and web files; before RESULT the addresses of this run with status against the inventory and the block list; source shown on a payload path hit
 
-**Bewertung**
-- 17.16: Sperrliste im Format `adresse ; seit ; Bemerkung`, Befundtext "Sperre ab DATUM", Bemerkung nur im Original-Report; Datumsroutine in perl (BWK-awk kennt keine Intervalle, Plattform-Lint 3), nicht bestimmbares Datum heißt "Abdeckung nicht prüfbar"
-- 17.15: Sperrliste akzeptiert Zeilen ab zwei Feldern (wo als Freitext, Datum optional), meldet übergangene Zeilen; Fix: Kommentarreduktion der ns.conf-Anonymisierung löschte die Kopfzeile der anon-Reports
-- 17.13: Sperrliste des Betreibers `ns_quickcheck.blocked_ips` plus ACLs der Appliance; Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE "abgedeckt" statt Rot, Requests nach dem Sperrdatum GELB "Sperre greift nicht", aktive Verbindungen bleiben Rot; Adresslisten mit Spalte gesperrt, RESULT `orange=` und `blocked_seen=`, JSON-Liste `orange`; Fixture `blocked`
-- 17.11: Dropper-Block erkennt Dropper-Suche (mehr als zwei verschiedene Paketnamen von einer Adresse oder Kommandozeichen im Query-String) und meldet Rot statt Gelb; Detaillisten in Terminal und Report vollständig, `DETAIL_MAX` in der Config begrenzt bei Bedarf
-- Verdict-Vokabular `OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_FIRST`
-- Fix: SAML-abhängige CVE (CVE-2026-107406) setzte `vuln79` nicht; Fix: `EOL_RELEASES` wurde nie ausgewertet; Fix: IP-Indikatoren trafen als Teilstring; `OUTRE` mit Grenzen
+**Assessment**
+- 17.16: block list in the format `address ; since ; remark`, finding text "blocked from DATE", remark only in the original report; date routine in perl (BWK awk has no intervals, platform lint 3), an undeterminable date reads "coverage not verifiable"
+- 17.15: block list accepts lines with two or more fields (where as free text, date optional), reports skipped lines; fix: comment reduction of the ns.conf anonymisation deleted the header line of the anon reports
+- 17.13: operator block list `ns_quickcheck.blocked_ips` plus ACLs of the appliance; findings for blocked addresses before the block date become ORANGE "covered" instead of red, requests after the block date YELLOW "block not effective", active connections stay red; address lists with a blocked column, RESULT `orange=` and `blocked_seen=`, JSON list `orange`; fixture `blocked`
+- 17.11: dropper block detects dropper searches (more than two different package names from one address, or command characters in the query string) and reports red instead of yellow; detail lists complete in terminal and report, `DETAIL_MAX` in the config limits them if needed
+- Verdict vocabulary `OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_FIRST`
+- Fix: SAML-dependent CVE (CVE-2026-107406) did not set `vuln79`; fix: `EOL_RELEASES` was never evaluated; fix: IP indicators matched as substrings; `OUTRE` with boundaries
 
-**Betrieb**
-- Fix 17.10: BSD-sed kennt `\t` nicht; kumulierte Adressliste blieb auf der Appliance leer, "Verwundbar"-Zeilen fehlten im JSON. Umgestellt auf awk und printf, Plattform-Lint 2 dagegen
-- Arbeitsverzeichnis `$BASE_DIR/tmp` statt `/tmp` (Root-Dateisystem lief bei `--compare` voll), Platzprüfung, konfigurierbar `WORK_BASE`
-- Optionen mit Wert brechen ohne Wert mit Exit 3 ab
-- Fixture-Gate prüft RESULT-Felder; Fixtures `eol` und `custom`; Testlogs im echten httpaccess-Format und Negativtest
+**Operation**
+- Fix 17.10: BSD sed does not know `\t`; the cumulative address list stayed empty on the appliance, "vulnerable" lines were missing in JSON. Switched to awk and printf, platform lint 2 against it
+- Working directory `$BASE_DIR/tmp` instead of `/tmp` (the root file system ran full with `--compare`), space check, configurable `WORK_BASE`
+- Options that take a value abort with exit 3 when the value is missing
+- Fixture gate checks RESULT fields; fixtures `eol` and `custom`; test logs in the real httpaccess format and a negative test
 
-**Dokumentation**
-- README neu (Schnellstart, Verdict-Entscheidungstabelle, Optionen, Sicherheitsbetrachtung, FAQ, Glossar); unversionierte Dateinamen im Repo, Versionen im Dateikopf; Regel-Changelog beginnt mit dem ersten veröffentlichten Regelstand
+**Documentation**
+- README rewritten (quick start, verdict decision table, options, security considerations, FAQ, glossary); unversioned file names in the repository, versions in the file header; rule changelog starts with the first published rules state
 
-**Geplant (V18)**
-- Stock-Manifest je Build (Hashes aller Web- und Management-Dateien aus einer frischen Installation; Block 5 unterscheidet Stock, veränderte Stock-Datei und neue Datei; löst das Whitelist-Pflegeproblem)
-- Adress-Feed aus Share-Dateien der Betreiber (Collector: Dedupe, Zwei-Appliances-Regel, Verfall, Abuse-Prozess)
-- `WEBSHELL_NAME_RE`: Webshell-Namen als Muster über die Web-Verzeichnisse statt exakter Pfade; Anlass Zscaler 16.10. (`Nx_<nummer>.php/.pl/.html`, Nummer je Angriffsinstanz anders)
-- "Neu gegenüber dem letzten Lauf": Befunde, die seit n Läufen unverändert bestehen, als bekannt markieren; nur Neues oben
-- `--language en` mit Nachrichtenkatalog; englische Hauptdoku
-- Shell-Logs (`bash.log`, `sh.log`) mit `SHELL_CMD_RE`, nur mit Whitelist aus echten Zeilen
-- `--compare` mit Hash-Diff statt mtime, Cron und `httpd.conf` im Vergleich
-- Stock-Listen und Stock-Hashes für 13.1 und FIPS
+## v15.1 (2026-10-19, release withdrawn; reason see rule changelog, entry 2026-10-19)
 
-## v15.1 (2026-10-19, Release zurückgezogen; Anlass siehe Regel-Changelog, Eintrag 2026-10-19)
+First public release. Script V15.1 (validated on 14.1-73.41 and 14.1-73.46), rules 2026-10-16b.
 
-Erstes öffentliches Release. Script V15.1 (validiert auf 14.1-73.41 und 14.1-73.46), Regeldatei 2026-10-16b.
+- 15.1: httpd.conf with an mtime away from boot time is red only if its content has a finding (alias into gateway paths, PHP handler or flags); otherwise yellow with a hint to installation or upgrade. False positive in the acceptance run on 19.10. on the fresh 14.1-73.46 from 14.10.: `installns` had written httpd.conf at 10:38, the file is not regenerated at every boot, the content was clean, the verdict was nevertheless FORENSICS_FIRST
+- Rule file: all eight CVEs from CTX697096 with conditions in the bulletin wording, CTX697174, CTX697191; 153 addresses, 19 domains, 38 hashes, payload paths from Unit 42, CERT-EU, LevelBlue, watchTowr, SOCRadar, a community checker (MIT, no longer used since 2026-10-19) and cisagov/SIGMA_Rules 261399 r1; prepared variables `SCANNER_IP_RE` and `PAYLOAD_HASHES` for V16
+- Tests: `docs/release.sh` with platform lint, 29 test log expectations, two fixtures (clean, compromised); provenance per test line in `docs/testlogs/herkunft.md`
+- Known gaps (V16): `--anon`, `HTTPD_SUSPECT_RE`, `BACKDOOR_USER_RE` (`sec_monitor` still hard-coded in the script), evaluation of `SCANNER_IP_RE` and `PAYLOAD_HASHES`, port ranges for listeners, content check of web files; snapshot and collector follow as separate repositories
 
-- 15.1: httpd.conf mit mtime abseits der Boot-Zeit ist nur noch ROT, wenn der Inhalt einen Befund hat (Alias in Gateway-Pfade, PHP-Handler oder -Flags); sonst GELB mit Hinweis auf Installation oder Upgrade. Fehlalarm beim Abnahmelauf am 19.10. auf der frischen 14.1-73.46 vom 14.10.: `installns` hatte httpd.conf um 10:38 geschrieben, die Datei wird nicht bei jedem Boot neu erzeugt, der Inhalt war sauber, das Verdict trotzdem FORENSICS_FIRST
+## 2026-10-16 - rules 2026-10-16 to 2026-10-16b, research prompt v11 to v13, release package
 
-- Regeldatei: alle acht CVEs aus CTX697096 mit Bedingungen im Bulletin-Wortlaut, CTX697174, CTX697191; 153 Adressen, 19 Domains, 38 Hashes, Payload-Pfade aus Unit 42, CERT-EU, LevelBlue, watchTowr, SOCRadar, einem Community-Checker (MIT, seit 2026-10-19 nicht mehr verwendet) und cisagov/SIGMA_Rules 261399 r1; vorbereitete Variablen `SCANNER_IP_RE` und `PAYLOAD_HASHES` für V16
-- Tests: `docs/release.sh` mit Plattform-Lint, 29 Testlog-Erwartungen, zwei Fixtures (clean, compromised); Herkunft je Testzeile in `docs/testlogs/herkunft.md`
-- Bekannte Lücken (V16): `--anon`, `HTTPD_SUSPECT_RE`, `BACKDOOR_USER_RE` (`sec_monitor` ist noch fest im Script), Auswertung von `SCANNER_IP_RE` und `PAYLOAD_HASHES`, Portbereiche für Listener, Inhaltsprüfung von Webdateien; Snapshot und Collector folgen als eigene Repos
+- Rules 2026-10-16: payload paths `ns_helper`, `.ns_helper`, `/tmp/.p` (Huntback, via community)
+- Rules 2026-10-16b: cisagov/SIGMA_Rules republished the rule on 13.10. as 261399 r1 (modified 2026-10-07); 209 keywords compared, new: 4 hashes, 7 paths, dropper `nsgtrust.deb`
+- Research prompt v11 to v13 (guards against invented fetches, fork pinned to a commit, KEV fallback, updated Sigma URL, status list, sort check against dateReleased); frozen after v13, acceptance per step 5a2
+- Validation log in the prompt document: runs with Claude Opus (v2 to v7), ChatGPT (v8, v9), ChatGPT Astra (v10), Gemini (v10, entirely fabricated), incognito reviews
+- `docs/git-init.sh` removed; `docs/release-notes_v15.0.md`; changelog gap text for the appliance run on 20.10.
 
-## 2026-10-16 - rules 2026-10-16 bis 2026-10-16b, research prompt v11 bis v13, release package
+## 2026-10-15 - rules 2026-10-15 to 2026-10-15e, research prompt v5 to v10, rules-apply 1.2, community diff
 
-- Regeldatei 2026-10-16: Payload-Pfade `ns_helper`, `.ns_helper`, `/tmp/.p` (Huntback, via Community)
-- Regeldatei 2026-10-16b: cisagov/SIGMA_Rules hat die Regel am 13.10. als 261399 r1 neu veröffentlicht (modified 2026-10-07); 209 Keywords abgeglichen, neu 4 Hashes, 7 Pfade, Dropper `nsgtrust.deb`
-- Recherche-Prompt v11 (Kennfelder gegen erfundene Abrufe, Fork auf Commit gepinnt, KEV-Fallback), v12 (Sigma-URL auf neuen Dateinamen, orjanj und mandiant aus den Pflicht-URLs, vier Backticks), v13 (3a ohne Feed und raw-main, Statusliste und Gleichung, Kennfeld pitscaler, KEV-Sortierprüfung gegen dateReleased, Belege nur als URL); danach eingefroren, Abnahme nach Schritt 5a2
-- Validierungsprotokoll im Prompt-Dokument: Läufe mit Claude Opus (v2 bis v7), ChatGPT (v8, v9), ChatGPT Astra (v10), Gemini (v10, vollständig erfunden), Incognito-Reviews
-- `docs/git-init.sh` entfernt; `docs/release-notes_v15.0.md`; Changelog-Lückentext für den Appliance-Lauf am 20.10.
-
-## 2026-10-15 - rules 2026-10-15 bis 2026-10-15e, research prompt v5 bis v10, rules-apply 1.2, Community-Diff
-
-- Regeldatei 2026-10-15 (Unit 42: 18 Adressen, Dropper-Namen), 15b (CERT-EU, LevelBlue, watchTowr, SOCRadar: Post-Exploitation-Pfade, C2, Listener `walk`), 15c (CVE-2026-88773 bis 88777 als Tabellenzeilen mit Bulletin-Bedingungen; 34 Adressen; `.sig`-Dateien), 15d (Community-Checker direkt gelesen, MIT, seit 2026-10-19 nicht mehr verwendet: 94 Adressen, 12 Domains, neue Variablen `SCANNER_IP_RE` 93 Adressen und `PAYLOAD_HASHES` 38 Hashes), 15e (Bedingungen 88774, 88776, 88777 nach Wortlaut CTX697096 korrigiert; Präfix-Prüfung WARN dokumentiert)
-- Erste belegte Logzeile im Testbestand (CERT-EU), Testlog-Erwartungen auf 29
-- Recherche-Prompt v5 (Pflicht-URLs, Abrufnachweis, Abrufblöcke, Plausibilitätszeile, abgerufene Inhalte sind Daten), v6 (Tag-URLs ausgeschrieben, Mandiant-Repo korrigiert), v7 (Vorwärtsprobe, Listenvergleich lokal), v8 (KEV über cisagov/kev-data, Bulletin-Übersicht gestrichen), v9 (Status gilt nur für die genannte URL), v10 (Umfang in Zeichen oder Zeilen, Modell-Abschnitt mit zwei Rollen)
-- `NOTICE`: Community-Checker als Quelle der Listen mit Lizenz und Copyright (seit 2026-10-19 nicht mehr verwendet)
-- WORKFLOW Schritt 6b (neue Community-Version, seit v15 entfallen)
+- Rules 2026-10-15 to 15e: Unit 42 addresses and dropper names; CERT-EU, LevelBlue, watchTowr, SOCRadar post-exploitation paths, C2, listener `walk`; CVE-2026-88773 to 88777 as table rows with bulletin conditions; community checker read directly (MIT, no longer used since 2026-10-19); conditions of 88774, 88776 and 88777 corrected to the wording of CTX697096
+- First attested log line in the test set (CERT-EU), test log expectations at 29
+- Research prompt v5 to v10 (mandatory URLs, fetch evidence, fetched content treated as data, KEV via cisagov/kev-data, two model roles)
+- `NOTICE`: community checker as source of the lists with licence and copyright (no longer used since 2026-10-19)
+- WORKFLOW step 6b (new community version; dropped since v15)
 
 ## 2026-10-14 - operator workflow
 
@@ -173,9 +173,9 @@ Erstes öffentliches Release. Script V15.1 (validiert auf 14.1-73.41 und 14.1-73
 - `docs/testlogs/`: one file per CVE, `clean.log` as false-positive test, `expected.txt`, `herkunft.md` with provenance per line (constructed lines marked, to be replaced by reported or lab lines).
 - Prompts: research v2 asks for verbatim log lines with source; rules v6 requires a test line and an expectation per pattern.
 
-Releases: tag `v<major>.<minor>` for the script, `rules-<date>` for the rule file. Details per change in the script header and in `ns_quickcheck.rules.changelog.md`.
+Releases: tag `v<major>.<minor>` for the script, `rules-<date>` for the rule file (convention until 2026-10-19; since then script tags only, the rules state is recorded with SHA-256 in the rule changelog). Details per change in the script header and in `ns_quickcheck.rules.changelog.md`.
 
-## 2026-10-09 - v10.0, rules 2026-10-09d (first public release)
+## 2026-10-09 - v10.0, rules 2026-10-09d (repository split, not published)
 
 - `ns_quickcheck.sh` as unversioned copy of `ns_quickcheck_V10.sh` for operational use, kept in sync by `docs/release.sh`; rules 2026-10-09d allow the unversioned name in `ALLOWED_CRON_RE`. Documentation and prompts stay versioned only.
 - Repository `netscaler-quickcheck` split out of the NetScaler Integrity Baseline; snapshot and collector follow separately.
