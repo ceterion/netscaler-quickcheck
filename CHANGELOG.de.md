@@ -13,6 +13,14 @@ Deutsch und führend. Englische Fassung: [CHANGELOG.md](CHANGELOG.md), späteste
 - `--compare` mit Hash-Diff statt mtime, Cron und `httpd.conf` im Vergleich
 - Stock-Listen und Stock-Hashes für 13.1 und FIPS
 
+## v18.0 (2026-10-31)
+
+Nachrichtenkatalog: alle Texte in `ns_quickcheck.msg.de` und `ns_quickcheck.msg.en`, `--lang de|en` und `LANG_QC`, Rückfall je Key auf Deutsch; `code` je Befund im JSON, `lang` und `msg_sha256` in RESULT; deutsche Ausgabe byteidentisch zu 17.44 (Referenzreports in `docs/testdata/reference/`, geprüft von `release.sh`); sechs Stellen, an denen das Script seine eigene Ausgabe parste, auf Datenfelder umgestellt. Regelstand 2026-10-28e unverändert.
+
+## v17.44 (2026-10-30)
+
+Vier Fehler aus der Katalog-Durchsicht für den V18-Sprachumbau: doppeltes Sperrdatum in der Injection-Quellenliste ("Sperre ab 2026-10-202026-10-20"); Verdict bei offener SAML-CVE nannte "Ziel: 14.1-." (Variable nie gesetzt, jetzt Ziel-Build des Trains); toter Mitigation-Satz im INVESTIGATE-Zweig entfernt; `--compare` wendete die Whitelist auf Zeilen mit vorangestelltem NEU/GEAENDERT an, verankerte `webfile`-Regeln griffen nicht. Regelstand 2026-10-28e unverändert.
+
 ## v17.43 (2026-10-28)
 
 Leere Boot-Cores (INFO) zählen nicht mehr als Core-Beleg; ohne Ereignis kein Gelb-Block.

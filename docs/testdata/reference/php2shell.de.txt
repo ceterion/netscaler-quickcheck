@@ -1,0 +1,62 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/php2shell
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [ROT]   Build 14.1-73.37 ist VERWUNDBAR gegen CVE-2026-109618 (CTX697263), Fix ab 14.1-73.49: PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+  [ROT]   Build 14.1-73.37 ist VERWUNDBAR gegen CVE-2026-109619 (CTX697263), Fix ab 14.1-73.49: PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+  [INFO]  Ziel-Build fuer diesen Train: 14.1-73.49
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: DENY-ACLs auf Port 80/443 fuer 192.0.2.9  vorhanden (Citrix-Mitigation CTX697263)
+
+== 3 Mitigation ==
+  [GELB]  Keine Responder-/Traffic-Policy mit Log-Poisoning- oder SAML-Mustern - auf ungefixtem Build fehlt jede Mitigation
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 1, auth.log 0, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [OK]    Keine Injection-Muster in Logon-Zeilen der letzten 1000000h
+  [OK]    Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [OK]    Webserver-Fehlerlog ohne Interpreter-Fehler ausserhalb der Stock-Pfade
+  [GELB]  PHP-Speicher-/Fatal-Muster im Management-Portal auf verwundbarem Build (CTX697263): 4 Zeile(n), 2026-10-22 bis 2026-10-22
+          | [Thu Oct 22 10:01:03.100000 2026] [php:error] [pid 2002] [client 127.0.0.2:40004] PHP Fatal error: Maximum execution time of 30 seconds exceeded in /netscaler/ns_gui/admin_ui/php/libs/session.php on line 5  (1x)
+          | [Thu Oct 22 10:01:02.100000 2026] [php:error] [pid 2002] [client 127.0.0.2:40003] zend_mm_heap corrupted  (1x)
+          | [Thu Oct 22 10:01:01.100000 2026] [php:error] [pid 2001] [client 127.0.0.2:40002] PHP Fatal error: Out of memory (allocated 134217728) in /netscaler/ns_gui/admin_ui/php/libs/nitro.php on line 12  (1x)
+          | [Thu Oct 22 10:01:00.100000 2026] [php:error] [pid 2001] [client 127.0.0.2:40001] PHP Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 1073741824 bytes) in /netscaler/ns_gui/admin_ui/php/libs/nitro.php on line 12  (1x)
+          | Log:           REPO/docs/testdata/fixtures/php2shell/var/log/httperror.log (4)
+          | Ergebnis:      Hypothese, keine veroeffentlichte Signatur: CVE-2026-109618/109619 nutzen Out-of-Memory- und Fatal-Error-Pfade im PHP; dieselben Meldungen entstehen auch bei grossen Configs in der GUI. Erst zusammen mit Block 5 (neue PHP-Datei, Interpreter-Kinder) wird daraus ein Befund.
+          | Zu tun:        1. Update auf den Fix-Build (Block 1). 2. Bis dahin Port 80/443 der Management-Adressen per ACL begrenzen (Block 2). 3. Block 5 lesen.
+  [OK]    Keine Webshell-Sondierung im Webserver-Fehlerlog
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
+  [OK]    Keine Gateway-Anmeldefehler im Fenster
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [GELB]  1 Web-Datei(en) seit Boot (ausserhalb Upgrade-Fenster) geaendert - jede einzelne pruefen:
+          | 2026-10-08 20:29  /netscaler/ns_gui/admin_ui/php/libs/x.php
+          | Wann:          2026-10-08 20:29 bis 2026-10-08 20:29, letzter Boot 2026-10-06 12:55
+  [ROT]   Neue PHP-Datei(en) plus PHP-Speicher-/Fatal-Muster auf verwundbarem Build (CTX697263): Muster einer PHP2Shell-Ausnutzung
+          | Zu tun:        Incident-Prozess, nicht patchen, nicht neu starten; Dateien sichern (Pfad, Hash), Management-Adressen per ACL abschotten.
+          | Ergebnis:      untypisch: 1 PHP-Datei(en) geaendert; das ist kein Theme.
+          | Zu tun:        1. Aenderungsdatum gegen das Ticket der Theme-Anpassung pruefen.
+          |                2. Bestaetigte Dateien in ns_quickcheck.whitelist als webfile:<regex>$ eintragen, bei Code mit @sha256=<hash>; die Meldung verschwindet (README 15, Howto Whitelist).
+          |                3. Nicht erklaerbare Dateien: Inhalt ansehen, Hash bei VirusTotal nachschlagen (nur den Hash), bei Zweifel Incident-Prozess.
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+
+== 6 Verdict ==
+ACTION: FORENSICS_FIRST
+Kompromittierungszeichen gefunden. Nicht rebooten, nicht upgraden, bevor gesichert ist:
+  1. Appliance isolieren (Failover auf gepatchten Knoten oder Firewall), HA-File-Sync pruefen, Peer ebenfalls pruefen.
+  2. Sichern: show techsupport, /var/log, /var/core, die genannten Dateien, RAM wenn moeglich (CTX694799).
+  3. Citrix Support einbinden, offiziellen IoC-Scan anfordern. Danach Rebuild, alle Secrets inkl. KEK rotieren, Zertifikate widerrufen.
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.37 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=2 vuln63=1 vuln79=0 isn_open=0 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=1 red=3 yellow=3 orange=0 blocked_seen=0 trusted_seen=0 crashes=0 lang=de coverage=full action=FORENSICS_FIRST rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

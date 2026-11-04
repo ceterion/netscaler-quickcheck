@@ -13,6 +13,14 @@ English summary. The German version [CHANGELOG.de.md](CHANGELOG.de.md) is leadin
 - `--compare` with hash diff instead of mtime, cron and `httpd.conf` included in the comparison
 - Stock lists and stock hashes for 13.1 and FIPS
 
+## v18.0 (2026-10-31)
+
+Message catalog: all texts in `ns_quickcheck.msg.de` and `ns_quickcheck.msg.en`, `--lang de|en` and `LANG_QC`, per-key fallback to German; `code` per finding in the JSON, `lang` and `msg_sha256` in the result line; German output byte-identical to 17.44 (reference reports under `docs/testdata/reference/`, checked by `release.sh`); six places where the script parsed its own output now use data fields. Rules stand 2026-10-28e unchanged. Fixed before release from lab and operator runs on 2026-11-04: three FreeBSD sh parser crashes (patterns with quotes or parentheses in `${}`), missing `comm`, empty source detail on injection findings from responder lines; fixture `responder`, platform lints 5 and 6. Trusted list: validity shown as "valid until" or explicitly "valid without expiry", remark also on the address-list line of the original, hint on findings for expired entries.
+
+## v17.44 (2026-10-30)
+
+Four fixes found while cataloguing the messages for the V18 language switch: block date printed twice in the injection source list; verdict with an open SAML CVE named "Ziel: 14.1-." (variable never set, now the train's target build); dead mitigation sentence in the INVESTIGATE branch removed; `--compare` applied the whitelist to lines with a leading NEU/GEAENDERT marker, so anchored `webfile` rules did not match. Rules stand 2026-10-28e unchanged.
+
 ## v17.43 (2026-10-28)
 
 Empty boot cores (INFO) no longer count as core evidence; no yellow block without an event.

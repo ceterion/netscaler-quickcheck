@@ -1,0 +1,55 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/crash
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [OK]    Build 14.1-73.49 enthaelt alle 13 Fix(es) fuer 14.1 der Regeldatei
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+
+== 3 Mitigation ==
+  [INFO]  Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Spuren nicht erforderlich)
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 4; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 2, httpaccess 1, httperror 0, auth.log 0, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [OK]    Keine Injection-Muster in Logon-Zeilen der letzten 1000000h
+  [GELB]  4 Absturz-Ereignis(se) im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core; je Prozess und PID einmal gezaehlt), 1 Core-Beleg(e) - jeder Absturz braucht eine Einordnung; httpd: Bezug zu CTX697263 pruefen
+          | Ereignisse (neueste zuerst; Zeit, Prozess, PID, Signal, Restart-Zaehler):
+          | 2026-10-28 09:12:22  nsaaad  pid 67056  signal 11  restarts -
+          | 2026-10-28 09:12:20  nsaaad  pid 85771  signal 11  restarts 2  core: /var/core/nsaaad-85771.gz
+          | 2026-10-27 11:30:00  httpd  pid 1200  signal 11  restarts -
+          | 2026-10-27 10:56:22  nsaaad  pid 974  signal 11  restarts 1
+          | Core-Belege im Fenster (Dateien oder Verzeichnisse unter /var/core; vor Reboot sichern, an Citrix Support):
+          | /var/core/nsaaad-85771.gz
+          | Log:           REPO/docs/testdata/fixtures/crash/var/log/ns.log (14), REPO/docs/testdata/fixtures/crash/var/log/messages (14)
+          | Was passiert ist: ein Daemon ist abgestuerzt und wurde von Pitboss neu gestartet. Ohne SAML und mit gefixtem Build ist nsaaad meist ein Betriebsproblem; httpd im Fenster von CTX697263 und nsppe mit DTLS-Fehlern sind Angriffsmuster.
+          | Zu tun: /var/core sichern; wiederholt es sich oder passt der Prozess zu einer offenen CVE: Citrix Support, Incident-Prozess.
+  [INFO]  Core-Verzeichnis /var/core/1 leer, angelegt 2026-10-06 12:57:00 (2 min nach Boot): Boot-Nachlauf des Upgrades oder Reboots, kein Absturz; Inhalt pruefen: ls -la /var/core/1 (CORE_BOOT_LEVEL=yellow macht daraus ein Ereignis)
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [INFO]  Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (1000000h)
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
+  [OK]    Keine Gateway-Anmeldefehler im Fenster
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+  [OK]    Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+
+== 6 Verdict ==
+ACTION: INVESTIGATE
+Das Geraet ist gepatcht und zeigt keine Kompromittierungszeichen. Es gibt aber Beobachtungen, die jemand einordnen muss; sie stehen oben mit 'Zu tun'.
+Danach diesen Check wiederholen: sind die Punkte geklaert oder in der Whitelist, wird das Ergebnis OK.
+Offene Punkte:
+  - Quell-IPs oben an Firewall/SOC geben; Download-Hosts in Firewall/DNS-Logs suchen.
+  - Offizieller Citrix-IoC-Scan (Console oder Support) als zweite Meinung, falls die Appliance vor dem Fix exponiert war.
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=0 yellow=1 orange=0 blocked_seen=0 trusted_seen=0 crashes=4 lang=de coverage=full action=INVESTIGATE rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

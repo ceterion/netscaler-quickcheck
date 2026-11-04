@@ -2,21 +2,21 @@
 
 Ein Lauf auf der Appliance, ein Verdict: Build gegen die Citrix-Bulletins, Angriffsspuren, Kompromittierungs-Schnellcheck, Adresslisten, anonymisierte Reports. Regelgesteuert, offline-fähig, erweiterbar durch eigene Indikatoren. Entstanden im Oktober 2026 für CTX697096, CTX697174 und CTX697191, gebaut für die Bulletins danach.
 
-Script V17.43, Regeldatei Format 2 (Stand 2026-10-28e), README v36 (2026-10-28); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
+Script V18.0, Regeldatei Format 2 (Stand 2026-10-28e), README v37 (2026-10-31); die Fassung im Repository ist immer die zum Script passende, die Historie steht in Abschnitt 17. Apache 2.0, Copyright 2026 ceterion AG.
 
 Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen lässt): 1 bis 7, 10, 11, 12, 15, 16; wer Schwellen anpasst: 4.2 und 4.3. **Betreiber mit eigenen Indikatoren**: zusätzlich 8.4 bis 8.6 und WORKFLOW.de.md. **ceterion und Power-User** (Regelpflege, Abnahme, Tests): 8, 9, 13.
 
 ## 1. In 15 Minuten
 
-1. Aus dem Release `ns_quickcheck.sh` und `ns_quickcheck.rules` laden, SHA-256 gegen die Release-Seite prüfen.
+1. Aus dem Release vier Dateien laden: `ns_quickcheck.sh`, `ns_quickcheck.rules`, `ns_quickcheck.msg.de` (Pflicht, Nachrichtenkatalog) und `ns_quickcheck.msg.en`; SHA-256 gegen die Release-Seite prüfen.
 2. Per SCP (WinSCP: Binary) nach `/var/nssnapshot/` auf die Appliance; das Verzeichnis anlegen, falls es fehlt (es bleibt bei Neustarts erhalten, anders als `/var/tmp`). Dort als `nsroot`:
    ```
    mkdir -p /var/nssnapshot && cd /var/nssnapshot
-   chmod 600 ns_quickcheck.sh ns_quickcheck.rules
-   sh ns_quickcheck.sh
+   chmod 600 ns_quickcheck.sh ns_quickcheck.rules ns_quickcheck.msg.*
+   sh ns_quickcheck.sh                 # --lang en fuer englische Ausgabe
    ```
 3. Exit-Code lesen (`echo $?` direkt nach dem Lauf): 0 `OK`, 1 `INVESTIGATE`, 2 `UPDATE` oder `FORENSICS_FIRST`, 3 Abbruch mit Grund auf stderr (Regeldatei fehlt, Kernvariable fehlt, Option ohne Wert). 1 und 2 sind Verdicts, keine Fehler. Bricht der Lauf ohne `RESULT`-Zeile ab, mit `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt` wiederholen und beide Dateien anonymisiert einsenden (`--anon`, Abschnitt 5.3).
-4. Kopfzeile lesen: `ns_quickcheck 17.43  host=<name>  modus=online  regeln=2026-10-28e`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
+4. Kopfzeile lesen: `ns_quickcheck 18.0  host=<name>  modus=online  regeln=2026-10-28e`. Steht dort `cli=none`, fehlt die CLI-Ebene (Abschnitt 3); das Script läuft trotzdem. Darunter stehen die geladenen Betreiberdateien (Custom, Sperrliste, Whitelist) und in Block 4 die gelesenen Logfamilien mit Dateizahl.
 5. Ans Ende blättern: `ACTION: OK`, `UPDATE`, `INVESTIGATE` oder `FORENSICS_FIRST`. Was das heißt, steht in Abschnitt 7, Tabelle "Jetzt tun".
 6. Vor der `RESULT`-Zeile stehen die fremden Adressen dieses Laufs mit Status (neu oder bekannt seit) und Sperrstatus; `coverage=full` in `RESULT` bestätigt, dass alle Kernprüfungen Daten hatten.
 7. Alle weiteren Dateien (Config, Whitelist, Sperrliste, Custom-Datei, Zuordnungstabelle) gehören in dasselbe Verzeichnis. Die Dateien dieses Laufs liegen in `/var/nssnapshot/quickcheck/`: Report, JSON, Adressliste, anonymisierte Fassungen. Nach außen geht nur `_anon.*` (Abschnitt 5.3).
@@ -24,7 +24,7 @@ Für wen welcher Abschnitt ist: **Betreiber** (Admin, der das Script laufen läs
 So sieht ein sauberer Lauf aus (gekürzt, anonymisiert; `fenster=168h` stammt hier aus `HOURS=168` in der Config, die Vorgabe des Scripts ist 72 h):
 
 ```
-ns_quickcheck 17.43  host=gw-01  modus=online  fenster=168h  regeln=2026-10-28e  cli=nscli (user01, cli_user aus ns_snapshot.conf)
+ns_quickcheck 18.0  host=gw-01  modus=online  fenster=168h  regeln=2026-10-28e  cli=nscli (user01, cli_user aus ns_snapshot.conf)
   [INFO]  Custom-Datei des Betreibers geladen: 78 aktive Indikator-Zeile(n), 0 CVE-Zeile(n) (betreiber-2026-10-20)
   [INFO]  Sperrliste: 3 Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)
 Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
@@ -173,6 +173,7 @@ Optional, neben dem Script, 600; jede Zeile `NAME=wert`, fehlende Zeilen nehmen 
 | `LINE_MAX` | 400 | Zeichen je Logzeile in Terminal und Report; 0 = ungekürzt; Injection-Zeilen immer vollständig |
 | `MGMT_NET_RE` | leer (nur RFC 1918 gilt als intern) | ERE der Admin-Netze und Sprungserver; gilt für Management-Zugriffe, SSH-Logins, Webserver-Direktzugriffe und eigene Adressen bei Anmeldefehlern |
 | `PROBE_LEVEL` | `yellow` | `info` stuft Webshell-Sondierungen auf eine INFO-Zeile ab |
+| `LANG_QC` | `de` | Sprache der Ausgabe, `de` oder `en`; `--lang` geht vor |
 | `CORE_BOOT_LEVEL` | `info` | leeres Core-Verzeichnis `/var/core/<n>` innerhalb 15 min nach Boot als INFO (Boot-Nachlauf) oder `yellow` als Absturz-Ereignis |
 | `TRUST_LEVEL` | `trust` | vertraute Adressen als eigene Stufe `[TRUST]` ohne Verdict-Wirkung; `yellow` macht Gelb daraus |
 | `FOOTER` | 1 | Fußzeile "Erstellt mit netscaler-quickcheck ..." im Report und in den anon-Fassungen; 0 schaltet ab |
@@ -220,6 +221,7 @@ Jede Option mit Wert gibt es in zwei Schreibweisen: `--option wert` und `--optio
 | `--from` | Pfad | Offline-Lauf gegen ein entpacktes Snapshot-Set (Archiv 1, optional Archiv 3) | online |
 | `--compare` | `cron`, `latest` oder Pfad | Vergleich gegen das jüngste vollständige Set, das jüngste Set oder ein entpacktes Archiv 1: neue oder geänderte Web-Dateien, neue System-User, neue Listener | kein Vergleich |
 | `--rules` | Pfad | Regeldatei; `ns_quickcheck.rules.custom` wird im selben Ordner gesucht | neben dem Script, sonst `/var/nssnapshot/` |
+| `--lang` | `de` oder `en` | Sprache von Report, Terminal, Adresslisten und JSON-Texten (Vorgabe `de`, Config `LANG_QC`); Katalog `ns_quickcheck.msg.<sprache>` neben dem Script, fehlende Keys fallen auf Deutsch zurück und werden im Kopf gezählt | |
 | `--pin`, `--pin-all` | Pfad | gibt Pin-Zeilen (`webfile:...$@sha256=<hash>`) für alle Code-Dateien (`--pin`) oder alle Dateien (`--pin-all`) unter dem Pfad aus und beendet sich; für die Whitelist (Howto Whitelist) | |
 | `--whitelist` | Pfad | Whitelist je Appliance (`user:`, `listener:`, `path:`, `cron:`, `webfile:`) | neben dem Script |
 | `--blocked` | Pfad | Sperrliste des Betreibers (5.4) | `ns_quickcheck.blocked_ips` neben dem Script |
@@ -457,7 +459,7 @@ Zwei Regeln über den Befunden: `coverage=partial` (siehe oben) macht das Verdic
 ### 7.2 JSON
 
 ```
-{ "script": "ns_quickcheck", "version": "17.43", "host": "...", "ts": "...",
+{ "script": "ns_quickcheck", "version": "18.0", "host": "...", "ts": "...",
   "result": { ...alle RESULT-Felder... },
   "mitigation_hits": { "<policy>": "<hits>" },
   "observed_ips": [ { "category": "dropper_requester", "ip": "...", "count": 24, "observed_in": "httpaccess DROPPER_PATH_RE", "blocked": "fw-zentral|2026-10-21" } ],
@@ -504,7 +506,7 @@ Regelvariablen, die das Script erwartet (fehlt eine Kernvariable, Exit 3; fehlt 
 - Zusammenstellungen Dritter (Community-Scanner, Sammelseiten) sind Verweise, keine Quellen; Fundstelle ist immer die Veröffentlichung des Erstautors. Werte ohne Erstautor bleiben inaktiv (`PRUEFEN`).
 - Die Regeldatei wird nur erweitert, nie gekürzt; eine Entfernung braucht einen Changelog-Eintrag mit Begründung.
 - Das Script prüft beim Start, dass die Kernvariablen der Regeldatei vorhanden sind (`RULES_VERSION`, `TRIGGER_RE`, `OBFUSC_RE`, `CMD_NAMES`, `LOGON_HINT_RE`, `ADMIN_CMD_RE`, `CVE_TABLE`); fehlt eine, bricht es mit Exit 3 ab, statt mit leeren Mustern zu laufen.
-- Jeder Regelstand durchläuft `docs/release.sh`: Plattform-Lints 1 bis 3, Format-2-Lint, Präfix-Prüfung, 69 Testlogs, 10 Fixtures, Herkunftsprotokoll.
+- Jeder Regelstand durchläuft `docs/release.sh`: Plattform-Lints 1 bis 3, Format-2-Lint, Präfix-Prüfung, 69 Testlogs, 11 Fixtures, Herkunftsprotokoll.
 - Regex: POSIX ERE ohne GNU-Erweiterungen, Semantik immer "Zeile passt ja/nein" (`rules-format-2.md`).
 
 ### 8.4 Custom-Datei des Betreibers
@@ -525,7 +527,7 @@ Community-Werkzeuge prüfen dieselben Bulletins mit eigenen Indikatorsammlungen.
 
 ## 9. Validierungsstand und Abnahme-Protokoll
 
-**Validiert:** NetScaler 14.1-73.41, 73.46 und 73.49 (MPX, Lab und Kundengateway): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 69 Testlogs, 10 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
+**Validiert:** NetScaler 14.1-73.41, 73.46 und 73.49 (MPX, Lab und Kundengateway): Online-Läufe mit `--compare cron`, Offline-Läufe gegen Snapshot-Sets und Fixtures, Custom-Datei, Sperrliste, Anonymisierung; am 21.10.2026 elf Lab-Läufe auf einem exponierten Gateway mit laufender Spraying-Kampagne (1.700 Anmeldefehler, 60 Maschinen-Adressen, Webshell-Sondierungen, Injection-Versuch), aus denen die Befundblöcke und Schwellen stammen. Testbasis: 69 Testlogs, 11 Fixtures, drei Plattform-Lints. **Beta:** 13.1, 13.1-FIPS, 14.1-FIPS und 14.1-Appliances mit Features, die das Lab nicht hatte (SAML, AppFW, Bot, GSLB, Admin-Partitions, Custom-Themes, Mitigation-Policies); beim ersten Lauf dort zwei bis fünf Fehlalarme erwartet.
 
 **Abnahme auf jeder neuen Appliance vor der ersten Bewertung:**
 1. Erster Lauf mit Trace: `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt; echo EXIT=$?`. Exit 139 heißt Absturz; `tail /tmp/qc_trace.txt` zeigt die Zeile; Issue mit Trace.
@@ -754,6 +756,7 @@ Ein Feldbefund gehört nie in ein Issue (die Adresse ist dein Befund, die Fundst
 
 | Version | Datum | Änderung |
 |---|---|---|
+| v37 | 2026-10-31 | Script 18.0: Nachrichtenkatalog, `--lang`, `LANG_QC`, `code` im JSON, `lang`/`msg_sha256` in RESULT, Referenzreports in release.sh |
 | v36 | 2026-10-28 | Script 17.42: Cores (`.gz`, Verzeichnisse, `CORE_BOOT_LEVEL`), Regelstand e |
 | v35 | 2026-10-28 | Script 17.41: Abstürze "lieber mehr", Bewertung, `crashes=`, kumulierte Absturzdatei |
 | v34 | 2026-10-28 | Script 17.38: Verdict-Text, `vuln_open`, Anonymisierung von URLs und Domänen |

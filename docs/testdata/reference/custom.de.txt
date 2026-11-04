@@ -1,0 +1,44 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/custom
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [ROT]   Build 14.1-73.41 ist VERWUNDBAR gegen CVE-2026-109618 (CTX697263), Fix ab 14.1-73.49: PHP2Shell: Speicherkorruption beim Out-of-Memory-Handling, RCE im Management-Portal, CVSS 4.0 9.2
+  [ROT]   Build 14.1-73.41 ist VERWUNDBAR gegen CVE-2026-109619 (CTX697263), Fix ab 14.1-73.49: PHP2Shell: wiederverwendeter Request-Zustand nach Freigabe, RCE im Management-Portal, CVSS 4.0 9.2
+  [INFO]  Ziel-Build fuer diesen Train: 14.1-73.49
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+
+== 3 Mitigation ==
+  [GELB]  Keine Responder-/Traffic-Policy mit Log-Poisoning- oder SAML-Mustern - auf ungefixtem Build fehlt jede Mitigation
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 0, auth.log 0, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [OK]    Keine Injection-Muster in Logon-Zeilen der letzten 1000000h
+  [OK]    Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [INFO]  Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (1000000h)
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
+  [OK]    Keine Gateway-Anmeldefehler im Fenster
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+  [OK]    Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+
+== 6 Verdict ==
+ACTION: UPDATE
+Build 14.1-73.41 ist verwundbar gegen CVE-2026-109618, CVE-2026-109619 (CTX697263, aktiv ausgenutzt). Ziel: 14.1-73.49.
+Keine Spuren im Fenster: trotzdem vor dem Upgrade Logs extern sichern (Internet-exponierte Appliance = Assume Breach).
+HA: Secondary zuerst, Failover, dann Primary. Nach dem Upgrade save ns config und diesen Check wiederholen.
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.41 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=2 vuln63=1 vuln79=0 isn_open=0 traces=0 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=2 yellow=1 orange=0 blocked_seen=0 trusted_seen=0 crashes=0 lang=de coverage=full action=UPDATE rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

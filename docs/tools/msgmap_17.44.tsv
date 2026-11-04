@@ -1,0 +1,537 @@
+# Zeile	Funktion	KEY	Originaltext-Ausschnitt (erste 60 Zeichen, Platzhalter %n)
+360	assign	HDR_CFG_FROM_SNAPSHOT_CONF	cli_user aus ns_snapshot.conf
+375	assign	HDR_CFG_FROM_QUICKCHECK_CONF	cli_user aus ns_quickcheck.conf
+377	echo>&2	ERR_CONF_IGNORED	WARN: %1 ignoriert (nicht root-owned oder group/world-writab
+384	echo>&2	ERR_PIN_NEEDS_PATH	ERROR: %1 braucht einen Pfad: %2 <verzeichnis oder datei>
+386	echo>&2	ERR_OPT_NEEDS_VALUE	ERROR: %1 braucht einen Wert: %2 <wert> oder %3=<wert>
+409	echo>&2	ERR_OPT_UNKNOWN	Unbekannte Option: %1
+413	echo>&2	ERR_HOURS_NOT_NUMBER	--hours braucht eine Zahl
+417	echo>&2	ERR_RULES_UNREADABLE	ERROR: Regeldatei nicht lesbar: %1
+421	echo>&2	ERR_RULES_WRITABLE	ERROR: Regeldatei ist group/world-writable: %1
+433	awk	TRACE_IOC_SOURCE_FRAG	 - Quelle: %1 %2
+454	awk	HDR_CVE_CONFLICT_COND_FRAG	%1 %2 (Fix gleich, Bedingung Regeldatei %3, custom %4);
+454	awk	HDR_CVE_CONFLICT_FIX_FRAG	%1 %2 (Regeldatei Fix %3, custom Fix %4);
+461	echo>&2	ERR_CUSTOM_WRITABLE	WARN: Custom-Datei ist group/world-writable und wird ignorie
+464	echo>&2	ERR_RULES_CORE_VAR_MISSING	ERROR: Kernvariable %1 fehlt oder ist leer in %2; Regeldatei
+489	echo>&2	ERR_TESTLOG_NO_LOGS	ERROR: keine .log-Dateien unter %1
+490	echo	TLOG_EXPECT_NONE	keine
+490	echo	TLOG_HEAD	ns_quickcheck %1  testlog  regeln=%2  erwartungen=%3
+500	printf	TLOG_ROW_NO_EXPECT	   %1 %2  (keine Erwartung)
+503	printf	TLOG_ROW_EXPECT_ZERO	   %1 %2  erwartet 0        %3
+506	printf	TLOG_ROW_EXPECT_MIN	   %1 %2  erwartet >=%3 %4
+509	printf	TLOG_ROW_ADMIN	   %1 %2  (Info: Admin-Zeilen, werden in INJECTION ausgeschl
+514	echo	TLOG_FAIL_MISSING_FILE	FAIL  Erwartung fuer fehlende Datei: %1
+515	echo	TLOG_FAIL_UNKNOWN_CHECK	FAIL  unbekannte Pruefung in expected.txt: %1
+518	echo	TLOG_SUMMARY	TESTLOG: %1 PASS, %2 FAIL
+522	echo>&2	ERR_WHITELIST_IGNORED	WARN: Whitelist ignoriert (Rechte): %1
+536	echo>&2	ERR_FROM_DIR_MISSING	ERROR: --from Verzeichnis fehlt: %1
+541	echo>&2	ERR_NOT_NETSCALER	ERROR: kein NetScaler. Offline mit --from <verzeichnis>.
+542	echo>&2	ERR_NOT_ROOT	ERROR: online muss als root laufen
+546	echo>&2	ERR_NSCONF_UNREADABLE	ERROR: ns.conf nicht lesbar: %1
+648	perl	HDR_ANON_COMMENT_REMOVED	# (Kommentar entfernt)
+668	echo>&2	ERR_REPORT_NOT_WRITABLE	WARN: Reportdatei nicht schreibbar: %1
+699	red	TAG_RED	[ROT]
+700	yel	TAG_YELLOW	[GELB]
+701	org	TAG_ORANGE	[ORANGE]
+702	tru	TAG_TRUST	[TRUST]
+703	grn	TAG_OK	[OK]
+704	inf	TAG_INFO	[INFO]
+708	awk	TRACE_DETAIL_MORE	... und %1 weitere (DETAIL_MAX=%2)
+725	echo>&2	ERR_ANON_FILE_UNREADABLE	ERROR: --anon: Datei nicht lesbar: %1
+727	echo>&2	ERR_ANON_SUMMARY	anonymisiert: %1 Zuordnungen, %2 Geheimnisse maskiert; Stich
+737	echo	TRUST_UNTIL_FRAG	 bis %1
+754	echo>&2	ERR_BLOCKED_WRITABLE	WARN: Sperrliste ist group/world-writable und wird ignoriert
+775	echo>&2	ERR_TRUSTED_WRITABLE	WARN: Vertrauensliste ist group/world-writable und wird igno
+788	printf	TRUST_NOTE_FRAG	 [Bemerkung: %1]
+788	printf	TRUST_TAG_FRAG	 [Adresse in trusted_ips%1]%2
+788	printf	TRUST_UNTIL_FRAG	 bis %1
+810	printf	TRACE_BLOCKED_TAG_FRAG	 (Sperre ab %1%2)
+810	printf	TRACE_BLOCKED_TAG_NODATE_FRAG	 (gesperrt, Datum unbekannt: nur markiert%1)
+810	printf	TRUST_NOTE_FRAG	 [Bemerkung: %1]
+823	assign	HDR_CLI_REASON_NO_CLI	per --no-cli abgeschaltet
+825	assign	HDR_CLI_REASON_NO_USER	CLI_USER nicht gesetzt
+826	assign	HDR_CLI_REASON_NO_NSCLI	/netscaler/nscli fehlt
+827	assign	HDR_CLI_REASON_NO_SECRET	Secret-Datei fehlt
+828	assign	HDR_CLI_REASON_SECRET_PERMS	Secret-Datei nicht root:600
+829	assign	HDR_CLI_REASON_SECRET_EMPTY	Secret-Datei leer
+858	echo>&2	ERR_KIB_NO_HOSTNAME	ABBRUCH: Hostname unbekannt, Anonymisierung nicht moeglich
+877	echo>file	KIB_BLOCK1_HEAD	### BLOCK 1: Regeldatei (gekuerzt, ohne ALLOWED_SYSTEM_USERS
+878	echo>file	KIB_BLOCK1_NOTE	# entfernt fuer die KI: ALLOWED_SYSTEM_USERS und jede Zeile,
+880	echo>file	KIB_BLOCK2_HEAD	### BLOCK 2: anonymisierte Logzeilen (Negativtests fuer neue
+881	echo>file	KIB_B2_NSLOG_LOGONS	# ns.log, normale Logons:
+883	echo>file	KIB_B2_HTTPACCESS_LOGONS	# httpaccess, normale Logon-Requests:
+885	echo>file	KIB_B2_NSLOG_ADMIN_CMD	# ns.log, ein Admin-Befehl (CMD_EXECUTED):
+887	echo>file	KIB_B2_NSLOG_NSAAAD_OK	# ns.log, eine nsaaad-Zeile ohne Fehler:
+889	echo>file	KIB_BLOCK3_HEAD	### BLOCK 3: Bulletin
+890	echo>file	KIB_B3_BULLETIN_ID	<<< Bulletin-ID: CTX______ >>>
+891	echo>file	KIB_B3_BULLETIN_TEXT	<<< hier den vollstaendigen Bulletin-Text von support.citrix
+897	assign	KIB_LEAK_IP	IP-Adresse
+898	assign	KIB_LEAK_HOSTNAME	Hostname
+899	assign	KIB_LEAK_HAPEER	HA-Peer-IP
+902	assign	KIB_LEAK_USERNAME	Benutzername
+904	echo>&2	ERR_KIB_SELFCHECK_FAILED	ABBRUCH: Selbstpruefung fehlgeschlagen (%1 im Bundle). Keine
+909	echo	KIB_WRITTEN	KI-Bundle geschrieben: %1
+910	echo	KIB_COUNTS	  Block 1 Regeldatei: %1 Zuweisungen; Block 2 Logzeilen: %2
+911	echo	KIB_SELFCHECK_OK	  Selbstpruefung bestanden: keine IP, kein Hostname, kein Be
+912	echo	KIB_NO_CUSTOMER_DATA	  Diese Datei enthaelt keine Kundendaten mehr. Nur in ein KI
+913	echo	KIB_DELETE_AFTER	  Nach dem Einfuegen loeschen: rm %1
+918	out	HDR_RUN_LINE	ns_quickcheck %1  host=%2  modus=%3  fenster=%4h  regeln=%5 
+919	out[TAG_INFO]	HDR_CUSTOM_LOADED	Custom-Datei des Betreibers geladen: %1 aktive Indikator-Zei
+919	assign	HDR_CUSTOM_NO_VERSION	ohne Version
+919	out	TAG_INFO	[INFO]
+920	out[TAG_INFO]	HDR_CVE_CONFLICT	Regeldatei und Custom-Datei bewerten %1 CVE unterschiedlich;
+920	out	TAG_INFO	[INFO]
+923	out[TAG_INFO]	HDR_RULES_OLDER	Regeldatei %1 ist aelter als der Mindeststand dieses Scripts
+923	out	TAG_INFO	[INFO]
+926	echo	HDR_TRUSTED_EXPIRED_FRAG	, %1 abgelaufen und uebergangen
+926	out[TAG_INFO]	HDR_TRUSTED_LIST	Vertrauensliste: %1 Eintrag/Eintraege (ns_quickcheck.trusted
+926	out	TAG_INFO	[INFO]
+927	out[TAG_WARN]	HDR_TRUSTED_BAD_LINES	Vertrauensliste: Zeile(n) %1 uebergangen (keine IPv4-Adresse
+927	out	TAG_WARN	[WARN]
+928	out[TAG_WARN]	HDR_TRUSTED_AND_BLOCKED	%1 steht in trusted_ips und in der Sperrliste; die Sperrlist
+928	out	TAG_WARN	[WARN]
+931	out[TAG_INFO]	HDR_BLOCKED_LIST	Sperrliste: %1 Eintrag/Eintraege (ns_quickcheck.blocked_ips 
+931	echo	HDR_BLOCKED_NODATE_FRAG	; %1 ohne Datum: nur markiert, fuer ORANGE das Sperrdatum (Y
+931	out	TAG_INFO	[INFO]
+932	out[TAG_WARN]	HDR_BLOCKED_BAD_LINES	Sperrliste: Zeile(n) %1 uebergangen (keine IPv4-Adresse; For
+932	out	TAG_WARN	[WARN]
+934	out[TAG_INFO]	HDR_IOC_INACTIVE	Regeldatei Format 2: %1 Indikator-Zeile(n) inaktiv (Fundstel
+934	out	TAG_INFO	[INFO]
+935	out	HDR_OFFLINE_SOURCE	Quelle: %1
+936	out	HDR_CLI_OFF	CLI-Ebene aus: %1
+936	assign	HDR_CLI_REASON_NONE	kein Weg
+937	out	HDR_WHITELIST_LOADED	Whitelist: %1 (%2 Regeln)
+939	out[TAG_WARN]	HDR_WL_WEBFILE_UNANCHORED	Whitelist: webfile-Regel(n), die weder mit / (Verzeichnis) n
+939	out	TAG_WARN	[WARN]
+940	out[TAG_INFO]	HDR_WL_DIR_RULES	Whitelist: %1 Verzeichnisregel(n) ohne Hash; sie geben alles
+940	out	TAG_INFO	[INFO]
+942	out[TAG_WARN]	HDR_WL_CODE_NO_PIN	Whitelist: Dateiregel(n) auf Code ohne Hash-Pin sind wirkung
+942	out	TAG_WARN	[WARN]
+943	out	HDR_WHITELIST_MISSING	Whitelist: nicht vorhanden (%1); alle Befunde ungefiltert
+947	echo>&2	ERR_PIN_NOT_FOUND	ERROR: --pin: %1 nicht gefunden
+948	echo	PIN_HEAD	# Pin-Zeilen fuer ns_quickcheck.whitelist (%1 unter %2), erz
+948	echo	PIN_SCOPE_ALL	alle Dateien
+948	echo	PIN_SCOPE_CODE	nur Code
+954	hdr	HDR_BLOCK1	1 Build
+965	inf	BUILD_FROM_NSCONF	Build aus ns.conf-Header (kern.bootfile nicht verfuegbar)
+971	echo>file	BUILD_FALLBACK_TEXT_RCE	Pre-Auth RCE, aktiv ausgenutzt
+971	echo>file	BUILD_FALLBACK_TEXT_SAML	SAML DoS, CISA KEV
+981	flag_yel	BUILD_UNKNOWN_YEL	Build nicht ermittelbar - 'show ns version' pruefen
+982	flag_red	BUILD_EOL_RED	Release %1 ist End-of-Life, kein Fix verfuegbar (laufend: %2
+983	flag_yel	BUILD_TRAIN_UNKNOWN_YEL	Train %1 nicht in der Regeldatei (%2) - manuell gegen Bullet
+987	echo>file	BUILD_CVE_PENDING_FRAG	(Fix-Build noch nicht veroeffentlicht, Stand %1; bis dahin M
+988	echo>file	BUILD_CVE_FIX_INVALID_FRAG	%1 %2: Fix-Build '%3' ungueltig
+992	assign	BUILD_CVE_COND_FRAG	 (Bedingung: %1 konfiguriert)
+1007	flag_red	BUILD_VULN_NOFIX_RED	Build %1 ist VERWUNDBAR gegen %2 (%3), kein Fix-Build veroef
+1007	flag_red	BUILD_VULN_RED	Build %1 ist VERWUNDBAR gegen %2 (%3), Fix ab %4: %5
+1011	inf	BUILD_TARGET	Ziel-Build fuer diesen Train: %1-%2
+1014	grn	BUILD_ALL_FIXED_OK	Build %1 enthaelt alle %2 Fix(es) fuer %3%4%5
+1014	echo	BUILD_FIX_NA_FRAG	, %1 CVE(s) ohne konfigurierte Bedingung
+1014	echo	BUILD_FIX_RULES_FRAG	 der Regeldatei
+1014	echo	BUILD_FIX_SPLIT_FRAG	 (%1 Regeldatei, %2 custom)
+1016	flag_yel	BUILD_RULES_ROW_YEL	Regeldatei: %1
+1019	sed	BUILD_VULN_JSON_PREFIX	Verwundbar:
+1020	awk	BUILD_VULN_JSON_PREFIX	Verwundbar:
+1022	flag_yel	BUILD_CONF_NOT_SAVED_YEL	ns.conf wurde auf %1 gespeichert, laufend ist %2 - 'save ns 
+1025	flag_yel	BUILD_WARN_YEL	Build %1: %2
+1030	flag_yel	BUILD_STAGED_NOT_BOOTED_YEL	%1 ist installiert (%2), aber nicht gebootet - Reboot ausste
+1033	inf	BUILD_LAST_BOOT	Letzter Boot: %1 (%2 Tage)
+1036	hdr	HDR_BLOCK2	2 Exposure
+1041	inf	EXPO_SAML_CVE_OPEN	SAML konfiguriert (SP=%1 IdP=%2) - SAML-abhaengige CVE offen
+1042	inf	EXPO_SAML	SAML konfiguriert (SP=%1 IdP=%2)
+1043	grn	EXPO_NO_SAML_OK	Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+1045	inf	EXPO_DTLS	DTLS an %1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzu
+1045	grn	EXPO_NO_DTLS_OK	Kein DTLS an Gateway-vServern
+1049	flag_yel	EXPO_ISN_STEP_MISSING_YEL	Konfigurationsschritt fehlt: set ns tcpParam -%1 (%2, %3) - 
+1052	grn	EXPO_ISN_ACTIVE_OK	Enhanced ISN Generation aktiv
+1055	inf	EXPO_PARTITIONS	%1 Admin-Partition(en) - TCP-Parameter und ISN dort separat 
+1057	flag_yel	EXPO_MGMT_ON_SNIP_YEL	Management-Zugriff auf SNIP aktiv: %1 - NITRO/GUI erreichbar
+1061	inf	EXPO_MGMT_NSIP_UNKNOWN	Management-Portal: NSIP nicht aus der ns.conf bestimmbar, AC
+1065	flag_yel	EXPO_MGMT_NO_ACL_VULN_YEL	Management-Portal (PHP, CTX697263) auf verwundbarem Build oh
+1066	inf	EXPO_MGMT_NO_ACL_FIXED	Management-Portal ohne DENY-ACL auf Port 80/443: %1(Build ge
+1067	inf	EXPO_MGMT_ACL_OK	Management-Portal: DENY-ACLs auf Port 80/443 fuer %1 vorhand
+1068	inf	EXPO_MGMT_ACL_RULE_MISSING	Management-Portal-ACLs nicht geprueft: Regel MGMT_ACL_RE feh
+1071	hdr	HDR_BLOCK3	3 Mitigation
+1080	flag_yel	MITIG_NONE_VULN_YEL	Keine Responder-/Traffic-Policy mit Log-Poisoning- oder SAML
+1081	inf	MITIG_NONE	Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Sp
+1087	flag_yel	MITIG_POLICY_UNBOUND_YEL	%1-Policy %2 existiert, ist aber nirgends gebunden
+1090	flag_yel	MITIG_RESPONDER_OFF_YEL	%1-Policy %2 gebunden (%3), aber Responder-Feature ist AUS -
+1091	flag_yel	MITIG_NO_AAA_REQUEST_YEL	%1-Policy %2 gebunden (%3), aber ohne -type AAA_REQUEST - si
+1092	grn	MITIG_RESPONDER_BOUND_OK	%1-Policy %2 gebunden (%3 vServer, %4 x AAA_REQUEST%5)
+1093	grn	MITIG_POLICY_BOUND_OK	%1-Policy %2 gebunden (%3 vServer)
+1100	inf	MITIG_HITS	  Hits %1: %2 (seit letztem Counter-Reset)
+1100	inf	MITIG_HITS_DELTA	  Hits %1: %2 (+%3 seit %4)
+1107	inf	MITIG_DENYLIST_OK	Global Deny List AAA_REQUEST vorhanden (Console-Signaturen)
+1108	inf	MITIG_DENYLIST_NONE	Keine Global Deny List AAA_REQUEST (nicht konfiguriert)
+1108	inf	MITIG_DENYLIST_UNKNOWN	Global Deny List: keine Aussage moeglich
+1112	hdr	HDR_BLOCK4	4 Angriffsspuren (letzte %1h)
+1120	awk	TRACE_NET24_ROW	%1 (%2 Adresse(n), %3 Request(s))
+1126	trust_event	TRUST_EVT_INTERNAL	als intern gewertet (Management, SSH oder Anmeldefehler)
+1134	assign	TRACE_COV_NO_NSLOG_FRAG	 ns.log-Familie fehlt im Fenster;
+1135	assign	TRACE_COV_NO_HTTPACCESS_FRAG	 httpaccess fehlt im Fenster (Dropper, Sondierung, Quellen);
+1136	assign	TRACE_COV_UNREADABLE_FRAG	 %1 Logdatei(en) nicht lesbar;
+1137	inf	TRACE_NSPROF_DIVERTED	nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Ko
+1138	inf	TRACE_LOGS_READ	Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice %1, h
+1138	echo	TRACE_LOGS_UNREADABLE_FRAG	, %1 nicht lesbar
+1140	flag_yel	TRACE_NO_NSLOG_YEL	Keine ns.log/nsvpn.log/messages im Fenster (Pfad %1) - Logs 
+1156	flag_org	TRACE_INJ_COVERED_ORG	%1 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Lo
+1157	det	TRACE_INJ_COVERED_HOST_DET	%1: %2, Versuch vom %3 liegt davor
+1158	det	TRACE_INJ_COVERED_TODO_DET	Zu tun: nichts; ein neuer Versuch mit diesem Host nach dem S
+1161	flag_red	TRACE_INJ_RED	%1 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Lo
+1169	ip_note	ADDR_SRC_INJ_LINE	ns.log Injection-Zeile
+1178	awk	TRACE_INJ_SRC_LINES_FRAG	%1  in %2 von %3 Zeile(n)
+1197	perl	TRACE_INJ_SRC_MATCH_FRAG	%1  passt zu %2 von %3 Versuchszeit(en)%4
+1197	perl	TRACE_INJ_SRC_OFFSET_FRAG	, Logs %1h versetzt
+1200	ip_note	ADDR_SRC_LOGON_AT_ATTEMPT	httpaccess Logon-Request zur Versuchszeit
+1200	ip_note	ADDR_SRC_RESPONDER_LINE	ns.log Responder-Zeile from IP
+1203	echo	TRACE_INJ_ONE_WAVE_FRAG	 (eine Welle)
+1203	det	TRACE_INJ_WHEN_DET	Wann:          %1 bis %2, %3 Zeile(n) auf %4 Packet Engine(s
+1204	det	TRACE_LOG_DET	Log:           %1
+1205	det	TRACE_INJ_RESULT_VULN_DET	Ergebnis:      Build %1 ist verwundbar; diese Zeilen koennen
+1206	det	TRACE_INJ_RESULT_COVERED_DET	Ergebnis:      abgedeckt; Build gefixt, Download-Host(s) ges
+1207	echo	TRACE_INJ_MITIG_ANSWERED_FRAG	, die Mitigation-Policy hat geantwortet
+1207	det	TRACE_INJ_RESULT_NO_EFFECT_DET	Ergebnis:      Versuch ohne Wirkung; Build %1 ist gegen CVE-
+1208	det	TRACE_INJ_SAML_CAUTION_DET	Achtung:       SAML ist konfiguriert und eine SAML-CVE offen
+1211	assign	TRACE_BLOCKED_SINCE_FRAG	, Sperre ab %1
+1211	assign	TRACE_NO	nein
+1211	assign	TRACE_YES	ja
+1212	assign	TRACE_NO	nein
+1212	assign	TRACE_RULES_YES_FRAG	ja (%1)
+1213	det	TRACE_INJ_DLHOST_DET	Download-Host: %1   Sperrliste: %2   Regeldatei: %3   Adress
+1215	det	TRACE_INJ_DLHOST_NONE_DET	Download-Host: keiner im Payload erkennbar
+1217	assign	TRACE_SRC_WEAK_FRAG	, schwach
+1218	det	TRACE_INJ_SRC_RESPONDER_DET	Quelle:        %1 (aus der Responder-Zeile, %2)%3%4%5
+1218	assign	TRACE_SRC_SAME_AS_DLHOST_FRAG	, identisch mit dem Download-Host (laedt von sich selbst nac
+1219	det	TRACE_INJ_SRC_ACCESS_DET	Quelle:        %1, %2%3 (bei NAT nur die NAT-Adresse)%4%5
+1220	det	TRACE_INJ_SRC_UNKNOWN_RESP_DET	Quelle:        unbekannt; der Responder hat den Request vor 
+1221	det	TRACE_INJ_SRC_UNKNOWN_NOREQ_DET	Quelle:        unbekannt; kein Logon-Request im Access-Log z
+1222	det	TRACE_INJ_SRC_UNKNOWN_NOLOG_DET	Quelle:        unbekannt; kein Access-Log im Fenster
+1224	det	TRACE_INJ_TODO_VULN1_DET	Zu tun:        1. Nicht patchen, nicht neu starten; Logs und
+1225	det	TRACE_INJ_TODO_VULN2_DET	               2. Block 5 lesen: Payload-Dateien, Webshells,
+1226	det	TRACE_TODO_NOTHING_BLOCK_DET	Zu tun:        nichts; der naechste Lauf zeigt, ob die Sperr
+1229	det	TRACE_INJ_TODO_FW_DET	Zu tun:        %1. Firewall- und DNS-Logs: Verbindung von NS
+1230	det	TRACE_INJ_TODO_FETCH_LOG_DET	               %1. httpaccess-vpn.log fuer %2 aus dem Snapsh
+1231	det	TRACE_INJ_TODO_RESP_AUDIT_DET	               %1. Responder-Policy mit Audit-Message-Action
+1232	det	TRACE_INJ_TODO_BLOCK_HOST_DET	               %1. Download-Host in der Firewall sperren und
+1234	grn	TRACE_INJ_NONE_OK	Keine Injection-Muster in Logon-Zeilen der letzten %1h
+1262	awk	TRACE_CRASH_ESCALATION_FRAG	Eskalation:
+1280	echo	TRACE_CRASH_DIR_EMPTY_FRAG	, leer
+1280	printf	TRACE_CRASH_DIR_EVENT_FRAG	Verzeichnis %1%2, %3 min nach Boot
+1280	printf	TRACE_CRASH_PROC_UNKNOWN	(unbekannt)
+1284	printf	TRACE_CRASH_CORE_NOLOG_FRAG	Core ohne Logzeile
+1310	ip_note	ADDR_SRC_CRASH_TRIGGER	Anfrage vor Absturz von %1 (Fenster 120 s, Zuordnung grob)
+1310	assign	TRACE_CRASH_TRIG_FRAG	%1 %2 von %3;
+1312	echo	TRACE_CRASH_CORES_FRAG	, %1 Core-Beleg(e)
+1312	assign	TRACE_CRASH_HEAD	%1 Absturz-Ereignis(se) im Fenster (Pitboss, Kernel, Apache-
+1314	assign	TRACE_CRASH_WHY_SAML_VULN	nsaaad bei SAML auf ungefixtem Build: SAML-CVE wird wahrsche
+1315	assign	TRACE_CRASH_WHY_NSAAAD_REPEAT	nsaaad auf einem SAML-Gateway %1 mal an einem Tag: Ausnutzun
+1316	assign	TRACE_CRASH_WHY_HTTPD_VULN	httpd auf verwundbarem Build (CTX697263): der verwundbare Pr
+1317	assign	TRACE_CRASH_WHY_PPE_DTLS	Packet Engine mit DTLS-Fehlern im selben Fenster: moeglicher
+1318	assign	TRACE_CRASH_WHY_SAME_DAY	%1 Abstuerze desselben Prozesses an einem Tag
+1319	assign	TRACE_CRASH_WHY_THREE_DAYS	derselbe Prozess an drei oder mehr Tagen abgestuerzt (%1; ns
+1320	assign	TRACE_CRASH_WHY_TRIGGER	Absturz unmittelbar nach Anfrage von aussen: %1
+1321	flag_red	TRACE_CRASH_RED	%1 - %2
+1322	echo	TRACE_CRASH_HTTPD_FRAG	; httpd: Bezug zu CTX697263 pruefen
+1322	echo	TRACE_CRASH_NSAAAD_SAML_FRAG	; nsaaad auf einem SAML-Gateway ist ein Ausnutzungsindikator
+1322	flag_yel	TRACE_CRASH_YEL	%1 - jeder Absturz braucht eine Einordnung%2%3
+1323	det	TRACE_CRASH_TRIGGER_DET	Ausloeser:     %1(Adressen als crash_trigger in der Adressli
+1325	echo>file	TRACE_CRASHFILE_HEAD	# ns_quickcheck: Abstuerze je Prozess und Tag, kumuliert ueb
+1326	det	TRACE_CRASH_EVENTS_DET	Ereignisse (neueste zuerst; Zeit, Prozess, PID, Signal, Rest
+1327	awk	TRACE_CRASH_EVENT_CORE_FRAG	  core: %1
+1327	awk	TRACE_CRASH_EVENT_ROW	%1  %2  pid %3  signal %4  restarts %5%6
+1328	det	TRACE_CRASH_CORES_DET	Core-Belege im Fenster (Dateien oder Verzeichnisse unter /va
+1329	det	TRACE_LOG_DET	Log:           %1
+1330	det	TRACE_CRASH_WHAT_DET	Was passiert ist: ein Daemon ist abgestuerzt und wurde von P
+1331	det	TRACE_CRASH_TODO_DET	Zu tun: /var/core sichern; wiederholt es sich oder passt der
+1332	grn	TRACE_CRASH_NONE_OK	Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlo
+1333	inf	TRACE_CORE_BOOT	Core-Verzeichnis %1 leer, angelegt %2 (%3 min nach Boot): Bo
+1336	flag_red	TRACE_KERNEL_PANIC_RED	%1 Kernel-Panic/Trap-Zeile(n) im Fenster - Absturz des Kerne
+1337	flag_yel	TRACE_KERNEL_MEM_YEL	%1 Zeile(n) Speicherdruck im Kernel (Swap erschoepft, Prozes
+1343	flag_yel	TRACE_REBOOT_UNEXPLAINED_YEL	Neustart am %1 ohne reboot/shutdown-Befehl im Audit-Log des 
+1348	inf	TRACE_NSAAAD_UNKNOWN_FORMAT	%1 nsaaad-Zeile(n) in einem Format, das die verankerten Must
+1353	flag_yel	TRACE_NSAAAD_LEGACY_YEL	%1 nsaaad-Crash-Zeile(n) (altes Muster; Regeldatei %2 kennt 
+1354	grn	TRACE_NSAAAD_LEGACY_NONE_OK	Keine nsaaad-Crashes im Fenster (altes Muster)
+1355	inf	TRACE_CRASH_RULES_MISSING	Prozessabstuerze nicht geprueft: Regeln PITBOSS_RE/KERNEL_EX
+1359	flag_yel	TRACE_NSPROF_SUSPECT_YEL	%1 CPU-Momentaufnahme(n) mit verdaechtigem Prozess (SUSPECT_
+1360	grn	TRACE_NSPROF_NONE_OK	Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+1363	inf	TRACE_NO_ACCESSLOG	Dropper-Anfragen, Sondierungsquellen und Injection-Quellen n
+1368	ip_note	ADDR_SRC_DROPPER	httpaccess DROPPER_PATH_RE
+1387	flag_org	TRACE_DROP_COVERED_ORG	Requests auf Dropper-Transportpfade von gesperrten Adressen 
+1388	det	TRACE_DROP_COVERED_DET	%1: %2, letzte Beobachtung %3, %4 Request(s)
+1389	det	TRACE_DROP_COVERED_TODO_DET	Zu tun: nichts; der naechste Lauf zeigt, ob die Sperre haelt
+1391	flag_yel	TRACE_DROP_BLOCK_LEAK_YEL	Sperre greift nicht: gesperrte Adresse(n) erreichen die Appl
+1392	det	TRACE_DROP_BLOCK_LEAK_DET	%1: %2, aber %3 Request(s) im Fenster, letzter am %4
+1393	det	TRACE_DROP_BLOCK_LEAK_TODO_DET	Zu tun: Firewall-Regel und Pfad pruefen (Sperre vor oder hin
+1394	det	TRACE_DROP_NODATE_DET	Datum der Beobachtung nicht bestimmbar fuer: %1(Abdeckung du
+1403	flag_red	TRACE_DROP_HUNT_RED	Requests auf Dropper-Transportpfade (nsgclient-Pakete): Drop
+1404	det	TRACE_DROP_HUNT_DET	Dropper-Suche, kein Client: %1(mehr als zwei verschiedene Pa
+1405	flag_yel	TRACE_DROP_YEL	Requests auf Dropper-Transportpfade (nsgclient-Pakete) von %
+1407	det	TRACE_WHEN_DET	Wann:          %1 bis %2
+1408	det	TRACE_LOG_DET	Log:           %1
+1410	assign	TRACE_BLOCKED_NODATE_FRAG	, ohne Datum
+1410	assign	TRACE_BLOCKED_SINCE_FRAG	, Sperre ab %1
+1410	assign	TRACE_NO	nein
+1410	assign	TRACE_YES	ja
+1411	assign	TRACE_NO	nein
+1411	assign	TRACE_RULES_YES_FRAG	ja (%1)
+1412	assign	TRACE_NO	nein
+1412	assign	TRACE_YES	ja
+1413	det	TRACE_DROP_ADDR_DET	Adresse:       %1   %2 Request(s)   Dropper-Suche: %3   Sper
+1415	det	TRACE_NETS_DET	Netze:         %1
+1416	det	TRACE_DROP_RESULT_HUNT_DET	Ergebnis:      Dropper-Suche (mehr als zwei verschiedene Pak
+1417	det	TRACE_DROP_RESULT_OPEN_DET	Ergebnis:      offen; echte Linux-Clients fragen nsgclient.d
+1419	det	TRACE_DROP_TODO_BLOCK_DET	Zu tun:        %1. Adressen mit Dropper-Suche in der Firewal
+1419	det	TRACE_DROP_TODO_FIELD_DET	               %1. Als Feldbefund in die Custom-Datei (READM
+1420	det	TRACE_DROP_TODO_CHECK_DET	Zu tun:        %1. Pfade unten je Adresse pruefen: nsgclient
+1421	det	TRACE_DROP_TODO_PATHS_DET	               %1. Pfade je Adresse:
+1427	flag_red	TRACE_DTLS_PPE_RED	DTLS-Handshake-Fehler UND Packet-Engine-Neustart im Fenster 
+1428	det	TRACE_LOG_DET	Log:           %1
+1431	inf	TRACE_NO_ERRLOG	Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei i
+1432	inf	TRACE_ERRLOG_RULES_MISSING	Webserver-Fehlerlog nicht geprueft: Regeln HTTPERR_EXEC_RE/H
+1436	flag_red	TRACE_HTTPERR_EXEC_RED	Webserver hat Scripts ausserhalb der Stock-Pfade ausgefuehrt
+1438	det	TRACE_LOG_DET	Log:           %1
+1439	det	TRACE_HTTPERR_EXEC_RESULT_DET	Ergebnis:      PHP oder CGI haben ausserhalb der Verwaltungs
+1440	det	TRACE_HTTPERR_EXEC_TODO_DET	Zu tun:        1. Genannte Dateien ansehen: existieren sie n
+1441	grn	TRACE_HTTPERR_EXEC_NONE_OK	Webserver-Fehlerlog ohne Interpreter-Fehler ausserhalb der S
+1448	flag_yel	TRACE_PHP_ANOM_VULN_YEL	PHP-Speicher-/Fatal-Muster im Management-Portal auf verwundb
+1449	inf	TRACE_PHP_ANOM_FIXED	PHP-Speicher-/Fatal-Muster im Management-Portal: %1 Zeile(n)
+1451	det	TRACE_LOG_DET	Log:           %1
+1452	det	TRACE_PHP_ANOM_RESULT_DET	Ergebnis:      Hypothese, keine veroeffentlichte Signatur: C
+1453	det	TRACE_PHP_ANOM_TODO_DET	Zu tun:        1. Update auf den Fix-Build (Block 1). 2. Bis
+1454	grn	TRACE_PHP_ANOM_NONE_OK	Keine PHP-Speicher-/Fatal-Muster im Management-Portal ueber 
+1455	inf	TRACE_PHP_ANOM_RULE_MISSING	PHP-Anomalien im Management-Portal nicht geprueft: Regel HTT
+1462	flag_red	TRACE_WEBSHELL_200_RED	Webshell-Pfad hat mit Status 200 geantwortet (Datei existier
+1464	ip_note	ADDR_SRC_WEBSHELL_200	httpaccess Webshell-Pfad 200
+1465	det	TRACE_WEBSHELL_200_TODO_DET	Zu tun:        Incident-Prozess, nicht patchen, nicht neu st
+1478	ip_note	ADDR_SRC_WEBSHELL_PROBE_TRUSTED	httpaccess Webshell-Pfad (vertraut)
+1481	inf	TRACE_PROBE	Webshell-Sondierung: %1 Request(s) auf %2 nicht existierende
+1482	flag_yel	TRACE_PROBE_YEL	Webshell-Sondierung: %1 Request(s) auf %2 Webshell-Pfad(e), 
+1484	det	TRACE_WHEN_DET	Wann:          %1 bis %2
+1485	det	TRACE_LOG_DET	Log:           %1
+1486	det	TRACE_PROBE_NOTE_DET	Hinweis:       [client 127.0.0.2] im Fehlerlog ist die Appli
+1488	ip_note	ADDR_SRC_WEBSHELL_PROBE	httpaccess Webshell-Pfad
+1488	det	TRACE_PROBE_SRC_DET	Quelle:        %1, %2 Request(s)%3
+1489	det	TRACE_NETS_DET	Netze:         %1
+1490	det	TRACE_PROBE_NO_SRC_DET	%1 Request(s) ohne Quelle (Access-Log rotiert oder Pfad im A
+1491	det	TRACE_PROBE_SRC_UNKNOWN_DET	Quelle:        unbekannt; die Pfade stehen nicht im Access-L
+1492	det	TRACE_PROBE_RESULT_DET	Ergebnis:      Jemand prueft, ob diese Appliance die bekannt
+1493	det	TRACE_PROBE_TODO_DET	Zu tun:        1. Quell-Adressen sperren und in ns_quickchec
+1494	grn	TRACE_PROBE_NONE_OK	Keine Webshell-Sondierung im Webserver-Fehlerlog
+1497	flag_yel	TRACE_WEBSERVER_DIRECT_YEL	Webserver direkt angesprochen: Fehlerzeilen mit Client ausse
+1498	ip_note	ADDR_SRC_HTTPERR_CLIENT	httperror client
+1499	det	TRACE_WEBSERVER_DIRECT_RESULT_DET	Ergebnis:      Jemand hat den Apache ohne den Umweg ueber di
+1500	det	TRACE_WEBSERVER_DIRECT_TODO_DET	Zu tun:        Adresse einordnen (Admin-Netz? dann MGMT_NET_
+1503	inf	TRACE_NO_MGMTLOG	Management-Zugriffe nicht geprueft: keine httpaccess.log-Dat
+1504	inf	TRACE_MGMT_RULE_MISSING	Management-Zugriffe nicht geprueft: Regel MGMT_PATH_RE fehlt
+1507	echo	TRACE_MGMT_ADDR_FRAG	%1 (%2 Request(s))
+1509	flag_yel	TRACE_MGMT_EXTERNAL_YEL	Management-Ebene (NITRO, GUI) von Adressen ausserhalb RFC 19
+1510	ip_note	ADDR_SRC_MGMT_PATH	httpaccess.log Management-Pfad
+1511	det	TRACE_LOG_DET	Log:           %1
+1512	det	TRACE_MGMT_EXTERNAL_RESULT_DET	Ergebnis:      NITRO oder GUI sind von aussen erreichbar ode
+1513	det	TRACE_MGMT_EXTERNAL_TODO_DET	Zu tun:        1. Sind das eure Admin-Netze? Dann MGMT_NET_R
+1514	grn	TRACE_MGMT_INTERNAL_OK	Management-Ebene (NITRO, GUI) nur von internen Adressen ange
+1517	inf	TRACE_NO_AUTHLOG	Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster 
+1518	inf	TRACE_AUTH_RULES_MISSING	Anmeldungen nicht geprueft: Regeln AUTH_LOGIN_RE/AUTH_FAIL_R
+1521	awk	TRACE_SSH_FAIL_FRAG	%1 (%2 Fehlversuche)
+1522	echo	TRACE_SSH_USER_FROM_FRAG	%1 von %2
+1524	flag_red	TRACE_SSH_BACKDOOR_RED	Anmeldung eines bekannten Backdoor-Kontos an der Appliance: 
+1525	flag_yel	TRACE_SSH_EXTERNAL_YEL	SSH-Anmeldungen von Adressen ausserhalb RFC 1918 und MGMT_NE
+1526	ip_note	ADDR_SRC_AUTH_ACCEPTED	auth.log Accepted
+1527	det	TRACE_SSH_EXTERNAL_TODO_DET	Zu tun:        1. Sind das eure Admin-Arbeitsplaetze oder Sp
+1528	flag_yel	TRACE_SSH_BRUTEFORCE_YEL	SSH-Fehlversuche in Serie (Brute Force) von:
+1529	ip_note	ADDR_SRC_AUTH_FAILED	auth.log Failed
+1530	det	TRACE_SSH_BRUTEFORCE_TODO_DET	Zu tun:        SSH auf der NSIP nur aus Admin-Netzen zulasse
+1531	inf	TRACE_SSH_INTERNAL_ONLY	Anmeldungen an der Appliance im Fenster: %1nur interne Adres
+1532	det	TRACE_LOG_DET	Log:           %1
+1533	grn	TRACE_AUTH_NONE_OK	Keine Anmeldungen oder Fehlversuche in auth.log im Fenster
+1536	inf	AAA_RULES_MISSING	Gateway-Anmeldefehler nicht geprueft: Regeln AAA_FAIL_RE/AAA
+1545	awk	AAA_OWN_HAPEER	HA-Peer
+1587	ip_note	ADDR_SRC_AAA_FAIL_TRUSTED	ns.log AAA Fehlversuche (vertraut)
+1602	ip_note	ADDR_SRC_AAA_BF_TRUSTED	ns.log AAA Brute Force auf Konto (vertraut)
+1604	flag_red	AAA_BF_HIT_RED	Erfolgreiche Anmeldung nach Brute Force auf ein Konto (%1 Ko
+1605	awk	AAA_BF_HIT_ROW	Konto %1  %2 Fehlversuche von %3 Adresse(n), danach erfolgre
+1606	det	AAA_BF_HIT_TODO_DET	Zu tun:        Konto sperren, Passwort zuruecksetzen, Sitzun
+1607	flag_yel	AAA_BF_YEL	Brute Force auf einzelne Konten (viele Passwoerter auf ein b
+1610	awk	AAA_BF_ROW	Konto %1 %2 Fehlversuche  %3 Adresse(n): %4  %5 bis %6, bis 
+1611	awk	AAA_BF_MORE_ROW	und %1 weitere Konten
+1612	ip_note	ADDR_SRC_AAA_BF	ns.log AAA Brute Force auf Konto
+1613	det	AAA_BF_RESULT_DET	Ergebnis:      Der Angreifer kennt den Kontonamen und probie
+1614	det	AAA_BF_TODO_DET	Zu tun:        1. Konto sperren oder Passwort aendern, Sitzu
+1615	flag_red	AAA_HIT_RED	Erfolgreiche Anmeldung nach Fehlserie von Angriffs-Adresse (
+1616	awk	AAA_HIT_ROW	%1  %2 Fehlversuche, %3 Konten, danach erfolgreich: %4
+1617	ip_note	ADDR_SRC_AAA_HIT	ns.log AAA Erfolg nach Fehlserie
+1618	det	AAA_HIT_TODO_DET	Zu tun:        Konto sofort sperren, Passwort zuruecksetzen,
+1619	flag_yel	AAA_SLEEPER_YEL	Schlaefer (langsames Spraying ueber Tage, unter allen Schwel
+1622	awk	AAA_SLEEPER_ROW	%1 %2 Fehlversuche %3 Konten   an %4 Tag(en) ueber %5 Tage (
+1623	ip_note	ADDR_SRC_AAA_SLEEPER	ns.log AAA Fehlversuche ueber Tage
+1624	det	AAA_SLEEPER_RESULT_DET	Ergebnis:      Absichtlich langsam, damit Lockout und Ratens
+1625	det	AAA_SLEEPER_TODO_DET	Zu tun:        Adresse sperren und eintragen; sie wird wiede
+1627	flag_yel	AAA_SPRAY_YEL	Password Spraying (viele Konten, wenige Versuche je Konto): 
+1628	det	TRACE_NETS_DET	Netze:         %1
+1630	det	AAA_SPRAY_SPLIT_DET	%1 Adresse(n) unklar (Mensch-Takt ohne Erfolg, zuerst), %2 M
+1633	awk	AAA_RATE_MACHINE	Bewertung: Angriff, sperren
+1633	awk	AAA_RATE_MACHINE_NET	Bewertung: Angriff (Netz mit Maschinen), sperren
+1633	awk	AAA_RATE_UNCLEAR	Bewertung: unklar, beobachten
+1633	awk	AAA_RATE_UNCLEAR_BURST	Bewertung: unklar, ein Konto in kurzem Burst: typisch Client
+1633	awk	AAA_RATE_USER	Bewertung: Nutzer (Erfolg danach)
+1634	awk	AAA_SPRAY_ROW	%1 %2 Fehlversuche %3 Konten  %4 bis %5, bis %6/min  Erfolg 
+1634	awk	TRACE_NO	nein
+1634	awk	TRACE_YES	ja
+1636	det	AAA_SPRAY_MORE_DET	und %1 weitere Adresse(n), vollstaendig in der Adressliste d
+1637	ip_note	ADDR_SRC_AAA_MACHINE	ns.log AAA Fehlserie (Maschine)
+1638	det	AAA_TOP_ACCOUNTS_DET	Konten mit den meisten Fehlversuchen: %1
+1638	awk	AAA_TOP_ACCOUNT_SUCCESS_FRAG	, danach Erfolg
+1639	det	AAA_ACCOUNTS_TOTAL_DET	%1 verschiedene Konten insgesamt, %2 davon nur einmal (Woert
+1640	det	TRACE_LOG_DET	Log:           %1
+1641	det	AAA_SPRAY_RESULT_DET	Ergebnis:      Maschine = ab %1 Versuche/min oder ab %2 Kont
+1642	det	AAA_SPRAY_TODO_DET	Zu tun:        1. Netze und Maschinen-Adressen an der Firewa
+1643	inf	AAA_BELOW_THRESHOLD	Gateway-Anmeldefehler im Fenster: %1, keine Adresse ueber de
+1646	awk	AAA_HIT_ROW	%1  %2 Fehlversuche, %3 Konten, danach erfolgreich: %4
+1646	flag_red	AAA_OWN_HIT_RED	Erfolgreiche Anmeldung nach Fehlserie von eigener Adresse (%
+1647	flag_yel	AAA_OWN_YEL	Anmeldefehler von eigenen oder internen Adressen (%1 Adresse
+1649	assign	AAA_OWN_INTERNAL_FRAG	 (intern)
+1651	printf	AAA_OWN_ROW	%1%2   %3 Fehlversuche   %4 Konto/Konten   %5 bis %6, bis %7
+1651	echo	TRACE_NO	nein
+1651	echo	TRACE_YES	ja
+1652	det	AAA_OWN_RESULT_DET	Ergebnis:      Nicht der Angreifer von aussen, aber zu klaer
+1653	det	AAA_OWN_TODO_DET	Zu tun:        1. System hinter der Adresse benennen (ns.con
+1655	grn	AAA_NONE_OK	Keine Gateway-Anmeldefehler im Fenster
+1667	flag_yel	TRUST_LISTED_BEFORE_YEL	%1 steht in trusted_ips, war in der Adressliste dieser Appli
+1668	flag_tru	TRUST_ACTIVE_TRU	Vertraute Adresse %1%2 im Fenster aktiv [Bemerkung: %3]:
+1668	assign	TRUST_NOTE_NONE	ohne
+1668	assign	TRUST_UNTIL_PAREN_FRAG	 (bis %1)
+1670	det	TRUST_CHECK_DET	Pruefen:       Ist der Eintrag richtig und noch gewollt? Fal
+1677	hdr	HDR_BLOCK5	5 Kompromittierungs-Schnellcheck
+1682	flag_yel	CHECK_HOSTFILE_NOT_ELF_YEL	%1 existiert (kein Binary) - pruefen
+1683	flag_red	CHECK_PAYLOAD_PATH_RED	Bekannter Payload-Pfad existiert: /%1 (%2)%3
+1688	flag_red	CHECK_WEBSHELL_NAMES_RED	Webshell-Dateinamen in Web-Verzeichnissen:
+1690	flag_red	CHECK_PHP_OUTSIDE_RED	PHP-Dateien ausserhalb admin_ui/ns_gui (dort gehoert kein PH
+1693	inf	CHECK_LAST_UPGRADE	Letztes Upgrade laut nsinstall.log: %1
+1713	flag_yel	CHECK_PIN_MISMATCH_YEL	%1 per Hash freigegebene Web-Datei(en) erneut geaendert (Whi
+1721	inf	CHECK_WEB_BURST	%1 Web-Dateien in einem Burst am %2 geaendert (Rewrite durch
+1724	flag_yel	CHECK_WEB_MANY_YEL	%1 Web-Dateien seit Boot geaendert, verteilt ueber %2 min - 
+1725	flag_yel	CHECK_WEB_FEW_YEL	%1 Web-Datei(en) seit Boot (ausserhalb Upgrade-Fenster) geae
+1731	perl	CHECK_WEB_DIR_GROUP_ROW	%1/: %2 Dateien, %3 bis %4
+1740	det	CHECK_WEB_WHEN_DET	Wann:          %1 bis %2, letzter Boot %3
+1741	flag_red	CHECK_PHP2SHELL_RED	Neue PHP-Datei(en) plus PHP-Speicher-/Fatal-Muster auf verwu
+1741	det	CHECK_PHP2SHELL_TODO_DET	Zu tun:        Incident-Prozess, nicht patchen, nicht neu st
+1742	det	CHECK_WEB_RESULT_PHP_DET	Ergebnis:      untypisch: %1 PHP-Datei(en) geaendert; das is
+1743	det	CHECK_WEB_RESULT_OUTSIDE_DET	Ergebnis:      %1 Datei(en) ausserhalb von Themes, Bildern u
+1744	det	CHECK_WEB_RESULT_EXEC_DET	Ergebnis:      %1 ausfuehrbare Datei(en) darunter (Scripts, 
+1745	det	CHECK_WEB_RESULT_THEME_DET	Ergebnis:      alle Aenderungen in Theme-Ordnern, Bildern od
+1746	det	CHECK_WEB_CODE_DET	Code:          ausfuehrbarer Code, Diff gegen Vorversion (Sn
+1747	det	CHECK_WEB_TODO1_DET	Zu tun:        1. Aenderungsdatum gegen das Ticket der Theme
+1748	det	CHECK_WEB_TODO2_DET	               2. Bestaetigte Dateien in ns_quickcheck.white
+1749	det	CHECK_WEB_TODO3_DET	               3. Nicht erklaerbare Dateien: Inhalt ansehen,
+1751	grn	CHECK_WEB_NONE_OK	Keine Web-Dateien seit Boot geaendert
+1766	flag_red	CHECK_HTTPD_CHANGED_RED	httpd.conf geaendert %1, nicht zur Boot-Zeit, und Inhalt mit
+1767	flag_red	CHECK_HTTPD_CONTENT_RED	httpd.conf: PHP in Gateway-Pfaden oder fremder Alias:
+1770	flag_yel	CHECK_HTTPD_CHANGED_YEL	httpd.conf geaendert %1, nicht zur Boot-Zeit; Inhalt ohne Be
+1771	det	CHECK_HTTPD_WHAT_DET	Was passiert ist: Die Webserver-Konfiguration hat einen Zeit
+1772	det	CHECK_HTTPD_HARMLESS_DET	Unkritisch wenn: zu diesem Zeitpunkt installiert oder upgegr
+1776	flag_yel	CHECK_CRON_ROOT_YEL	Root-Crontab-Zeilen ausserhalb der erlaubten Liste:
+1777	det	CHECK_CRON_LASTRUN_DET	%1: zuletzt gelaufen laut /var/log/cron: %2
+1777	assign	CHECK_CRON_NOT_IN_WINDOW	nicht im Fenster
+1779	flag_red	CHECK_CRON_NOBODY_RED	Crontab fuer Benutzer nobody vorhanden (%1 Zeilen) - bekannt
+1784	flag_red	CHECK_LISTENER_EXT_RED	Listener von Interpreter/Shell-Prozessen auf erreichbaren Ad
+1785	flag_yel	CHECK_LISTENER_LO_YEL	Unbekannte Interpreter-Listener auf Loopback (Stock-Dienste 
+1794	inf	CHECK_MONITOR_STOCK	Monitor-Script laeuft unter dem Stock-Daemon (PID %1, Parent
+1797	flag_yel	CHECK_SUSPECT_PROC_CRON_YEL	Prozess trifft SUSPECT_PROC_RE unter cron (PID %1, PPID %2) 
+1798	flag_red	CHECK_SUSPECT_PROC_RED	Prozess trifft SUSPECT_PROC_RE ausserhalb des Stock-Daemons 
+1798	assign	CHECK_UNKNOWN	unbekannt
+1806	flag_red	CHECK_MONITOR_CHILD_RED	Kindprozess des Monitor-Scripts (PID %1) ist Shell oder Down
+1818	inf	CHECK_HASH_NO_STOCK	%1: sha256 %2 (Stock-Wert fuer Build %3 nicht hinterlegt, nu
+1819	grn	CHECK_HASH_STOCK_OK	%1: Hash entspricht dem Stock-Wert fuer %2
+1820	flag_red	CHECK_HASH_MISMATCH_RED	%1: Hash weicht vom Stock-Wert fuer %2 ab (ist %3) - Datei v
+1829	flag_red	CHECK_OUTBOUND_RED	Aktive Verbindung zu einem Payload-Host oder bekannter Angre
+1834	flag_yel	CHECK_LOCAL_USERS_YEL	Lokale System-User neben nsroot: %1 - jeden bestaetigen (Ang
+1835	flag_red	CHECK_SEC_MONITOR_RED	System-User sec_monitor = bekannte Backdoor (LevelBlue)
+1836	flag_red	CHECK_EPA_NOAUTH_RED	EPA-Default-Gruppe NO_AUTH in ns.conf - EPA faktisch aus (Wi
+1838	flag_red	CHECK_SH_SETUID_RED	/bin/sh hat setuid/setgid (%1) - Post-Exploitation-Schritt
+1852	inf	CHECK_SVC_USER_CHANGED	Service-User dieses Verfahrens (%1) wurde zwischen den letzt
+1859	flag_red	CHECK_SAVED_DIFF_RED	%1 gespeicherte Config-Aenderung(en) an User, Auth, EPA oder
+1860	flag_yel	CHECK_SAVED_DIFF_YEL	%1 gespeicherte Config-Aenderung(en) an sicherheitsrelevante
+1861	sed	CHECK_DIFF_ADDED	[neu]
+1861	sed	CHECK_DIFF_REMOVED	[entfernt]
+1862	grn	CHECK_SAVED_DIFF_NONE_OK	Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 u
+1883	flag_red	CHECK_UNSAVED_RED	%1 ungespeicherte Zeile(n) in der laufenden Config, darunter
+1884	flag_yel	CHECK_UNSAVED_YEL	%1 ungespeicherte Zeile(n) in der laufenden Config (eigene A
+1885	sed	CHECK_DIFF_RUNNING_ONLY	[nur laufend]
+1885	sed	CHECK_DIFF_SAVED_ONLY	[nur gespeichert]
+1886	grn	CHECK_UNSAVED_NONE_OK	Laufende Config entspricht ns.conf (keine ungespeicherten Ae
+1887	inf	CHECK_RUNNING_EMPTY	show ns runningConfig lieferte keine verwertbare Ausgabe
+1889	inf	CHECK_AAA_SESSIONS	Aktive AAA-Sessions: %1 Zeile(n) (Details im Report)
+1891	inf	CHECK_SIMPLEACL	Simple ACLs vorhanden: %1 Zeile(n)
+1905	inf	CHECK_CMP_NO_SPACE	--compare %1: zu wenig Platz unter %2 (%3 KB frei, etwa %4 K
+1908	inf	CHECK_CMP_EXTRACT_FAIL	--compare %1: Set %2 konnte nicht entpackt werden (%3)
+1910	inf	CHECK_CMP_NO_SET	--compare %1: kein Snapshot-Set in %2/out gefunden
+1914	inf	CHECK_CMP_AGAINST	Vergleich gegen Snapshot %1 (%2)
+1914	assign	CHECK_UNKNOWN	unbekannt
+1920	awk	CHECK_CMP_CHANGED	GEAENDERT
+1920	awk	CHECK_CMP_NEW	NEU
+1923	flag_yel	CHECK_CMP_WEB_MANY_YEL	%1 Web-Dateien neu oder geaendert seit Snapshot %2 (ab 20 me
+1924	flag_yel	CHECK_CMP_WEB_YEL	%1 Web-Datei(en) neu oder geaendert seit Snapshot %2:
+1926	grn	CHECK_CMP_WEB_NONE_OK	Keine Web-Dateien neu oder geaendert seit Snapshot %1
+1931	flag_red	CHECK_CMP_NEW_USER_RED	System-User neu seit Snapshot %1: %2
+1936	flag_yel	CHECK_CMP_NEW_LISTENER_YEL	Listener neu seit Snapshot %1:
+1938	inf	CHECK_CMP_NO_MANIFEST	--compare: kein Manifest unter %1
+1940	grn	CHECK_NO_HITS_OK	Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+1943	hdr	HDR_BLOCK6	6 Verdict
+1947	out	TAG_ACTION	ACTION
+1948	out	VERDICT_FORENSICS_HEAD	Kompromittierungszeichen gefunden. Nicht rebooten, nicht upg
+1949	out	VERDICT_FORENSICS_STEP1	  1. Appliance isolieren (Failover auf gepatchten Knoten ode
+1950	out	VERDICT_FORENSICS_STEP2	  2. Sichern: show techsupport, /var/log, /var/core, die gen
+1951	out	VERDICT_FORENSICS_STEP3	  3. Citrix Support einbinden, offiziellen IoC-Scan anforder
+1953	out	TAG_ACTION	ACTION
+1956	assign	VERDICT_EXPLOITED_FRAG	, aktiv ausgenutzt
+1957	out	VERDICT_UPDATE_EOL	Release %1 ist End-of-Life; kein Fix, Migration auf einen un
+1958	out	VERDICT_UPDATE_VULN	Build %1 ist verwundbar gegen %2 (%3%4). Ziel: %5-%6.
+1959	out	VERDICT_UPDATE_INCOMPLETE	Build %1: Bewertung unvollstaendig (Build nicht ermittelbar 
+1961	out	VERDICT_UPDATE_SAML	SAML konfiguriert und SAML-abhaengige CVE offen (siehe Block
+1962	out	VERDICT_UPDATE_TRACES	Angriffsspuren vorhanden: vor dem Upgrade Logs und /var/core
+1963	out	VERDICT_UPDATE_NO_TRACES	Keine Spuren im Fenster: trotzdem vor dem Upgrade Logs exter
+1964	out	VERDICT_UPDATE_ISN	Nach dem Upgrade: set ns tcpParam -enhancedISNGeneration ENA
+1965	out	VERDICT_UPDATE_HA	HA: Secondary zuerst, Failover, dann Primary. Nach dem Upgra
+1967	out	TAG_ACTION	ACTION
+1968	out	VERDICT_INV_COVERAGE	Nicht vollstaendig geprueft:%1 Ein OK ist ohne diese Daten n
+1969	out	VERDICT_INV_HEAD	Das Geraet ist gepatcht und zeigt keine Kompromittierungszei
+1970	out	VERDICT_INV_REPEAT	Danach diesen Check wiederholen: sind die Punkte geklaert od
+1971	out	VERDICT_INV_OPEN_POINTS	Offene Punkte:
+1972	out	VERDICT_INV_ISN	  - Enhanced ISN Generation aktivieren (CVE-2026-88778 ist m
+1973	out	VERDICT_INV_NO_MITIG	  - Angriffsversuche laufen, keine Mitigation-Policy gebunde
+1974	out	VERDICT_INV_TRACES	  - Quell-IPs oben an Firewall/SOC geben; Download-Hosts in 
+1975	out	VERDICT_INV_UNSAVED	  - Ungespeicherte Config-Zeilen klaeren: eigene Aenderung d
+1976	out	VERDICT_INV_IOC_SCAN	  - Offizieller Citrix-IoC-Scan (Console oder Support) als z
+1978	out	TAG_ACTION	ACTION
+1979	out	VERDICT_OK_COVERED	Build gefixt, keine Kompromittierungszeichen. %1 Befund(e) s
+1980	out	VERDICT_OK	Build gefixt, keine Spuren im Fenster, keine Schnellcheck-Tr
+1982	out	VERDICT_SAVE_MISSING_NOTE	HINWEIS: ns.conf ist noch vom Build %1. Vor dem naechsten Re
+1983	out	VERDICT_HA_PEER	HA-PEER: %1 ebenfalls pruefen: sh %2/%3 --hours %4
+1989	out	ADDR_RUN_LIST_HEAD	Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed
+1992	assign	ADDR_STATUS_NEW	neu
+1993	assign	ADDR_STATUS_KNOWN	bekannt seit %1, an %2 Tag(en)
+1994	assign	ADDR_BLOCKED_NO	Sperrliste: nein
+1994	assign	ADDR_BLOCKED_SINCE	Sperre ab %1
+1994	assign	CHECK_UNKNOWN	unbekannt
+1995	assign	TRUST_UNTIL_FRAG	 bis %1
+1998	out	ADDR_RUN_LIST_TOTAL	  %1 Eintrag/Eintraege; reine Liste ohne vertraute Adressen:
+2002	assign	TAG_RESULT	RESULT
+2003	out	FOOT_CREATED	Erstellt mit netscaler-quickcheck %1 (Regelstand %2), Apache
+2009	echo>file	ADDR_IPS_HEAD1	# beobachtete fremde Adressen dieses Laufs, je Kategorie zus
+2010	echo>file	ADDR_IPS_HEAD2	# Kategorien: payload_download_host (im Injection-Payload ge
+2011	echo>file	ADDR_IPS_HEAD3	#   dropper_requester (Requests auf nsgclient-Pfade; legitim
+2012	echo>file	ADDR_IPS_HEAD4	# Vor einer Blockliste pruefen: geteilte Infrastruktur (CDN,
+2027	echo>file	ADDR_CUM_HEAD1	# ns_quickcheck_observed_ips.tsv - kumulierte Adressliste di
+2028	echo>file	ADDR_CUM_HEAD2	# Spalten: kategorie TAB adresse TAB anzahl_zuletzt TAB zule
+2029	echo>file	ADDR_CUM_HEAD3	# anzahl_zuletzt = Treffer des letzten Laufs in dessen Fenst
+2030	echo>file	ADDR_CUM_HEAD4	# tage = Kalendertage, an denen ein Lauf die Adresse sah (me
+2031	echo>file	ADDR_CUM_HEAD5	# Kategorien: payload_download_host, injection_source, dropp
+2032	echo>file	ADDR_CUM_HEAD6	# Vor einer Blockliste pruefen: geteilte Infrastruktur (CDN,
+2033	echo>file	ADDR_CUM_HEAD7	# Reine Adressliste ohne vertraute Adressen (Kategorie trust
+2060	echo>file	HDR_ANON_REPORT_NOTE	# anonymisiert nach Zuordnungstabelle (%1 Eintraege%2); Angr
+2060	echo	HDR_ANON_SKIPPED_FRAG	; uebergangen, weil zu kurz oder Reportwort: %1
+2072	echo>file	SHARE_HEAD	# ns_quickcheck share %1  stand %2  quelle ns_quickcheck  (k
+2078	echo	ADDR_RUN_SUMMARY	Adressliste dieses Laufs: %1_ips.tsv (%2 Eintraege, davon %3
+2078	assign	ADDR_SINCE_TODAY	heute
+2079	echo	FOOT_FILES	Report: %1  JSON: %2 (defanged)  anon: %3 und %4 (fuer Weite
+2080	echo	SHARE_FILES	Adresslisten anon: %1 und %2; Share-Datei fuer ceterion (nac

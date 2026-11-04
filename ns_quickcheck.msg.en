@@ -1,0 +1,515 @@
+# ns_quickcheck.msg.en - message catalog for netscaler-quickcheck 17.43
+# Format: KEY<TAB>text; placeholders %1..%9 in the order of the values in the script call
+# --- TAG: Kennungen
+TAG_OK	[OK]
+TAG_INFO	[INFO]
+TAG_WARN	[WARN]
+TAG_YELLOW	[YELLOW]
+TAG_RED	[RED]
+TAG_ORANGE	[ORANGE]
+TAG_TRUST	[TRUST]
+TAG_ACTION	ACTION
+TAG_RESULT	RESULT
+# --- HDR: Kopf, Blockueberschriften, anon-Hinweise
+HDR_CFG_FROM_SNAPSHOT_CONF	cli_user from ns_snapshot.conf
+HDR_CFG_FROM_QUICKCHECK_CONF	cli_user from ns_quickcheck.conf
+HDR_CVE_CONFLICT_COND_FRAG	%1 %2 (same fix, condition rules file %3, custom %4);
+HDR_CVE_CONFLICT_FIX_FRAG	%1 %2 (rules file fix %3, custom fix %4);
+HDR_ANON_COMMENT_REMOVED	# (comment removed)
+HDR_CLI_REASON_NO_CLI	disabled by --no-cli
+HDR_CLI_REASON_NO_USER	CLI_USER not set
+HDR_CLI_REASON_NO_NSCLI	/netscaler/nscli missing
+HDR_CLI_REASON_NO_SECRET	secret file missing
+HDR_CLI_REASON_SECRET_PERMS	secret file not root:600
+HDR_CLI_REASON_SECRET_EMPTY	secret file empty
+HDR_RUN_LINE	ns_quickcheck %1  host=%2  mode=%3  window=%4h  rules=%5  cli=%6%7  %8
+HDR_CUSTOM_LOADED	Operator custom file loaded: %1 active indicator line(s), %2 CVE line(s) (%3)
+HDR_CUSTOM_NO_VERSION	no version
+HDR_CVE_CONFLICT	Rules file and custom file rate %1 CVE differently. Both lines are checked, the stricter result counts: %2
+HDR_RULES_OLDER	Rules file %1 is older than the minimum rules stand of this script (%2). Checks whose rules are missing are skipped with a note
+HDR_TRUSTED_EXPIRED_FRAG	, %1 expired and skipped
+HDR_TRUSTED_LIST	Trusted list: %1 entry/entries (ns_quickcheck.trusted_ips)%2. Trusted addresses appear as [TRUST], impact findings stay red
+HDR_TRUSTED_BAD_LINES	Trusted list: line(s) %1 skipped (no IPv4 address; format: address ; until ; note)
+HDR_TRUSTED_AND_BLOCKED	%1 is in trusted_ips and in the block list. The block list wins
+HDR_BLOCKED_LIST	Block list: %1 entry/entries (ns_quickcheck.blocked_ips and appliance ACLs). Findings for blocked addresses before the block date become ORANGE (covered)%2
+HDR_BLOCKED_NODATE_FRAG	; %1 without date: marked only. For ORANGE, enter the block date (YYYY-MM-DD) as the second field
+HDR_BLOCKED_BAD_LINES	Block list: line(s) %1 skipped (no IPv4 address; format: address ; since ; note)
+HDR_IOC_INACTIVE	Rules file format 2: %1 indicator line(s) inactive (source pending or marked for removal)
+HDR_OFFLINE_SOURCE	Source: %1
+HDR_CLI_OFF	CLI layer off: %1
+HDR_CLI_REASON_NONE	no access path
+HDR_WHITELIST_LOADED	Whitelist: %1 (%2 rules)
+HDR_WL_WEBFILE_UNANCHORED	Whitelist: webfile rule(s) that end neither in / (directory) nor in $ (file) match more than intended: %1(README 15)
+HDR_WL_DIR_RULES	Whitelist: %1 directory rule(s) without hash. They allow everything below, new files included (never code). Recommended: one pin per file, --pin-all <folder> (WORKFLOW, Whitelist)
+HDR_WL_CODE_NO_PIN	Whitelist: file rule(s) on code without a hash pin have no effect. Code needs @sha256=<hash> (--pin <path> creates the lines): %1
+HDR_WHITELIST_MISSING	Whitelist: not present (%1). All findings unfiltered
+HDR_BLOCK1	1 Build
+HDR_BLOCK2	2 Exposure
+HDR_BLOCK3	3 Mitigation
+HDR_BLOCK4	4 Attack traces (last %1h)
+HDR_BLOCK5	5 Compromise quick check
+HDR_BLOCK6	6 Verdict
+HDR_ANON_REPORT_NOTE	# anonymized by mapping table (%1 entries%2). Attacker values, hashes, paths and rules stands unchanged. Spot-check before sharing.
+HDR_ANON_SKIPPED_FRAG	; skipped as too short or a report word: %1
+# --- BUILD: Block 1 Build
+BUILD_FROM_NSCONF	Build taken from the ns.conf header (kern.bootfile not available)
+BUILD_FALLBACK_TEXT_RCE	pre-auth RCE, actively exploited
+BUILD_FALLBACK_TEXT_SAML	SAML DoS, CISA KEV
+BUILD_UNKNOWN_YEL	Build not determinable - check 'show ns version'
+BUILD_EOL_RED	Release %1 is end of life, no fix available (running: %2)
+BUILD_TRAIN_UNKNOWN_YEL	Train %1 not in the rules file (%2) - check manually against the bulletin (running: %3)
+BUILD_CVE_PENDING_FRAG	(fix build not yet published, rules stand %1. Until then: mitigation, blocks 2 and 3)
+BUILD_CVE_FIX_INVALID_FRAG	%1 %2: fix build '%3' invalid
+BUILD_CVE_COND_FRAG	 (condition: %1 configured)
+BUILD_VULN_NOFIX_RED	Build %1 is VULNERABLE to %2 (%3), no fix build published: %4
+BUILD_VULN_RED	Build %1 is VULNERABLE to %2 (%3), fixed in %4: %5
+BUILD_TARGET	Target build for this train: %1-%2
+BUILD_ALL_FIXED_OK	Build %1 contains all %2 fix(es) for %3%4%5
+BUILD_FIX_NA_FRAG	, %1 CVE(s) without configured condition
+BUILD_FIX_RULES_FRAG	 from the rules file
+BUILD_FIX_SPLIT_FRAG	 (%1 rules file, %2 custom)
+BUILD_RULES_ROW_YEL	Rules file: %1
+BUILD_VULN_JSON_PREFIX	Vulnerable:
+BUILD_CONF_NOT_SAVED_YEL	ns.conf was saved on %1, running is %2 - 'save ns config' after the upgrade is missing
+BUILD_WARN_YEL	Build %1: %2
+BUILD_STAGED_NOT_BOOTED_YEL	%1 is installed (%2) but not booted - reboot pending?
+BUILD_LAST_BOOT	Last boot: %1 (%2 days)
+# --- EXPO: Block 2 Exposure
+EXPO_SAML_CVE_OPEN	SAML configured (SP=%1 IdP=%2) - SAML-dependent CVE open, see block 1
+EXPO_SAML	SAML configured (SP=%1 IdP=%2)
+EXPO_NO_SAML_OK	No SAML SP/IdP - SAML-dependent CVEs not relevant
+EXPO_DTLS	DTLS active on %1 gateway vServer(s) (precondition for CVE-2026-88772; mitigated on a fixed build)
+EXPO_NO_DTLS_OK	No DTLS on gateway vServers
+EXPO_ISN_STEP_MISSING_YEL	Configuration step missing: set ns tcpParam -%1 (%2, %3) - stays open after the upgrade
+EXPO_ISN_ACTIVE_OK	Enhanced ISN Generation active
+EXPO_PARTITIONS	%1 admin partition(s) - check TCP parameters and ISN there separately
+EXPO_MGMT_ON_SNIP_YEL	Management access on SNIP enabled: %1 - NITRO/GUI reachable. CVE-2026-88771 is also staged through failed NITRO logins
+EXPO_MGMT_NSIP_UNKNOWN	Management portal: NSIP not determinable from ns.conf, ACL mitigation (CTX697263) not checked
+EXPO_MGMT_NO_ACL_VULN_YEL	Management portal (PHP, CTX697263) on a vulnerable build without ACL protection: %1- until the update, restrict port 80/443 of these addresses to admin networks by ACL (Citrix recommendation)
+EXPO_MGMT_NO_ACL_FIXED	Management portal without DENY ACL on port 80/443: %1(build fixed against CTX697263; an ACL is still advisable if the portal is reachable from outside the admin networks)
+EXPO_MGMT_ACL_OK	Management portal: DENY ACLs on port 80/443 present for %1 (Citrix mitigation CTX697263)
+EXPO_MGMT_ACL_RULE_MISSING	Management portal ACLs not checked: rule MGMT_ACL_RE missing in the rules file (%1; needs %2 or newer)
+# --- MITIG: Block 3 Mitigation
+MITIG_NONE_VULN_YEL	No responder or traffic policy with log poisoning or SAML patterns - the unfixed build has no mitigation at all
+MITIG_NONE	No mitigation policy found (not required on a fixed build without traces)
+MITIG_POLICY_UNBOUND_YEL	%1 policy %2 exists but is not bound anywhere
+MITIG_RESPONDER_OFF_YEL	%1 policy %2 bound (%3), but the responder feature is OFF - the policy has no effect
+MITIG_NO_AAA_REQUEST_YEL	%1 policy %2 bound (%3), but without -type AAA_REQUEST - it sees no logon traffic
+MITIG_RESPONDER_BOUND_OK	%1 policy %2 bound (%3 vServer, %4 x AAA_REQUEST%5)
+MITIG_POLICY_BOUND_OK	%1 policy %2 bound (%3 vServer)
+MITIG_HITS	  Hits %1: %2 (since the last counter reset)
+MITIG_HITS_DELTA	  Hits %1: %2 (+%3 since %4)
+MITIG_DENYLIST_OK	Global Deny List AAA_REQUEST present (Console signatures)
+MITIG_DENYLIST_NONE	No Global Deny List AAA_REQUEST (not configured)
+MITIG_DENYLIST_UNKNOWN	Global Deny List: no statement possible
+# --- TRACE: Block 4 Angriffsspuren (ohne Gateway-AAA)
+TRACE_IOC_SOURCE_FRAG	 - Source: %1 %2
+TRACE_DETAIL_MORE	... and %1 more (DETAIL_MAX=%2)
+TRACE_BLOCKED_TAG_FRAG	 (blocked since %1%2)
+TRACE_BLOCKED_TAG_NODATE_FRAG	 (blocked, date unknown: marked only%1)
+TRACE_NET24_ROW	%1 (%2 address(es), %3 request(s))
+TRACE_COV_NO_NSLOG_FRAG	 ns.log family missing in the window;
+TRACE_COV_NO_HTTPACCESS_FRAG	 httpaccess missing in the window (dropper, probing, sources);
+TRACE_COV_UNREADABLE_FRAG	 %1 log file(s) not readable;
+TRACE_NSPROF_DIVERTED	nsprofmon_mgmt.pl lines (CPU snapshots with process command lines) diverted up front: %1. They are only checked for suspicious processes, so the quickcheck does not find itself
+TRACE_LOGS_READ	Logs read in the window: ns.log/nsvpn/messages/notice %1, httpaccess %2, httperror %3, auth.log %4, httpaccess.log (management) %5, cron %6 file(s)%7
+TRACE_LOGS_UNREADABLE_FRAG	, %1 not readable
+TRACE_NO_NSLOG_YEL	No ns.log/nsvpn.log/messages in the window (path %1) - logs rotated or not in the snapshot
+TRACE_INJ_COVERED_ORG	%1 logon line(s) with injection patterns (CVE-2026-88771 / log poisoning), %2 to %3 - covered: download host(s) blocked, build fixed:
+TRACE_INJ_COVERED_HOST_DET	%1: %2, the attempt of %3 is earlier
+TRACE_INJ_COVERED_TODO_DET	To do: nothing. A new attempt with this host after the block date would be red again.
+TRACE_INJ_RED	%1 logon line(s) with injection patterns (CVE-2026-88771 / log poisoning), %2 to %3:
+TRACE_INJ_SRC_LINES_FRAG	%1  in %2 of %3 line(s)
+TRACE_INJ_SRC_MATCH_FRAG	%1  matches %2 of %3 attempt time(s)%4
+TRACE_INJ_SRC_OFFSET_FRAG	, logs offset by %1h
+TRACE_INJ_ONE_WAVE_FRAG	 (one wave)
+TRACE_INJ_WHEN_DET	When:          %1 to %2, %3 line(s) on %4 packet engine(s)%5
+TRACE_LOG_DET	Log:           %1
+TRACE_INJ_RESULT_VULN_DET	Result:        Build %1 is vulnerable. The daily ns_monuploadd_err.pl may have executed these lines or may still do so.
+TRACE_INJ_RESULT_COVERED_DET	Result:        covered. Build fixed, download host(s) blocked before the attempt. A new attempt with this host after the block date would be red again.
+TRACE_INJ_MITIG_ANSWERED_FRAG	, the mitigation policy responded
+TRACE_INJ_RESULT_NO_EFFECT_DET	Result:        attempt without effect. Build %1 is fixed against CVE-2026-88771%2.
+TRACE_INJ_SAML_CAUTION_DET	Caution:       SAML is configured and a SAML CVE is open. Such an attempt can then take effect another way. Work through block 1 first.
+TRACE_BLOCKED_SINCE_FRAG	, blocked since %1
+TRACE_NO	no
+TRACE_YES	yes
+TRACE_RULES_YES_FRAG	yes (%1)
+TRACE_INJ_DLHOST_DET	Download host: %1   Block list: %2   Rules file: %3   Address list: payload_download_host
+TRACE_INJ_DLHOST_NONE_DET	Download host: none visible in the payload
+TRACE_SRC_WEAK_FRAG	, weak
+TRACE_INJ_SRC_RESPONDER_DET	Source:        %1 (from the responder line, %2)%3%4%5
+TRACE_SRC_SAME_AS_DLHOST_FRAG	, same as the download host (loads from itself)
+TRACE_INJ_SRC_ACCESS_DET	Source:        %1, %2%3 (behind NAT only the NAT address)%4%5
+TRACE_INJ_SRC_UNKNOWN_RESP_DET	Source:        unknown. The responder rejected the request before the web server, the access log does not have it, and the policy logs no client address (README 15, Howto Responder-Quelle)
+TRACE_INJ_SRC_UNKNOWN_NOREQ_DET	Source:        unknown. No logon request in the access log at attempt time (log for that time rotated, or the clocks differ by more than 14h)
+TRACE_INJ_SRC_UNKNOWN_NOLOG_DET	Source:        unknown. No access log in the window
+TRACE_INJ_TODO_VULN1_DET	To do:         1. Do not patch, do not restart. Back up logs and /var/core externally (runbook).
+TRACE_INJ_TODO_VULN2_DET	               2. Read block 5: payload files, webshells, accounts. On a hit: incident process.
+TRACE_TODO_NOTHING_BLOCK_DET	To do:         nothing. The next run shows whether the block holds.
+TRACE_INJ_TODO_FW_DET	To do:         %1. Firewall and DNS logs: any connection from NSIP/SNIP to %2 since %3? None = attempt without effect.
+TRACE_INJ_TODO_FETCH_LOG_DET	               %1. Get httpaccess-vpn.log for %2 from the snapshot set and review the logon requests at that second (client address, user agent).
+TRACE_INJ_TODO_RESP_AUDIT_DET	               %1. Extend the responder policy with an audit message action that logs CLIENT.IP.SRC (README 15, Howto Responder-Quelle). Review firewall logs for %2.
+TRACE_INJ_TODO_BLOCK_HOST_DET	               %1. Block the download host in the firewall and add it to ns_quickcheck.blocked_ips (address ; date ; note). This finding then becomes ORANGE.
+TRACE_INJ_NONE_OK	No injection patterns in logon lines of the last %1h
+TRACE_CRASH_ESCALATION_FRAG	escalation:
+TRACE_CRASH_DIR_EMPTY_FRAG	, empty
+TRACE_CRASH_DIR_EVENT_FRAG	directory %1%2, %3 min after boot
+TRACE_CRASH_PROC_UNKNOWN	(unknown)
+TRACE_CRASH_CORE_NOLOG_FRAG	core without log line
+TRACE_CRASH_TRIG_FRAG	%1 %2 from %3;
+TRACE_CRASH_CORES_FRAG	, %1 core evidence item(s)
+TRACE_CRASH_HEAD	%1 crash event(s) in the window (Pitboss, kernel, Apache error log, /var/core; counted once per process and PID)%2
+TRACE_CRASH_WHY_SAML_VULN	nsaaad with SAML on an unfixed build: the SAML CVE is probably being exploited
+TRACE_CRASH_WHY_NSAAAD_REPEAT	nsaaad on a SAML gateway %1 times in one day: exploitation pattern (CTX697174/CTX697191) until proven otherwise
+TRACE_CRASH_WHY_HTTPD_VULN	httpd on a vulnerable build (CTX697263): the vulnerable process crashes, that is the attack
+TRACE_CRASH_WHY_PPE_DTLS	packet engine with DTLS errors in the same window: possible CVE-2026-88772 attempt
+TRACE_CRASH_WHY_SAME_DAY	%1 crashes of the same process in one day
+TRACE_CRASH_WHY_THREE_DAYS	the same process crashed on three or more days (%1; ns_quickcheck_observed_crashes.tsv)
+TRACE_CRASH_WHY_TRIGGER	crash right after an external request: %1
+TRACE_CRASH_RED	%1 - %2
+TRACE_CRASH_HTTPD_FRAG	; httpd: check the relation to CTX697263
+TRACE_CRASH_NSAAAD_SAML_FRAG	; nsaaad on a SAML gateway is an exploitation indicator, red on the second event
+TRACE_CRASH_YEL	%1 - every crash needs an assessment%2%3
+TRACE_CRASH_TRIGGER_DET	Trigger:       %1(addresses as crash_trigger in the address list)
+TRACE_CRASHFILE_HEAD	# ns_quickcheck: crashes per process and day, cumulated across runs. Never delete
+TRACE_CRASH_EVENTS_DET	Events (newest first; time, process, PID, signal, restart counter):
+TRACE_CRASH_EVENT_CORE_FRAG	  core: %1
+TRACE_CRASH_EVENT_ROW	%1  %2  pid %3  signal %4  restarts %5%6
+TRACE_CRASH_CORES_DET	Core evidence in the window (files or directories under /var/core; back up before reboot, send to Citrix Support):
+TRACE_CRASH_WHAT_DET	What happened: a daemon crashed and Pitboss restarted it. Without SAML and on a fixed build, nsaaad is usually an operational issue. httpd in the CTX697263 window and nsppe with DTLS errors are attack patterns.
+TRACE_CRASH_TODO_DET	To do: back up /var/core. If it repeats or the process matches an open CVE: Citrix Support, incident process.
+TRACE_CRASH_NONE_OK	No crashes in the window (Pitboss, kernel, Apache error log, /var/core)
+TRACE_CORE_BOOT	Core directory %1 empty, created %2 (%3 min after boot): boot aftermath of the upgrade or reboot, not a crash. Check the content: ls -la %4 (CORE_BOOT_LEVEL=yellow turns it into an event)
+TRACE_KERNEL_PANIC_RED	%1 kernel panic/trap line(s) in the window - kernel crash, clarify the cause with Citrix Support:
+TRACE_KERNEL_MEM_YEL	%1 line(s) of kernel memory pressure (swap exhausted, processes killed) - with httpd or nsaaad a companion of out-of-memory attacks (PHP2Shell), otherwise an operational issue:
+TRACE_REBOOT_UNEXPLAINED_YEL	Restart on %1 without a reboot/shutdown command in the audit log of the window - panic, watchdog, power loss or intervention. Clarify the reason
+TRACE_NSAAAD_UNKNOWN_FORMAT	%1 nsaaad line(s) in a format the anchored patterns do not know (build %2). Please send them in anonymized so the pattern can be extended
+TRACE_NSAAAD_LEGACY_YEL	%1 nsaaad crash line(s) (old pattern; rules file %2 does not know PITBOSS_RE/KERNEL_EXIT_RE) - clarify the cause
+TRACE_NSAAAD_LEGACY_NONE_OK	No nsaaad crashes in the window (old pattern)
+TRACE_CRASH_RULES_MISSING	Process crashes not checked: rules PITBOSS_RE/KERNEL_EXIT_RE missing in the rules file (%1)
+TRACE_NSPROF_SUSPECT_YEL	%1 CPU snapshot(s) with a suspicious process (SUSPECT_PROC_RE) - time series for block 5:
+TRACE_NSPROF_NONE_OK	No suspicious processes in the CPU snapshots
+TRACE_NO_ACCESSLOG	Dropper requests, probing sources and injection sources not checked: no httpaccess* file in the window (%1h)
+TRACE_DROP_COVERED_ORG	Requests to dropper transport paths from blocked addresses - covered:
+TRACE_DROP_COVERED_DET	%1: %2, last seen %3, %4 request(s)
+TRACE_DROP_COVERED_TODO_DET	To do: nothing. The next run shows whether the block holds.
+TRACE_DROP_BLOCK_LEAK_YEL	Block not effective: blocked address(es) still reach the appliance after the block date:
+TRACE_DROP_BLOCK_LEAK_DET	%1: %2, but %3 request(s) in the window, the last on %4
+TRACE_DROP_BLOCK_LEAK_TODO_DET	To do: check the firewall rule and the path (block before or behind the gateway, IPv6, another route, NAT address blocked instead of the source).
+TRACE_DROP_NODATE_DET	Observation date not determinable for: %1(coverage by the block not verifiable, rated as unblocked)
+TRACE_DROP_HUNT_RED	Requests to dropper transport paths (nsgclient packages): dropper search or source IP with an injection line, not a client:
+TRACE_DROP_HUNT_DET	Dropper search, not a client: %1(more than two different package names from one address or command characters in the query string). To do: block the addresses, add them to the custom file as a field finding, report to SOC.
+TRACE_DROP_YEL	Requests to dropper transport paths (nsgclient packages) from %1 source IP(s) in the window - legitimate Linux clients or dropper pickup, assess:
+TRACE_WHEN_DET	When:          %1 to %2
+TRACE_BLOCKED_NODATE_FRAG	, no date
+TRACE_DROP_ADDR_DET	Address:       %1   %2 request(s)   Dropper search: %3   Block list: %4   Rules file: %5   Address list: dropper_requester
+TRACE_NETS_DET	Networks:      %1
+TRACE_DROP_RESULT_HUNT_DET	Result:        dropper search (more than two different package names from one address or command characters in the query string). No client does this. No effect on a fixed build, the addresses keep searching.
+TRACE_DROP_RESULT_OPEN_DET	Result:        open. Real Linux clients request nsgclient.deb, attackers fetch nsg64.deb and similar packages. The paths below decide.
+TRACE_DROP_TODO_BLOCK_DET	To do:         %1. Block the addresses with dropper search in the firewall and add them to ns_quickcheck.blocked_ips. This finding then becomes ORANGE.
+TRACE_DROP_TODO_FIELD_DET	               %1. Add as a field finding to the custom file (README 15, Howto Feldbefund) and report to SOC.
+TRACE_DROP_TODO_CHECK_DET	To do:         %1. Check the paths below per address: nsgclient.deb from known clients = normal, other package names = block and report.
+TRACE_DROP_TODO_PATHS_DET	               %1. Paths per address:
+TRACE_DTLS_PPE_RED	DTLS handshake errors AND packet engine restart in the window - possible CVE-2026-88772 attempt, check /var/core
+TRACE_NO_ERRLOG	Web server error log not checked: no httperror* file in the window (%1h)
+TRACE_ERRLOG_RULES_MISSING	Web server error log not checked: rules HTTPERR_EXEC_RE/HTTPERR_PROBE_RE missing in the rules file (%1; needs %2 or newer)
+TRACE_HTTPERR_EXEC_RED	Web server executed or looked for scripts outside the stock paths (%1 interpreter error line(s)):
+TRACE_HTTPERR_EXEC_RESULT_DET	Result:        PHP or CGI ran outside the management UI. This only happens if a file is there that does not belong there. Block 5 and runbook.
+TRACE_HTTPERR_EXEC_TODO_DET	To do:         1. Review the named files: do they still exist? Content, timestamp, hash on VirusTotal (hash only). 2. Match the time against block 4. 3. If in doubt: incident process, do not patch.
+TRACE_HTTPERR_EXEC_NONE_OK	Web server error log without interpreter errors outside the stock paths
+TRACE_PHP_ANOM_VULN_YEL	PHP memory/fatal patterns in the management portal on a vulnerable build (CTX697263): %1 line(s), %2 to %3
+TRACE_PHP_ANOM_FIXED	PHP memory/fatal patterns in the management portal: %1 line(s), %2 to %3. Build fixed against CTX697263, normal on large configs
+TRACE_PHP_ANOM_RESULT_DET	Result:        hypothesis, no published signature. CVE-2026-109618/109619 use out-of-memory and fatal error paths in PHP. The same messages also occur with large configs in the GUI. Only together with block 5 (new PHP file, interpreter children) does this become a finding.
+TRACE_PHP_ANOM_TODO_DET	To do:         1. Update to the fix build (block 1). 2. Until then, restrict port 80/443 of the management addresses by ACL (block 2). 3. Read block 5.
+TRACE_PHP_ANOM_NONE_OK	No PHP memory/fatal patterns in the management portal above the threshold (%1)
+TRACE_PHP_ANOM_RULE_MISSING	PHP anomalies in the management portal not checked: rule HTTPERR_PHP_ANOMALY_RE missing in the rules file (%1; needs %2 or newer)
+TRACE_WEBSHELL_200_RED	Webshell path answered with status 200 (the file exists and was called):
+TRACE_WEBSHELL_200_TODO_DET	To do:         incident process, do not patch, do not restart. Back up the file (path, hash), read block 5.
+TRACE_PROBE	Webshell probing: %1 request(s) to %2 non-existent webshell paths (PROBE_LEVEL=info)
+TRACE_PROBE_YEL	Webshell probing: %1 request(s) to %2 webshell path(s), the files do not exist (attempt without effect):
+TRACE_PROBE_NOTE_DET	Note:          [client 127.0.0.2] in the error log is the appliance itself. The packet engine passes requests internally to the web server, which never sees the real address. Who it was is in the access log at the same second with the same path; the script looked there.
+TRACE_PROBE_SRC_DET	Source:        %1, %2 request(s)%3
+TRACE_PROBE_NO_SRC_DET	%1 request(s) without source (access log rotated or path differs in the access log)
+TRACE_PROBE_SRC_UNKNOWN_DET	Source:        unknown. The paths are not in the access log of the window (rotated) or the request came through the management layer
+TRACE_PROBE_RESULT_DET	Result:        someone is checking whether this appliance carries the known webshells (.ctxs.receiver, .local_journal, PHP variants). The answer was 404; block 5 confirms that the files are absent.
+TRACE_PROBE_TODO_DET	To do:         1. Block the source addresses and add them to ns_quickcheck.blocked_ips. 2. If block 5 does not report the paths, nothing else to do. PROBE_LEVEL=info in the config downgrades this message to INFO.
+TRACE_PROBE_NONE_OK	No webshell probing in the web server error log
+TRACE_WEBSERVER_DIRECT_YEL	Web server addressed directly: error lines with a client outside 127.0.0.x:
+TRACE_WEBSERVER_DIRECT_RESULT_DET	Result:        someone reached Apache without going through the packet engine, i.e. via the NSIP (management) or a path that bypasses the gateway logic.
+TRACE_WEBSERVER_DIRECT_TODO_DET	To do:         assess the address (admin network? then set MGMT_NET_RE in ns_quickcheck.conf), otherwise check management access on SNIPs and block the address.
+TRACE_NO_MGMTLOG	Management access not checked: no httpaccess.log file in the window (%1h)
+TRACE_MGMT_RULE_MISSING	Management access not checked: rule MGMT_PATH_RE missing in the rules file (%1; needs %2 or newer)
+TRACE_MGMT_ADDR_FRAG	%1 (%2 request(s))
+TRACE_MGMT_EXTERNAL_YEL	Management layer (NITRO, GUI) addressed from addresses outside RFC 1918 and MGMT_NET_RE:
+TRACE_MGMT_EXTERNAL_RESULT_DET	Result:        NITRO or GUI are reachable from outside or were addressed from outside. This is the staging path for CVE-2026-88771 (block 2: management access on SNIP).
+TRACE_MGMT_EXTERNAL_TODO_DET	To do:         1. Are these your admin networks? Then set MGMT_NET_RE in ns_quickcheck.conf. 2. Otherwise: disable management access on SNIPs (set ns ip <snip> -mgmtAccess DISABLED), block and record the addresses.
+TRACE_MGMT_INTERNAL_OK	Management layer (NITRO, GUI) addressed from internal addresses only
+TRACE_NO_AUTHLOG	Logons not checked: no auth.log file in the window (%1h)
+TRACE_AUTH_RULES_MISSING	Logons not checked: rules AUTH_LOGIN_RE/AUTH_FAIL_RE missing in the rules file (%1; needs %2 or newer)
+TRACE_SSH_FAIL_FRAG	%1 (%2 failed attempts)
+TRACE_SSH_USER_FROM_FRAG	%1 from %2
+TRACE_SSH_BACKDOOR_RED	Logon of a known backdoor account on the appliance: %1
+TRACE_SSH_EXTERNAL_YEL	SSH logons from addresses outside RFC 1918 and MGMT_NET_RE:
+TRACE_SSH_EXTERNAL_TODO_DET	To do:         1. Are these your admin workstations or jump servers? Then set MGMT_NET_RE. 2. Otherwise change the account password, check sessions, block and record the address.
+TRACE_SSH_BRUTEFORCE_YEL	SSH failed attempts in series (brute force) from:
+TRACE_SSH_BRUTEFORCE_TODO_DET	To do:         allow SSH on the NSIP only from admin networks (ACL or firewall). Put the addresses on the block list.
+TRACE_SSH_INTERNAL_ONLY	Logons on the appliance in the window: %1internal addresses only
+TRACE_AUTH_NONE_OK	No logons or failed attempts in auth.log in the window
+# --- AAA: Block 4 Gateway-Anmeldefehler
+AAA_RULES_MISSING	Gateway logon failures not checked: rules AAA_FAIL_RE/AAA_OK_RE missing in the rules file (%1; needs %2 or newer)
+AAA_OWN_HAPEER	HA peer
+AAA_BF_HIT_RED	Successful logon after brute force on an account (%1 account(s)): password found or user logged on after the attack, a human must decide:
+AAA_BF_HIT_ROW	Account %1  %2 failed attempts from %3 address(es), then successful from %4
+AAA_BF_HIT_TODO_DET	To do:         lock the account, reset the password, end sessions (kill aaa session -userName <account>), call the user: was it them? Block and record the addresses.
+AAA_BF_YEL	Brute force on single accounts (many passwords against one known account, %1 account(s)):
+AAA_BF_ROW	Account %1 %2 failed attempts  %3 address(es): %4  %5 to %6, up to %7/min  Success after: no
+AAA_BF_MORE_ROW	and %1 more accounts
+AAA_BF_RESULT_DET	Result:        the attacker knows the account name and tries passwords. Unlike spraying, the attack targets one person. Clarify today: does the account exist, is it locked, does it have MFA, where is the name known from (LinkedIn, leak, phishing).
+AAA_BF_TODO_DET	To do:         1. Lock the account or change the password, end sessions. 2. Block and record the addresses. 3. Check lockout on the appliance (README 15, Howto Lockout). Caution: lockout lets anyone lock known accounts with failed attempts.
+AAA_HIT_RED	Successful logon after a failure series from an attack address (%1 address(es)): the campaign found a password:
+AAA_HIT_ROW	%1  %2 failed attempts, %3 accounts, then successful: %4
+AAA_HIT_TODO_DET	To do:         lock the account now, reset the password, end sessions (kill aaa session -userName <account>), check MFA. Block and record the address.
+AAA_SLEEPER_YEL	Sleeper (slow spraying over days, below all thresholds, %1 address(es)):
+AAA_SLEEPER_ROW	%1 %2 failed attempts %3 accounts   on %4 day(s) over %5 days (%6 to %7), at most %8/min   Success after: no  [Note: accounts %9]
+AAA_SLEEPER_RESULT_DET	Result:        deliberately slow so lockout and rate thresholds do not trigger. Visible only on the time axis (window and cumulative address list).
+AAA_SLEEPER_TODO_DET	To do:         block and record the address. It will come back, the block list will show it.
+AAA_SPRAY_YEL	Password spraying (many accounts, few attempts per account): %1 failed attempts in the window, %2 address(es) above the thresholds, %3 of them machines:
+AAA_SPRAY_SPLIT_DET	%1 address(es) unclear (human pace without success, listed first), %2 machines (by failed attempts), %3 users (success after, no finding):
+AAA_RATE_MACHINE	Rating: attack, block
+AAA_RATE_MACHINE_NET	Rating: attack (network with machines), block
+AAA_RATE_UNCLEAR	Rating: unclear, monitor
+AAA_RATE_UNCLEAR_BURST	Rating: unclear, one account in a short burst: typically a client with an old saved password, call the user
+AAA_RATE_USER	Rating: user (success after)
+AAA_SPRAY_ROW	%1 %2 failed attempts %3 accounts  %4 to %5, up to %6/min  Success after: %7  %8  [Note: accounts %9]
+AAA_SPRAY_MORE_DET	and %1 more address(es), complete in the address list of this run
+AAA_TOP_ACCOUNTS_DET	Accounts with the most failed attempts: %1
+AAA_TOP_ACCOUNT_SUCCESS_FRAG	, success after
+AAA_ACCOUNTS_TOTAL_DET	%1 different accounts in total, %2 of them only once (dictionary or leak spraying)
+AAA_SPRAY_RESULT_DET	Result:        machine = %1 or more attempts/min or %2 or more accounts from one address, or an address in a /24 with at least two machines; user = success of the same account within %3 min; unclear = human pace without success (also behind carrier NAT); one account in a short burst = usually a client with an old password. No CVE relation, but a risk for accounts without MFA.
+AAA_SPRAY_TODO_DET	To do:         1. Block and record networks and machine addresses at the firewall (more effective than lockout: spraying with one attempt per account stays below any lockout threshold). 2. Check MFA for all gateway accounts. 3. Tune the thresholds (AAA_FAIL_IP, AAA_RATE, AAA_FAIL_USERS, AAA_OK_WIN, AAA_BF_MIN) in ns_quickcheck.conf.
+AAA_BELOW_THRESHOLD	Gateway logon failures in the window: %1, no address above the thresholds (%2 failed attempts, %3 accounts)
+AAA_OWN_HIT_RED	Successful logon after a failure series from an own address (%1): an internal host tries accounts and succeeded (lateral movement or service account):
+AAA_OWN_YEL	Logon failures from own or internal addresses (%1 address(es)):
+AAA_OWN_INTERNAL_FRAG	 (internal)
+AAA_OWN_ROW	%1%2   %3 failed attempts   %4 account(s)   %5 to %6, up to %7/min   Success after: %8   [Note: accounts %9]
+AAA_OWN_RESULT_DET	Result:        not the external attacker, but needs clarification: service account or monitoring with an old password, admin test, proxy or NAT egress with users behind it, or an internal host probing the gateway as a target (lateral movement). Own addresses are not in the address lists.
+AAA_OWN_TODO_DET	To do:         1. Name the system behind the address (the ns.conf object is in the line). 2. Check the account: who owns it, why does it fail. 3. If it recurs over days and is not a service account, treat it as an incident.
+AAA_NONE_OK	No gateway logon failures in the window
+# --- TRUST: Vertraute Adressen
+TRUST_UNTIL_FRAG	 valid until %1
+TRUST_UNLIMITED_FRAG	 valid without expiry
+TRUST_NOTE_FRAG	 [Note: %1]
+TRUST_TAG_FRAG	 [address in trusted_ips%1]%2
+TRUST_EVT_INTERNAL	rated as internal (management, SSH or logon failures)
+TRUST_LISTED_BEFORE_YEL	%1 is in trusted_ips but was listed as %2 in this appliance's address list - check the entry (typo? intended?)
+TRUST_ACTIVE_TRU	Trusted address %1%2 active in the window [Note: %3]:
+TRUST_NOTE_NONE	none
+TRUST_UNTIL_PAREN_FRAG	 (valid until %1)
+TRUST_UNLIMITED_PAREN_FRAG	 (valid without expiry)
+TRUST_EXPIRED_TAG_FRAG	 [in trusted_ips, expired on %1: renew or delete the entry]
+TRUST_EXPIRED_LIST_FRAG	, trusted expired on %1
+TRUST_CHECK_DET	Check:         is the entry correct and still wanted? Wrong entry = delete the line from ns_quickcheck.trusted_ips, then the next run rates it again. Impact findings (injection, webshell 200, success after failure series, active connection) stay red for trusted addresses too.
+# --- CHECK: Block 5 Kompromittierungs-Schnellcheck
+CHECK_HOSTFILE_NOT_ELF_YEL	%1 exists (not a binary) - check
+CHECK_PAYLOAD_PATH_RED	Known payload path exists: /%1 (%2)%3
+CHECK_WEBSHELL_NAMES_RED	Webshell file names in web directories:
+CHECK_PHP_OUTSIDE_RED	PHP files outside admin_ui/ns_gui (no PHP belongs there):
+CHECK_LAST_UPGRADE	Last upgrade according to nsinstall.log: %1
+CHECK_PIN_MISMATCH_YEL	%1 hash-approved web file(s) changed again (whitelist pin no longer matches): check the content, then update the pin
+CHECK_WEB_BURST	%1 web files changed in one burst on %2 (rewrite by upgrade aftermath or theme deploy, within %3 s) - not a single finding
+CHECK_WEB_MANY_YEL	%1 web files changed since boot, spread over %2 min - spot-check:
+CHECK_WEB_FEW_YEL	%1 web file(s) changed since boot (outside the upgrade window) - check each one:
+CHECK_WEB_DIR_GROUP_ROW	%1/: %2 files, %3 to %4
+CHECK_WEB_WHEN_DET	When:          %1 to %2, last boot %3
+CHECK_PHP2SHELL_RED	New PHP file(s) plus PHP memory/fatal patterns on a vulnerable build (CTX697263): pattern of a PHP2Shell exploitation
+CHECK_PHP2SHELL_TODO_DET	To do:         incident process, do not patch, do not restart. Back up the files (path, hash), isolate the management addresses by ACL.
+CHECK_WEB_RESULT_PHP_DET	Result:        atypical: %1 PHP file(s) changed. That is not a theme.
+CHECK_WEB_RESULT_OUTSIDE_DET	Result:        %1 file(s) outside themes, images and favicons. Assess one by one.
+CHECK_WEB_RESULT_EXEC_DET	Result:        %1 executable file(s) among them (scripts, plugins.xml): not a theme image, a theme ticket does not explain this by itself.
+CHECK_WEB_RESULT_THEME_DET	Result:        all changes in theme folders, images or favicons. A theme change by the operator is the likely explanation.
+CHECK_WEB_CODE_DET	Code:          executable code. Diff against the previous version (snapshot set or backup) before approval. Approve only with a hash pin, lines created by: sh ns_quickcheck.sh --pin <directory>
+CHECK_WEB_TODO1_DET	To do:         1. Check the change date against the theme change ticket.
+CHECK_WEB_TODO2_DET	               2. Add confirmed files to ns_quickcheck.whitelist as webfile:<regex>$, for code with @sha256=<hash>. The message disappears (README 15, Howto Whitelist).
+CHECK_WEB_TODO3_DET	               3. Unexplained files: review the content, look up the hash on VirusTotal (hash only), if in doubt incident process.
+CHECK_WEB_NONE_OK	No web files changed since boot
+CHECK_HTTPD_CHANGED_RED	httpd.conf changed %1, not at boot time, and content with a finding:
+CHECK_HTTPD_CONTENT_RED	httpd.conf: PHP in gateway paths or foreign alias:
+CHECK_HTTPD_CHANGED_YEL	httpd.conf changed %1, not at boot time. Content without finding (aliases, PHP handlers)
+CHECK_HTTPD_WHAT_DET	What happened: the web server configuration has a timestamp that does not match the last boot. Its content was checked and is clean; the message is about the timestamp only.
+CHECK_HTTPD_HARMLESS_DET	Harmless if: an install or upgrade happened at that time (installns writes the file). Otherwise: compare against /nsconfig/httpd.conf and a stock version.
+CHECK_CRON_ROOT_YEL	Root crontab lines outside the allowed list:
+CHECK_CRON_LASTRUN_DET	%1: last run according to /var/log/cron: %2
+CHECK_CRON_NOT_IN_WINDOW	not in the window
+CHECK_CRON_NOBODY_RED	Crontab for user nobody present (%1 lines) - known persistence
+CHECK_LISTENER_EXT_RED	Listeners of interpreter/shell processes on reachable addresses:
+CHECK_LISTENER_LO_YEL	Unknown interpreter listeners on loopback (stock services are in KNOWN_LISTENER_RE):
+CHECK_MONITOR_STOCK	Monitor script runs under the stock daemon (PID %1, parent: %2) - regular mechanism
+CHECK_SUSPECT_PROC_CRON_YEL	Process matches SUSPECT_PROC_RE under cron (PID %1, PPID %2) - not the stock mechanism (daemon monuploadd), assess:
+CHECK_SUSPECT_PROC_RED	Process matches SUSPECT_PROC_RE outside the stock daemon (PID %1, parent: %2) - manual start of the monitor script (CISA SIGMA S7):
+CHECK_UNKNOWN	unknown
+CHECK_MONITOR_CHILD_RED	Child process of the monitor script (PID %1) is a shell or downloader - execution of a log injection:
+CHECK_HASH_NO_STOCK	%1: sha256 %2 (no stock value stored for build %3, documentation only)
+CHECK_HASH_STOCK_OK	%1: hash matches the stock value for %2
+CHECK_HASH_MISMATCH_RED	%1: hash differs from the stock value for %2 (is %3) - file modified
+CHECK_OUTBOUND_RED	Active connection to a payload host or known attacker address:
+CHECK_LOCAL_USERS_YEL	Local system users besides nsroot: %1 - confirm each one (attackers create their own, e.g. sec_monitor)
+CHECK_SEC_MONITOR_RED	System user sec_monitor = known backdoor (LevelBlue)
+CHECK_EPA_NOAUTH_RED	EPA default group NO_AUTH in ns.conf - EPA effectively off (Wiz payload)
+CHECK_SH_SETUID_RED	/bin/sh has setuid/setgid (%1) - post-exploitation step
+CHECK_SVC_USER_CHANGED	Service user of this procedure (%1) was created or changed between the last two saves (%2 line(s), no finding)
+CHECK_SAVED_DIFF_RED	%1 saved config change(s) to users, auth, EPA or management between %2 and %3 - confirm each one:
+CHECK_SAVED_DIFF_YEL	%1 saved config change(s) to security-relevant objects between %2 and %3:
+CHECK_DIFF_ADDED	[new]
+CHECK_DIFF_REMOVED	[removed]
+CHECK_SAVED_DIFF_NONE_OK	No security-relevant changes between ns.conf.0 and ns.conf
+CHECK_UNSAVED_RED	%1 unsaved line(s) in the running config, including user, auth or policy changes:
+CHECK_UNSAVED_YEL	%1 unsaved line(s) in the running config (own change without save, or a finding):
+CHECK_DIFF_RUNNING_ONLY	[running only]
+CHECK_DIFF_SAVED_ONLY	[saved only]
+CHECK_UNSAVED_NONE_OK	Running config matches ns.conf (no unsaved changes)
+CHECK_RUNNING_EMPTY	show ns runningConfig returned no usable output
+CHECK_AAA_SESSIONS	Active AAA sessions: %1 line(s) (details in the report)
+CHECK_SIMPLEACL	Simple ACLs present: %1 line(s)
+CHECK_CMP_NO_SPACE	--compare %1: not enough space under %2 (%3 KB free, about %4 KB needed) - set %5 not extracted
+CHECK_CMP_EXTRACT_FAIL	--compare %1: set %2 could not be extracted (%3)
+CHECK_CMP_NO_SET	--compare %1: no snapshot set found in %2/out
+CHECK_CMP_AGAINST	Comparison against snapshot %1 (%2)
+CHECK_CMP_CHANGED	CHANGED
+CHECK_CMP_NEW	NEW
+CHECK_CMP_WEB_MANY_YEL	%1 web files new or changed since snapshot %2 (from 20 on usually an upgrade or theme rewrite):
+CHECK_CMP_WEB_YEL	%1 web file(s) new or changed since snapshot %2:
+CHECK_CMP_WEB_NONE_OK	No web files new or changed since snapshot %1
+CHECK_CMP_NEW_USER_RED	System user new since snapshot %1: %2
+CHECK_CMP_NEW_LISTENER_YEL	Listener new since snapshot %1:
+CHECK_CMP_NO_MANIFEST	--compare: no manifest under %1
+CHECK_NO_HITS_OK	No quick check hits (does not replace a full IoC scan)
+# --- VERDICT: Block 6 Verdict
+VERDICT_FORENSICS_HEAD	Signs of compromise found. Do not reboot, do not upgrade before evidence is secured:
+VERDICT_FORENSICS_STEP1	  1. Isolate the appliance (failover to a patched node or firewall), check HA file sync, check the peer as well.
+VERDICT_FORENSICS_STEP2	  2. Secure: show techsupport, /var/log, /var/core, the named files, RAM if possible (CTX694799).
+VERDICT_FORENSICS_STEP3	  3. Involve Citrix Support, request the official IoC scan. Then rebuild, rotate all secrets including the KEK, revoke certificates.
+VERDICT_EXPLOITED_FRAG	, actively exploited
+VERDICT_UPDATE_EOL	Release %1 is end of life. No fix; migrate to a supported train.
+VERDICT_UPDATE_VULN	Build %1 is vulnerable to %2 (%3%4). Target: %5-%6.
+VERDICT_UPDATE_INCOMPLETE	Build %1: assessment incomplete (build not determinable or train not in the rules file). Read block 1.
+VERDICT_UPDATE_SAML	SAML configured and a SAML-dependent CVE open (see block 1: %1). Target: %2-%3.
+VERDICT_UPDATE_TRACES	Attack traces present: back up logs and /var/core externally before the upgrade, the upgrade overwrites traces.
+VERDICT_UPDATE_NO_TRACES	No traces in the window: still back up logs externally before the upgrade (internet-exposed appliance = assume breach).
+VERDICT_UPDATE_ISN	After the upgrade: set ns tcpParam -enhancedISNGeneration ENABLED (CVE-2026-88778), in partitions too.
+VERDICT_UPDATE_HA	HA: secondary first, failover, then primary. After the upgrade, save ns config and repeat this check.
+VERDICT_INV_COVERAGE	Not fully checked:%1 An OK is not possible without this data. Provide logs (increase the --hours window, snapshot set with archive 3) and repeat.
+VERDICT_INV_HEAD	The appliance is patched and shows no signs of compromise. There are observations someone must assess; they are listed above with 'To do'.
+VERDICT_INV_REPEAT	Then repeat this check: once the points are clarified or whitelisted, the result becomes OK.
+VERDICT_INV_OPEN_POINTS	Open points:
+VERDICT_INV_ISN	  - Enable Enhanced ISN Generation (the build alone does not close CVE-2026-88778).
+VERDICT_INV_NO_MITIG	  - Attack attempts ongoing, no mitigation policy bound: set a responder policy with -type AAA_REQUEST, watch the hit counter.
+VERDICT_INV_TRACES	  - Pass the source IPs above to firewall/SOC. Search firewall/DNS logs for the download hosts.
+VERDICT_INV_UNSAVED	  - Clarify unsaved config lines: own change, then save ns config; otherwise a finding.
+VERDICT_INV_IOC_SCAN	  - Official Citrix IoC scan (Console or Support) as a second opinion if the appliance was exposed before the fix.
+VERDICT_OK_COVERED	Build fixed, no signs of compromise. %1 finding(s) covered by blocks (ORANGE above). The next run checks whether the blocks hold.
+VERDICT_OK	Build fixed, no traces in the window, no quick check hits. Next check after the next bulletin or when something looks odd.
+VERDICT_SAVE_MISSING_NOTE	NOTE: ns.conf is still from build %1. Before the next reboot: save ns config (otherwise changes since the upgrade are lost).
+VERDICT_HA_PEER	HA-PEER: check %1 as well: sh %2/%3 --hours %4
+# --- ADDR: Adressliste im Report, Beobachtungstexte, Koepfe der Adresslisten
+ADDR_SRC_INJ_LINE	ns.log injection line
+ADDR_SRC_LOGON_AT_ATTEMPT	httpaccess logon request at attempt time
+ADDR_SRC_RESPONDER_LINE	ns.log responder line from IP
+ADDR_SRC_CRASH_TRIGGER	request before crash of %1 (120 s window, rough match)
+ADDR_SRC_DROPPER	httpaccess DROPPER_PATH_RE
+ADDR_SRC_WEBSHELL_200	httpaccess webshell path 200
+ADDR_SRC_WEBSHELL_PROBE_TRUSTED	httpaccess webshell path (trusted)
+ADDR_SRC_WEBSHELL_PROBE	httpaccess webshell path
+ADDR_SRC_HTTPERR_CLIENT	httperror client
+ADDR_SRC_MGMT_PATH	httpaccess.log management path
+ADDR_SRC_AUTH_ACCEPTED	auth.log Accepted
+ADDR_SRC_AUTH_FAILED	auth.log Failed
+ADDR_SRC_AAA_FAIL_TRUSTED	ns.log AAA failed attempts (trusted)
+ADDR_SRC_AAA_BF_TRUSTED	ns.log AAA brute force on account (trusted)
+ADDR_SRC_AAA_BF	ns.log AAA brute force on account
+ADDR_SRC_AAA_HIT	ns.log AAA success after failure series
+ADDR_SRC_AAA_SLEEPER	ns.log AAA failed attempts over days
+ADDR_SRC_AAA_MACHINE	ns.log AAA failure series (machine)
+ADDR_RUN_LIST_HEAD	Addresses of this run, added to ns_quickcheck_observed_ips.tsv:
+ADDR_STATUS_NEW	new
+ADDR_STATUS_KNOWN	known since %1, on %2 day(s)
+ADDR_BLOCKED_NO	Block list: no
+ADDR_BLOCKED_SINCE	blocked since %1
+ADDR_RUN_LIST_TOTAL	  %1 entry/entries. Plain list without trusted addresses: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+ADDR_IPS_HEAD1	# observed external addresses of this run, summarized per category: kategorie TAB adresse TAB anzahl TAB beobachtung TAB gesperrt (bemerkung|seit from ns_quickcheck.blocked_ips or netscaler ACL; internal, remove before sharing)
+ADDR_IPS_HEAD2	# Categories: payload_download_host (named in the injection payload), injection_source (logon request at attempt time, behind NAT the NAT address),
+ADDR_IPS_HEAD3	#   dropper_requester (requests to nsgclient paths; legitimate Linux clients possible), outbound_hit (active connection to an attacker address)
+ADDR_IPS_HEAD4	# Check before building a block list: shared infrastructure (CDN, Cloudflare WARP, proxies, NAT) blocks bystanders too. No RFC 1918 or own addresses.
+ADDR_CUM_HEAD1	# ns_quickcheck_observed_ips.tsv - cumulative address list of this appliance, updated per run. Host %1, since %2, %3 entries, as of %4
+ADDR_CUM_HEAD2	# Columns: kategorie TAB adresse TAB anzahl_zuletzt TAB zuletzt_fenster_h TAB anzahl_max TAB max_fenster_h TAB tage TAB zuerst_gesehen TAB zuletzt_gesehen TAB beobachtung TAB gesperrt (bemerkung|seit; internal, remove before sharing)
+ADDR_CUM_HEAD3	# anzahl_zuletzt = hits of the last run in its window (zuletzt_fenster_h hours); anzahl_max = highest value ever seen, with its window. Not a sum: every run reads the same logs again.
+ADDR_CUM_HEAD4	# tage = calendar days on which a run saw the address (several runs per day count once). Files from script versions before 17.28 (sum, runs) are taken over, their old numbers are too high. For clean values delete the file, it rebuilds itself.
+ADDR_CUM_HEAD5	# Categories: payload_download_host, injection_source, dropper_requester, outbound_hit (meaning: README 5.2)
+ADDR_CUM_HEAD6	# Check before building a block list: shared infrastructure (CDN, Cloudflare WARP, proxies, NAT) blocks bystanders too. Contains no own and no RFC 1918 address.
+ADDR_CUM_HEAD7	# Plain address list without trusted addresses (category trusted_*): grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+ADDR_RUN_SUMMARY	Address list of this run: %1_ips.tsv (%2 entries, %3 of them new against the existing list, %4 address(es) on the block list; cumulated since %5: %6 addresses in ns_quickcheck_observed_ips.tsv)
+ADDR_SINCE_TODAY	today
+# --- SHARE: Share-Datei
+SHARE_HEAD	# ns_quickcheck share %1  as of %2  source ns_quickcheck  (no appliance ID, no notes; only reliable categories; review before sending)
+SHARE_FILES	Address lists anon: %1 and %2. Share file for ceterion (after review): %3
+# --- FOOT: Fusszeile und Dateihinweise
+FOOT_CREATED	Created with netscaler-quickcheck %1 (rules stand %2), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+FOOT_FILES	Report: %1  JSON: %2 (defanged)  anon: %3 and %4 (for sharing)
+# --- PIN: --pin-Ausgabe
+PIN_HEAD	# Pin lines for ns_quickcheck.whitelist (%1 under %2), created %3 by ns_quickcheck %4. Diff against the previous version first, then take over the lines
+PIN_SCOPE_ALL	all files
+PIN_SCOPE_CODE	code only
+# --- ERR: stderr (ERROR, WARN, ABBRUCH, --anon)
+ERR_CONF_IGNORED	WARN: %1 ignored (not root-owned or group/world-writable)
+ERR_PIN_NEEDS_PATH	ERROR: %1 needs a path: %2 <directory or file>
+ERR_OPT_NEEDS_VALUE	ERROR: %1 needs a value: %2 <value> or %3=<value>
+ERR_OPT_UNKNOWN	Unknown option: %1
+ERR_HOURS_NOT_NUMBER	--hours needs a number
+ERR_RULES_UNREADABLE	ERROR: rules file not readable: %1
+ERR_RULES_WRITABLE	ERROR: rules file is group/world-writable: %1
+ERR_CUSTOM_WRITABLE	WARN: custom file is group/world-writable and is ignored: %1
+ERR_RULES_CORE_VAR_MISSING	ERROR: core variable %1 is missing or empty in %2. Rules file incomplete, run aborted
+ERR_TESTLOG_NO_LOGS	ERROR: no .log files under %1
+ERR_WHITELIST_IGNORED	WARN: whitelist ignored (permissions): %1
+ERR_FROM_DIR_MISSING	ERROR: --from directory missing: %1
+ERR_NOT_NETSCALER	ERROR: not a NetScaler. For offline use: --from <directory>.
+ERR_NOT_ROOT	ERROR: online mode must run as root
+ERR_NSCONF_UNREADABLE	ERROR: ns.conf not readable: %1
+ERR_REPORT_NOT_WRITABLE	WARN: report file not writable: %1
+ERR_ANON_FILE_UNREADABLE	ERROR: --anon: file not readable: %1
+ERR_ANON_SUMMARY	anonymized: %1 mappings, %2 secrets masked. Spot-check before sharing, especially free text in policy names and expressions
+ERR_BLOCKED_WRITABLE	WARN: block list is group/world-writable and is ignored: %1
+ERR_TRUSTED_WRITABLE	WARN: trusted list is group/world-writable and is ignored: %1
+ERR_KIB_NO_HOSTNAME	ABORT: hostname unknown, anonymization not possible
+ERR_KIB_SELFCHECK_FAILED	ABORT: self-check failed (%1 in the bundle). No file written.
+ERR_PIN_NOT_FOUND	ERROR: --pin: %1 not found
+# --- TLOG: --testlog-Ausgabe (Block nicht in der Vorgabe, siehe msg_notizen.md)
+TLOG_EXPECT_NONE	none
+TLOG_HEAD	ns_quickcheck %1  testlog  rules=%2  expectations=%3
+TLOG_ROW_NO_EXPECT	   %1 %2  (no expectation)
+TLOG_ROW_EXPECT_ZERO	   %1 %2  expected 0        %3
+TLOG_ROW_EXPECT_MIN	   %1 %2  expected >=%3 %4
+TLOG_ROW_ADMIN	   %1 %2  (info: admin lines, excluded from INJECTION)
+TLOG_FAIL_MISSING_FILE	FAIL  expectation for missing file: %1
+TLOG_FAIL_UNKNOWN_CHECK	FAIL  unknown check in expected.txt: %1
+TLOG_SUMMARY	TESTLOG: %1 PASS, %2 FAIL
+# --- KIB: --ki-bundle (Block nicht in der Vorgabe, siehe msg_notizen.md)
+KIB_BLOCK1_HEAD	### BLOCK 1: rules file (shortened, without ALLOWED_SYSTEM_USERS and without lines naming the service user)
+KIB_BLOCK1_NOTE	# removed for the AI: ALLOWED_SYSTEM_USERS and every line that contains the service user name
+KIB_BLOCK2_HEAD	### BLOCK 2: anonymized log lines (negative tests for new patterns)
+KIB_B2_NSLOG_LOGONS	# ns.log, normal logons:
+KIB_B2_HTTPACCESS_LOGONS	# httpaccess, normal logon requests:
+KIB_B2_NSLOG_ADMIN_CMD	# ns.log, one admin command (CMD_EXECUTED):
+KIB_B2_NSLOG_NSAAAD_OK	# ns.log, one nsaaad line without errors:
+KIB_BLOCK3_HEAD	### BLOCK 3: Bulletin
+KIB_B3_BULLETIN_ID	<<< Bulletin ID: CTX______ >>>
+KIB_B3_BULLETIN_TEXT	<<< paste the full bulletin text from support.citrix.com here >>>
+KIB_LEAK_IP	IP address
+KIB_LEAK_HOSTNAME	hostname
+KIB_LEAK_HAPEER	HA peer IP
+KIB_LEAK_USERNAME	user name
+KIB_WRITTEN	AI bundle written: %1
+KIB_COUNTS	  Block 1 rules file: %1 assignments. Block 2 log lines: %2
+KIB_SELFCHECK_OK	  Self-check passed: no IP, no hostname, no user name from the last 24 h.
+KIB_NO_CUSTOMER_DATA	  This file no longer contains customer data. Paste it only into an AI account that does not train on input.
+KIB_DELETE_AFTER	  Delete after pasting: rm %1
+HDR_LANG	Language %1; %2 keys without translation (shown in German)

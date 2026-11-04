@@ -69,3 +69,5 @@ TRUST_LEVEL=trust
 FOOTER=1
 # leeres Core-Verzeichnis /var/core/<n> innerhalb 15 min nach Boot: info (Boot-Nachlauf, Vorgabe) oder yellow (als Absturz-Ereignis)
 CORE_BOOT_LEVEL=info
+# Sprache von Report, Terminal und Listen: de (Vorgabe) oder en; --lang geht vor
+LANG_QC=de

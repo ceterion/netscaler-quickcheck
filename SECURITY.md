@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository contains a triage script for Citrix NetScaler appliances and a rules file with publicly documented indicators. The script reads configuration, logs, file system, processes and listeners; it does not change appliance configuration or system files, does not open network connections and does not transmit data. It writes only to its own directories: reports, JSON, address lists and anonymized copies to `/var/nssnapshot/quickcheck/`, a per-appliance mapping table next to the rules file, and temporary files to a work directory under `/var/nssnapshot/tmp` (or `WORK_BASE`), removed after the run. Nothing is written to `/nsconfig`, `/flash` or the web directories.
+This repository contains a triage script for Citrix NetScaler appliances and a rules file with publicly documented indicators. The script reads configuration, logs, file system, processes and listeners, plus its own input files next to it (rules, message catalogs, whitelist, block and trusted lists; their hashes appear in the result line); it does not change appliance configuration or system files, does not open network connections and does not transmit data. It writes only to its own directories: reports, JSON, address lists and anonymized copies to `/var/nssnapshot/quickcheck/`, a per-appliance mapping table next to the rules file, and temporary files to a work directory under `/var/nssnapshot/tmp` (or `WORK_BASE`), removed after the run. Nothing is written to `/nsconfig`, `/flash` or the web directories.
 
 ## Reporting
 

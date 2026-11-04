@@ -5,7 +5,7 @@
 # Copyright 2026 ceterion AG. SPDX-License-Identifier: Apache-2.0. Provided "AS IS".
 set -e
 cd "$(dirname "$0")/.."
-pairs="ns_quickcheck_V17.sh:ns_quickcheck.sh"
+pairs="ns_quickcheck_V18.sh:ns_quickcheck.sh"
 rc=0
 echo "$pairs" | while IFS=: read -r src dst; do
   [ -f "$src" ] || { echo "FEHLT: $src" >&2; exit 1; }
@@ -17,7 +17,7 @@ echo "$pairs" | while IFS=: read -r src dst; do cmp -s "$src" "$dst" || { echo "
 echo "release.sh: Kopien aktuell"
 rm -f ns_quickcheck.anon.*.map 2>/dev/null   # Zuordnungstabellen aus Testlaeufen gehoeren nicht ins Repo
 # liegengebliebene Laufdateien im Baum (Reports, Adresslisten, Zuordnungstabellen) duerfen nicht ins Paket
-_stray=$(find . -maxdepth 2 \( -name 'ns_quickcheck_*_20*' -o -name '*_ips.tsv' -o -name 'ns_quickcheck_observed_ips.tsv' -o -name 'ns_quickcheck.anon.*.map' \) 2>/dev/null | grep -v '^./docs/testdata/' || true)
+_stray=$(find . -maxdepth 2 -not -path "./docs/testdata/reference/*" \( -name 'ns_quickcheck_*_20*' -o -name '*_ips.tsv' -o -name 'ns_quickcheck_observed_ips.tsv' -o -name 'ns_quickcheck.anon.*.map' \) 2>/dev/null | grep -v '^./docs/testdata/' || true)
 [ -z "$_stray" ] || { echo "release.sh: FAIL: Laufdateien im Baum: $_stray" >&2; exit 1; }
 # Release-Notes: docs/releases/v<version>.md muss existieren und die Hashes beider Assets nennen
 _v=$(grep -m1 '^VERSION=' ns_quickcheck.sh | sed 's/VERSION="\([0-9.]*\)".*/\1/'); _rn="docs/releases/v$_v.md"
@@ -27,6 +27,35 @@ grep -q "$_hs" "$_rn" || { echo "release.sh: FAIL: $_rn nennt nicht den Hash von
 grep -q "$_hr" "$_rn" || { echo "release.sh: FAIL: $_rn nennt nicht den Hash von ns_quickcheck.rules ($_hr)" >&2; exit 1; }
 # Plattform-Lint 4: BWK-awk kennt keine GNU-Funktionen (strftime, systime, gensub, asort, mktime)
 perl -ne 'next if /^\s*#/; if (/awk\b/ && /'"'"'(.*?)'"'"'/s) { my $p=$1; if ($p =~ /\b(strftime|systime|gensub|asorti?|mktime)\s*\(/) { print "$.: $_"; $bad=1 } } END { exit($bad?1:0) }' ns_quickcheck.sh || { echo "release.sh: Plattform-Lint FAIL: GNU-awk-Funktion in awk-Programm (BWK-awk)" >&2; exit 1; }
+# Plattform-Lint 5: Werkzeuge, die auf der Appliance fehlen (comm, timeout, seq ist da; GNU-Optionen von date/stat/readlink)
+perl -ne 'next if /^\s*#/; if (/(^|[;|&(\s])(comm|timeout|realpath|tac|shuf|nproc)\s/ || /\bdate -d\b/ || /\bstat -c\b/ || /\breadlink -f\b/ || /\bsed -i\b/) { print "$.: $_"; $bad=1 } END { exit($bad?1:0) }' ns_quickcheck.sh || { echo "release.sh: Plattform-Lint FAIL: Werkzeug oder GNU-Option, die auf der Appliance fehlt" >&2; exit 1; }
+# Plattform-Lint 6: Anfuehrungszeichen oder Klammern in ${...}-Mustern; an einer solchen Zeile stuerzte der Parser der FreeBSD-sh ab
+# (Lab 04.11.2026). Schleifen in $( ) sind dagegen unkritisch (seit 17.x im Einsatz), die Ursache des dritten Crashs blieb ungeklaert.
+perl -ne 'next if /^\s*#/; if (/\$\{[A-Za-z_][A-Za-z0-9_]*[#%]{1,2}[^}]*["()]/) { print "$.: Anfuehrungszeichen/Klammer im \${}-Muster: $_"; $bad=1 } END { exit($bad?1:0) }' ns_quickcheck.sh || { echo "release.sh: Plattform-Lint FAIL: Muster in \${} mit Anfuehrungszeichen oder Klammer" >&2; exit 1; }
+# Nachrichtenkataloge (18.0): gleiche Key-Mengen, gleiche Platzhalter je Key, jeder Key genau einmal, keine Gedankenstriche
+_kt=$(mktemp -d)
+for _c in ns_quickcheck.msg.*; do
+  [ "$(grep -v '^#' "$_c" | cut -f1 | sort | uniq -d | wc -l)" -eq 0 ] || { echo "release.sh: FAIL: $_c hat doppelte Keys" >&2; exit 1; }
+  perl -ne 'exit 1 if /\x{2013}|\x{2014}|\xe2\x80\x93|\xe2\x80\x94/' "$_c" || { echo "release.sh: FAIL: $_c enthaelt Gedankenstriche" >&2; exit 1; }
+  grep -v '^#' "$_c" | sort | awk -F'\t' '{ n=gsub(/%[0-9]/,"",$2); print $1 "\t" n }' > "$_kt/$_c.keys"
+done
+for _c in ns_quickcheck.msg.*; do [ "$_c" = ns_quickcheck.msg.de ] && continue
+  cmp -s "$_kt/ns_quickcheck.msg.de.keys" "$_kt/$_c.keys" || { echo "release.sh: FAIL: Keys oder Platzhalterzahl von ns_quickcheck.msg.de und $_c verschieden:" >&2; diff "$_kt/ns_quickcheck.msg.de.keys" "$_kt/$_c.keys" | head -5 >&2; exit 1; }
+done; rm -rf "$_kt"
+# Script ohne Satzliterale in Ausgabefunktionen (Detailpraefix erlaubt)
+perl -ne 'next if /^\s*#/; while (/\b(out|inf|grn|flag_red|flag_yel|flag_org|flag_tru|hdr) "([^"\$]{4,})/g) { my $t=$2; next if $t =~ /^\s*\|?\s*$/; print "$.: $t\n"; $bad=1 } END { exit($bad?1:0) }' ns_quickcheck.sh || { echo "release.sh: FAIL: Satzliteral in Ausgabefunktion (gehoert in den Katalog)" >&2; exit 1; }
+# Referenzreports: jede Fixture gegen docs/testdata/reference/<fixture>.<sprache>.txt (normalisiert); Abweichung = gewollte Aenderung mit docs/tools/refgen.sh nachziehen
+. ./docs/tools/refnorm.sh; _rt=$(mktemp -d); _root=$(pwd)
+for _ref in docs/testdata/reference/*.txt; do _fx=$(basename "$_ref" .txt); _lang=${_fx##*.}; _fx=${_fx%.*}; _d="$_root/docs/testdata/fixtures/$_fx"; [ -d "$_d" ] || continue
+  _o="$_rt/$_fx.$_lang"; mkdir -p "$_o"; cp ns_quickcheck.rules "$_o/r"; chmod 600 "$_o/r"
+  _extra=""; [ -f "$_d/blocked_ips" ] && _extra="$_extra --blocked $_d/blocked_ips"; [ -f "$_d/trusted_ips" ] && _extra="$_extra --trusted $_d/trusted_ips"; [ -f "$_d/ns_quickcheck.trusted_ips" ] && _extra="$_extra --trusted $_d/ns_quickcheck.trusted_ips"; [ -f "$_d/ns_quickcheck.blocked_ips" ] && _extra="$_extra --blocked $_d/ns_quickcheck.blocked_ips"; [ -f "$_d/whitelist" ] && _extra="$_extra --whitelist $_d/whitelist"
+  ( cd "$_o" && sh "$_root/ns_quickcheck.sh" --from "$_d" --rules "$_o/r" --hours 1000000 --out "$_o/report.txt" --lang "$_lang" $_extra >/dev/null 2>&1 ) || true
+  refnorm "$_o/report.txt" "$_rt" > "$_o/norm.txt"
+  if ! cmp -s "$_o/norm.txt" "$_ref"; then echo "release.sh: FAIL: Referenzreport $_fx ($_lang) weicht ab:" >&2; diff "$_o/norm.txt" "$_ref" | head -8 >&2; rm -rf "$_rt"; exit 1; fi
+done; rm -rf "$_rt"; echo "REFERENZ: $(ls docs/testdata/reference/*.txt | wc -l | tr -d ' ') Reports identisch"
+# Changelogs: beide Sprachen tragen denselben obersten Versionskopf
+_hd=$(grep -m1 '^## v' CHANGELOG.de.md); _he=$(grep -m1 '^## v' CHANGELOG.md)
+[ "$_hd" = "$_he" ] || { echo "release.sh: FAIL: CHANGELOG.de.md ($_hd) und CHANGELOG.md ($_he) haben verschiedene oberste Versionen" >&2; exit 1; }
 # Changelog-Hash: der oberste Eintrag der Regel-Historie muss den Hash der aktuellen Regeldatei tragen
 _h=$(sha256sum ns_quickcheck.rules | cut -c1-64); _c=$(grep -o 'Nachher:\*\* SHA-256 [0-9a-f]*' ns_quickcheck.rules.changelog.md | head -1 | awk '{print $3}')
 [ "$_h" = "$_c" ] || { echo "release.sh: Changelog-Hash FAIL: ns_quickcheck.rules.changelog.md nennt $_c, Regeldatei hat $_h" >&2; exit 1; }

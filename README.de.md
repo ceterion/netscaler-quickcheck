@@ -30,7 +30,7 @@ Sicherheits-Triage für Citrix NetScaler ADC und Gateway, auf der Appliance: Bui
 - **Die Firewall füttern und dann prüfen, ob es hält.** Jeder Lauf schreibt die fremden Adressen, die er gesehen hat, nach Kategorie (Download-Host, Dropper-Anfrage, Sondierungsquelle, Spraying-Maschine, Schläfer, Treffer) in eine Liste je Lauf und eine kumulierte Liste je Appliance: zuerst gesehen, zuletzt gesehen, Tage, Anzahl je Fenster. Was du sperrst, kommt mit Datum in `ns_quickcheck.blocked_ips`; der nächste Lauf markiert abgedeckte Befunde Orange und meldet "Sperre greift nicht" für jede Adresse, die trotzdem noch ankommt.
 - **Weitergeben können.** Anonymisierte Fassungen mit stabiler Zuordnung je Appliance; Konten- und Hostnamen maskiert, Angreiferwerte erhalten, Adresslisten nach Kategorie für Firewall und SOC.
 - **Zwei Prompts, eine Regeldatei.** Das Repository enthält die zwei Prompts, mit denen die Regeln entstehen: einen Recherche-Prompt, der die Fakten eines Bulletins nur bei Erstveröffentlichern sammelt, mit URL und Datum je Wert, und einen Regel-Prompt, der daraus einen Patch im Format der Regeldatei macht. Jeder kann sie auf das nächste Bulletin oder auf eigene Befunde anwenden, den Patch mit `rules-apply.sh` einspielen und bekommt denselben Lint, dieselbe Herkunftsprüfung und dieselbe Dublettenprüfung wie wir. Die Methode liegt im Repo, nicht nur das Ergebnis.
-- **Den Regeln trauen.** Jeder Indikator auf seinen Erstveröffentlicher zurückgeführt, jedes Release durch 69 Testlogs, 10 Fixtures und drei Plattform-Lints; jede Schwelle dokumentiert und einstellbar.
+- **Den Regeln trauen.** Jeder Indikator auf seinen Erstveröffentlicher zurückgeführt, jedes Release durch 69 Testlogs, 11 Fixtures und drei Plattform-Lints; jede Schwelle dokumentiert und einstellbar.
 
 ## Was es prüft
 
@@ -43,18 +43,18 @@ Ein Lauf, sechs Blöcke, ein Verdict (`OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_
 - **Betreiberkontext**: eine Sperrliste (an der Firewall bereits gesperrte Adressen) macht abgedeckte Befunde Orange, eine Vertrauensliste (Scanner, Pentests mit Ablaufdatum) zeigt gewolltes Verhalten als `[TRUST]` ohne Verdict-Wirkung, eine Whitelist mit Hash-Pins nimmt bestätigte Änderungen heraus, die Schwellen stehen in einer Config.
 - **Ausgaben**: Report, JSON, Adresslisten je Lauf und kumuliert nach Kategorie, eine Share-Datei für den bestätigten Adress-Feed, und anonymisierte Fassungen von allem für die Weitergabe. `coverage=partial` in der RESULT-Zeile heißt, eine Kernprüfung hatte keine Daten; das Verdict ist dann nie `OK`.
 
-Testbasis: 69 Testlogs, 10 Fixtures und drei Plattform-Lints vor jedem Release (`docs/release.sh`). Details: `ns_quickcheck_README.md`, Abschnitte 4.3 (Schwellen) und 6 (Blöcke).
+Testbasis: 69 Testlogs, 11 Fixtures und drei Plattform-Lints vor jedem Release (`docs/release.sh`). Details: `ns_quickcheck_README.md`, Abschnitte 4.3 (Schwellen) und 6 (Blöcke).
 
 ## Schnellstart
 
-Bezug: Die zwei Dateien für eine Appliance, `ns_quickcheck.sh` und `ns_quickcheck.rules`, hängen an jedem Release unter https://github.com/ceterion/netscaler-quickcheck/releases; das Repository selbst wird nur für `--testlog`, die Fixtures und die Regelpflege gebraucht.
+Bezug: Die Dateien für eine Appliance, `ns_quickcheck.sh`, `ns_quickcheck.rules` und die Nachrichtenkataloge `ns_quickcheck.msg.de` und `ns_quickcheck.msg.en`, hängen an jedem Release unter https://github.com/ceterion/netscaler-quickcheck/releases; das Repository selbst wird nur für `--testlog`, die Fixtures und die Regelpflege gebraucht.
 
 ```sh
 # Appliance, als root. Upload per SCP im Modus Binary.
 mkdir -p /var/nssnapshot && cd /var/nssnapshot
 cp ns_quickcheck.conf.example ns_quickcheck.conf; cp ns_quickcheck.whitelist.example ns_quickcheck.whitelist   # nur erste Einrichtung
-chown root:wheel ns_quickcheck* && chmod 700 ns_quickcheck.sh && chmod 600 ns_quickcheck.conf ns_quickcheck.rules ns_quickcheck.whitelist
-sh ns_quickcheck.sh                 # volle Ausgabe auf dem Bildschirm, Report und JSON unter /var/nssnapshot/quickcheck/
+chown root:wheel ns_quickcheck* && chmod 700 ns_quickcheck.sh && chmod 600 ns_quickcheck.conf ns_quickcheck.rules ns_quickcheck.msg.* ns_quickcheck.whitelist
+sh ns_quickcheck.sh                 # volle Ausgabe auf dem Bildschirm, deutsch; --lang en für Englisch, Report und JSON unter /var/nssnapshot/quickcheck/
 echo EXIT=$?                        # 0 OK, 1 INVESTIGATE, 2 UPDATE oder FORENSICS_FIRST, 3 Abbruch (Grund auf stderr)
 ```
 
@@ -100,6 +100,7 @@ Alle Dateien tragen unversionierte Namen; die Version des Scripts steht im Heade
 | `ns_quickcheck.anon.<host>.map` | Zuordnungstabelle je Appliance für die anonymisierten Reports (`_anon.txt`, `_anon.json`, bei jedem Lauf); bleibt auf der Appliance, wird nie verteilt. `--anon <datei>` anonymisiert beliebige Logauszüge mit derselben Tabelle |
 | `ns_quickcheck.rules.provenance.md` | Herkunftsprotokoll aus der Regeldatei: Quelle, Veröffentlichungsdatum und Fundstelle je Wert |
 | `ns_quickcheck.conf.example` | Vorlage für die optionale Konfiguration (Fenster, Reportverzeichnis, CLI-Ebene); einmal als `ns_quickcheck.conf` auf die Appliance |
+| `ns_quickcheck.msg.de`, `ns_quickcheck.msg.en` | Nachrichtenkataloge (`KEY<TAB>Text`, Platzhalter `%1`..`%9`); Deutsch ist Pflicht und Vorgabe, Englisch über `--lang en` oder `LANG_QC=en`; eine weitere Sprache ist eine weitere Datei mit denselben Keys |
 | `ns_quickcheck.rules` | CVE-Tabelle, Angriffsmuster, Payload-Pfade, Angreifer-Adressen, Stock-Zustände je Build; eine Datei für alle Betreiber |
 | `ns_quickcheck.rules.changelog.md` | jede Regeländerung mit Bulletin, Zitat, Test und Verteilung |
 | `ns_quickcheck.whitelist.example` | Vorlage für Ausnahmen je Appliance (Konten, Listener, Pfade, Cron, Theme-Dateien, eigene Mitigation-Policies); einmal als `ns_quickcheck.whitelist` auf die Appliance |
@@ -112,6 +113,7 @@ Alle Dateien tragen unversionierte Namen; die Version des Scripts steht im Heade
 | `docs/release.sh` | erzeugt `ns_quickcheck.sh` aus dem versionierten Script, Lint, `--testlog`, Fixture-Läufe |
 | `docs/PLATFORM.de.md` | Plattformbefunde: Absturz der NetScaler-`sh` bei Klammergruppen in `$( )`, Stock-Listener, Aliase, Logformate |
 | `docs/releases/` | Release-Notes je Version (`v17.30.md`) und je Regelstand (`rules-<datum>.md`); zugleich der Text des GitHub-Releases |
+| `CHANGELOG.de.md`, `CHANGELOG.md` | Versionshistorie; die deutsche Datei ist führend, die englische die Zusammenfassung und wird je Release nachgezogen |
 | `docs/testdata/` | Regeldatei-Stände für Prompt-Abnahmetest und Präfix-Prüfung; `fixtures/clean` und `fixtures/compromised` für den vollen Offline-Lauf mit erwarteten Verdicts (`fixture-expected.txt`), nie auf eine Appliance kopieren |
 | `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | Meldewege und Issue-Vorlagen für Fehlalarme und übersehene Indikatoren |
 | `docs/testlogs/` | Testlogs je CVE plus `clean.log`, `admin-audit.log`, `expected.txt`, `herkunft.md`; Lauf mit `--testlog`, nie auf eine Appliance kopieren |
@@ -132,7 +134,7 @@ Optional, empfohlen: Ein Read-only-Service-User gibt dem Quickcheck Hit-Counter,
 ## Bekannte Grenzen
 
 - Musterbasiert. `OK` heißt: Build gefixt, kein bekannter Indikator getroffen, keine Spuren im Fenster. **Es heißt nicht, dass die Appliance sauber ist**; ein Angreifer mit Pfaden oder Namen, die noch niemand veröffentlicht hat, bleibt für jede regelbasierte Prüfung unsichtbar. War die Appliance vor dem Fix exponiert, den IoC-Scan des Herstellers als unabhängige zweite Meinung laufen lassen: die Funktion "Indicators of Compromise" der NetScaler Console (https://docs.netscaler.com/en-us/netscaler-console-service/instance-advisory/ioc) oder, ohne Console, den Scanner des Citrix Supports über ein Ticket.
-- Report- und Befundtexte sind in dieser Fassung bewusst deutsch: Das Werkzeug ist mit und für Betreiber im DACH-Raum entstanden, deren Reports von Administratoren, Geschäftsführung und Prüfern auf Deutsch gelesen werden; ein Befund, der erst übersetzt werden muss, kostet Zeit in der einen Situation, in der Zeit zählt. Feldnamen, Verdicts und RESULT-Zeile sind sprachneutral (`docs/report-format.md`). Englische Ausgabe (`--language en`) ist für V18 geplant.
+- Report- und Befundtexte kommen aus einem Nachrichtenkatalog: deutsch als Vorgabe, englisch mit `--lang en`; die Texte der Regeldatei (CVE-Beschreibungen) bleiben, wie sie dort stehen. Feldnamen, Verdicts, RESULT-Zeile und der Befund-`code` im JSON sind sprachneutral (`docs/report-format.md`).
 - Das Script findet, was veröffentlicht ist; ein leerer Block 5 ist kein Freispruch. Vollständige Liste in `ns_quickcheck_README.md`, Abschnitt 12.
 - Stock-Zustände unterscheiden sich je Build-Familie. Auf 13.1 oder FIPS beim ersten Lauf Fehlalarme erwarten, bis die Stock-Listen erweitert sind (Issue).
 - Die NetScaler-`/bin/sh` stürzt bei einer Klammergruppe in einer Kommandosubstitution ab; `docs/release.sh` prüft darauf (`docs/PLATFORM.de.md`).

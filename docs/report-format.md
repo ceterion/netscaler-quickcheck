@@ -1,4 +1,4 @@
-# Report format (script 17.43)
+# Report format (script 18.0)
 
 Binding description of what `ns_quickcheck.sh` writes per run, for the Collector and anyone reading reports by machine. German text in the report is data; field names are stable.
 
@@ -26,6 +26,7 @@ Space-separated `key=value`, one line, always last in the report:
 | `traces`, `mitigation`, `unsaved`, `save_missing`, `compromise` | 0 or 1 | attack traces found; mitigation policy bound; unsaved config lines; `save ns config` missing; compromise indicator found |
 | `red`, `yellow`, `orange` | integer | finding counts by colour; orange = covered by the operator's block list |
 | `blocked_seen` | integer | blocked addresses observed in this run |
+| `lang` | `de` or `en` | output language of this run (18.0) |
 | `crashes` | integer | crash events in the window (Pitboss, kernel, Apache error log, core files), one per process and PID (17.41) |
 | `trusted_seen` | integer | trusted addresses (trusted list) active in this run, each reported as `[TRUST]` |
 | `coverage` | `full`, `partial` | whether every core check had data; `partial` never yields `OK` |
@@ -38,14 +39,14 @@ Space-separated `key=value`, one line, always last in the report:
 ## JSON
 
 ```
-{ "script": "ns_quickcheck", "version": "17.43", "host": "...", "ts": "...",
+{ "script": "ns_quickcheck", "version": "18.0", "host": "...", "ts": "...",
   "result": { all RESULT keys as strings },
   "mitigation_hits": { "<policy>": "<hits>" },
   "observed_ips": [ { "category": "...", "ip": "...", "count": n, "observed_in": "...", "blocked": "<remark>|<since>" or "" } ],
-  "red":    [ { "text": "...", "details": [ "..." ] } ],
-  "yellow": [ { "text": "...", "details": [ "..." ] } ],
-  "orange": [ { "text": "...", "details": [ "..." ] } ],
-  "trust":  [ { "text": "...", "details": [ "..." ] } ],
+  "red":    [ { "code": "KEY", "text": "...", "details": [ "..." ] } ],
+  "yellow": [ { "code": "KEY", "text": "...", "details": [ "..." ] } ],
+  "orange": [ { "code": "KEY", "text": "...", "details": [ "..." ] } ],
+  "trust":  [ { "code": "KEY", "text": "...", "details": [ "..." ] } ],
   "source_url": "https://ceterion.com/netscaler-quickcheck" }
 ```
 
@@ -73,3 +74,7 @@ Keys are only added, never renamed. A consumer must ignore unknown keys and cate
 ## Anonymized lists and share file (17.32)
 
 `ns_quickcheck_<anonhost>_<ts>_ips_anon.tsv` and `ns_quickcheck_observed_ips_anon.tsv`: same columns as the originals, host name replaced, remarks of the block and trusted lists removed (`gesperrt` keeps only the date, `(trusted ...)` keeps only the expiry), mapping table applied. `ns_quickcheck_<anonhost>_<ts>_share.tsv`: `kategorie`, `ip`, `zuerst`, `zuletzt`, `tage`, `anzahl_max`, `max_fenster_h`, `anzahl_zuletzt`, `regeldatei` (ja/nein); only `payload_download_host`, `injection_source`, `webshell_hit`, `outbound_hit`, `aaa_bruteforce`, `aaa_maschine`, `aaa_hit`, `ssh_bruteforce` and `dropper_requester` with `anzahl_max` >= 3; no `trusted_*`, no probing categories, no appliance identifier.
+
+## Finding codes (18.0)
+
+Every finding in `red`, `yellow`, `orange` and `trust` carries `code`, the key of its message in the catalog (`ns_quickcheck.msg.<lang>`), for example `TRACE_CRASH_RED` or `AAA_SPRAY_YEL`. Codes are stable across languages and across rewordings of the text; a Collector should key on `code`, not on the text. The result line carries `lang` and `msg_sha256` (hash of the catalog used).

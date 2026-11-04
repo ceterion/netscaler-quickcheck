@@ -1,0 +1,55 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/responder
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [OK]    Build 14.1-73.49 enthaelt alle 13 Fix(es) fuer 14.1 der Regeldatei
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+
+== 3 Mitigation ==
+  [INFO]  Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Spuren nicht erforderlich)
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 0, auth.log 0, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [ROT]   2 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Log-Poisoning), Oct 6 14:26:28 bis Oct 6 14:32:02:
+          | Oct  6 14:26:28 _local0.warn_ 192.0.2.5  10/06/2026:13:26:28 GMT gw-01 0-PPE-2 : default RESPONDER Message 409549 0 :  "Bad Request (CVE-2026-88771 -_ blocked) from IP 203.0.113.77 - Hostname: 198.51.100.23 - URL: /cgi/login (headers: POST login=x unexpectedly+died_"
+          | Oct  6 14:32:02 _local0.warn_ 192.0.2.5  10/06/2026:13:32:02 GMT gw-01 0-PPE-0 : default RESPONDER Message 667876 0 :  "Bad Request (CVE-2026-88771 -_ blocked) from IP 203.0.113.77 - Hostname: 198.51.100.25 - URL: /cgi/login (headers: POST login=x unexpectedly+died_"
+          | Wann:          Oct 6 14:26:28 bis Oct 6 14:32:02, 2 Zeile(n) auf 2 Packet Engine(s) (eine Welle)
+          | Log:           REPO/docs/testdata/fixtures/responder/var/log/ns.log (2)
+          | Ergebnis:      Versuch ohne Wirkung; Build 14.1-73.49 ist gegen CVE-2026-88771 gefixt.
+          | Download-Host: keiner im Payload erkennbar
+          | Quelle:        203.0.113.77 (aus der Responder-Zeile, in 2 von 2 Zeile(n))
+  [OK]    Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [INFO]  Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (1000000h)
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
+  [OK]    Keine Gateway-Anmeldefehler im Fenster
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+  [OK]    Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+
+== 6 Verdict ==
+ACTION: INVESTIGATE
+Das Geraet ist gepatcht und zeigt keine Kompromittierungszeichen. Es gibt aber Beobachtungen, die jemand einordnen muss; sie stehen oben mit 'Zu tun'.
+Danach diesen Check wiederholen: sind die Punkte geklaert oder in der Whitelist, wird das Ergebnis OK.
+Offene Punkte:
+  - Quell-IPs oben an Firewall/SOC geben; Download-Hosts in Firewall/DNS-Logs suchen.
+  - Offizieller Citrix-IoC-Scan (Console oder Support) als zweite Meinung, falls die Appliance vor dem Fix exponiert war.
+
+Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
+  203.0.113.77       injection_source       neu                              Sperrliste: nein
+  1 Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=1 yellow=0 orange=0 blocked_seen=0 trusted_seen=0 crashes=0 lang=de coverage=full action=INVESTIGATE rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

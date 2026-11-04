@@ -9,6 +9,7 @@ Für Admins, die den Quickcheck betreiben, ohne das Repo zu pflegen. Zielzeit 20
 | Datei | Pflegt | Enthält | Beim Update |
 |---|---|---|---|
 | `ns_quickcheck.rules` | ceterion | Prüfmuster, Fix-Builds je CVE (`CVE_TABLE`), belegte Indikatoren mit Fundstelle | wird ersetzt |
+| `ns_quickcheck.msg.de`, `ns_quickcheck.msg.en` | ceterion | Nachrichtenkataloge (Reporttexte; `msg.de` Pflicht, `--lang en` für Englisch) | werden ersetzt |
 | `ns_quickcheck.rules.custom` | der Betreiber | eigene Indikatoren (IOC-Block) und eigene Fix-Build-Zeilen (CVE-Block): Feldbefunde, Werte und Bulletins, die ceterion noch nicht nachgezogen hat | bleibt |
 
 Beide Dateien werden zusammen geprüft. Steht eine CVE in beiden, aber mit anderem Fix-Build, prüft das Script beide Zeilen und zeigt beide Ergebnisse; das strengere zählt. Eine Custom-Zeile kann ein Gerät deshalb nie grüner machen als die Regeldatei, nur strenger. Was der Betreiber nicht über die Custom-Datei einbringen kann: neue Prüfmuster (Regex) und Änderungen am Script; dafür Schritt 7.

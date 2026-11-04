@@ -30,7 +30,7 @@ Security triage for Citrix NetScaler ADC and Gateway, run on the appliance: buil
 - **Feed the firewall, then check it held.** Every run writes the foreign addresses it saw, by category (download host, dropper requester, probe source, spraying machine, sleeper, hit), into a per-run list and a cumulative list per appliance: first seen, last seen, days seen, count per window. What you block goes into `ns_quickcheck.blocked_ips` with its date; the next run marks covered findings orange and reports "block not effective" for any address that still gets through.
 - **Hand it over.** Anonymized copies with a stable per-appliance mapping; account and host names masked, attacker values kept, address lists by category for firewall and SOC.
 - **Two prompts, one rules file.** The repository ships the two prompts the rules are made with: a research prompt that collects a bulletin's facts from primary publishers only, with URL and date per value, and a rules prompt that turns that research into a patch in the rules-file format. Anyone can run them against the next bulletin or against their own findings, apply the patch with `rules-apply.sh`, and get the same lint, provenance and duplicate check we use. The method is in the repo, not only the result.
-- **Trust the rules.** Every indicator traced to its first publisher, every release through 69 test logs, 10 fixtures and three platform lints; every threshold documented and configurable.
+- **Trust the rules.** Every indicator traced to its first publisher, every release through 69 test logs, 11 fixtures and three platform lints; every threshold documented and configurable.
 
 ## What it checks
 
@@ -43,18 +43,18 @@ One run, six blocks, one verdict (`OK`, `UPDATE`, `INVESTIGATE`, `FORENSICS_FIRS
 - **Operator context**: a block list (addresses already blocked at the firewall) turns covered findings orange, a trusted list (scanners, pentests with an expiry date) shows wanted behaviour as `[TRUST]` without affecting the verdict, a whitelist with hash pins removes confirmed changes, thresholds live in a config file.
 - **Outputs**: report, JSON, per-run and cumulative address lists by category, a share file for the corroborated address feed, and anonymized copies of all of them that can leave the house. `coverage=partial` in the result line means a core check had no data; the verdict is then never `OK`.
 
-Test basis: 69 test logs, 10 fixtures and three platform lints run before every release (`docs/release.sh`). Details: `ns_quickcheck_README.md` (German), sections 4.3 (thresholds) and 6 (blocks).
+Test basis: 69 test logs, 11 fixtures and three platform lints run before every release (`docs/release.sh`). Details: `ns_quickcheck_README.md` (German), sections 4.3 (thresholds) and 6 (blocks).
 
 ## Quick start
 
-Download: the two files for an appliance, `ns_quickcheck.sh` and `ns_quickcheck.rules`, are attached to every release at https://github.com/ceterion/netscaler-quickcheck/releases; the repository itself is needed only for `--testlog`, the fixtures and rule maintenance.
+Download: the files for an appliance, `ns_quickcheck.sh`, `ns_quickcheck.rules` and the message catalogs `ns_quickcheck.msg.de` and `ns_quickcheck.msg.en`, are attached to every release at https://github.com/ceterion/netscaler-quickcheck/releases; the repository itself is needed only for `--testlog`, the fixtures and rule maintenance.
 
 ```sh
 # Appliance, as root. Upload via SCP in binary mode.
 mkdir -p /var/nssnapshot && cd /var/nssnapshot
 cp ns_quickcheck.conf.example ns_quickcheck.conf; cp ns_quickcheck.whitelist.example ns_quickcheck.whitelist   # first install only
-chown root:wheel ns_quickcheck* && chmod 700 ns_quickcheck.sh && chmod 600 ns_quickcheck.conf ns_quickcheck.rules ns_quickcheck.whitelist
-sh ns_quickcheck.sh                 # full output on screen, report and JSON under /var/nssnapshot/quickcheck/
+chown root:wheel ns_quickcheck* && chmod 700 ns_quickcheck.sh && chmod 600 ns_quickcheck.conf ns_quickcheck.rules ns_quickcheck.msg.* ns_quickcheck.whitelist
+sh ns_quickcheck.sh                 # full output on screen, German; --lang en for English, report and JSON under /var/nssnapshot/quickcheck/
 echo EXIT=$?                        # 0 OK, 1 INVESTIGATE, 2 UPDATE or FORENSICS_FIRST, 3 aborted (reason on stderr)
 ```
 
@@ -100,6 +100,7 @@ All files carry unversioned names; the version of the script is in its header an
 | `ns_quickcheck.anon.<host>.map` | per-appliance mapping table for the anonymised reports (`_anon.txt`, `_anon.json`, written on every run); stays on the appliance, never shipped. `--anon <file>` anonymises any log excerpt with the same table |
 | `ns_quickcheck.rules.provenance.md` | provenance log generated from the rules file: source, publication date and reference URL for every value |
 | `ns_quickcheck.conf.example` | template for the optional configuration (window, report directory, CLI layer); copy to `ns_quickcheck.conf` on the appliance once |
+| `ns_quickcheck.msg.de`, `ns_quickcheck.msg.en` | message catalogs (`KEY<TAB>text`, placeholders `%1`..`%9`); German is mandatory and the default, English via `--lang en` or `LANG_QC=en`; a further language is one more file with the same keys |
 | `ns_quickcheck.rules` | CVE table, attack patterns, payload paths, attacker addresses, stock states per build; one file for all operators |
 | `ns_quickcheck.rules.changelog.md` | every rule change with bulletin reference, quote, test and distribution |
 | `ns_quickcheck.whitelist.example` | template for per-appliance exceptions (accounts, listeners, paths, cron, theme files, own mitigation policies); copy to `ns_quickcheck.whitelist` once |
@@ -112,6 +113,7 @@ All files carry unversioned names; the version of the script is in its header an
 | `docs/release.sh` | refreshes `ns_quickcheck.sh` from the versioned script and checks they match |
 | `docs/PLATFORM.de.md` | platform findings: NetScaler `/bin/sh` crash on `$( { ...; } | ... )`, stock listeners, aliases, log formats |
 | `docs/releases/` | release notes per version (`v17.30.md`) and per rules stand (`rules-<date>.md`); the text of the GitHub release |
+| `CHANGELOG.de.md`, `CHANGELOG.md` | version history; the German file is the leading one, the English file is the summary and is updated with every release |
 | `docs/testdata/` | rule file states for the prompt acceptance test and prefix check; `fixtures/clean` and `fixtures/compromised` for a full offline run with expected verdicts (`fixture-expected.txt`), never copy to an appliance |
 | `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | reporting rules and issue templates for false positives and missed indicators |
 | `docs/testlogs/` | test logs per CVE plus `clean.log`, `admin-audit.log`, `expected.txt`, `herkunft.md`; run with `--testlog`, never copy to an appliance |
@@ -128,7 +130,7 @@ The quickcheck runs without either: without the snapshot it uses its own `ns_qui
 ## Known limits
 
 - Pattern-based. `OK` means: fixed build, no known indicator matched, no traces in the window. **It does not mean the appliance is clean**; an attacker using paths or names nobody has published yet stays invisible to any rules-based check. If the appliance was exposed before the fix, run the vendor's IoC scan as an independent second opinion: the "Indicators of Compromise" function of NetScaler Console (https://docs.netscaler.com/en-us/netscaler-console-service/instance-advisory/ioc), or the scanner from Citrix Support via a ticket if no Console is in use.
-- Report and finding texts are German in this release, by design (see the language note at the top); field names, verdicts and the result line are language-neutral (`docs/report-format.md`). An English output option (`--language en`) is planned for V18.
+- Report and finding texts come from a message catalog: German by default, English with `--lang en`; the texts of the rules file (CVE descriptions) stay as written there. Field names, verdicts, the result line and the finding `code` in the JSON are language-neutral (`docs/report-format.md`).
 - Stock states differ per build family. On 13.1 or FIPS expect false positives on the first run until `KNOWN_LISTENER_RE`, `STOCK_ALIAS_ROOTS` and `ADMIN_CMD_RE` are extended.
 - NetScaler's `/bin/sh` crashes on any brace group inside a command substitution, e.g. `$( { ...; } | ... )` or `$(a | { ...; } | b)`. Do not add that construct; `docs/release.sh` lints for it.
 - Source-IP correlation and policy hit deltas are untested against real logon volumes.

@@ -1,0 +1,37 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/nologs
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [OK]    Build 14.1-73.49 enthaelt alle 13 Fix(es) fuer 14.1 der Regeldatei
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+
+== 3 Mitigation ==
+  [INFO]  Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Spuren nicht erforderlich)
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 0, httpaccess 0, httperror 0, auth.log 0, httpaccess.log (Management) 0, cron 0 Datei(en)
+  [GELB]  Keine ns.log/nsvpn.log/messages im Fenster (Pfad REPO/docs/testdata/fixtures/nologs/var/log) - Logs rotiert oder nicht im Snapshot
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+  [OK]    Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+
+== 6 Verdict ==
+ACTION: INVESTIGATE
+Nicht vollstaendig geprueft: ns.log-Familie fehlt im Fenster; httpaccess fehlt im Fenster (Dropper, Sondierung, Quellen); Ein OK ist ohne diese Daten nicht moeglich. Logs bereitstellen (Fenster --hours vergroessern, Snapshot-Set mit Archiv 3) und wiederholen.
+Das Geraet ist gepatcht und zeigt keine Kompromittierungszeichen. Es gibt aber Beobachtungen, die jemand einordnen muss; sie stehen oben mit 'Zu tun'.
+Danach diesen Check wiederholen: sind die Punkte geklaert oder in der Whitelist, wird das Ergebnis OK.
+Offene Punkte:
+  - Offizieller Citrix-IoC-Scan (Console oder Support) als zweite Meinung, falls die Appliance vor dem Fix exponiert war.
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=0 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=0 yellow=1 orange=0 blocked_seen=0 trusted_seen=0 crashes=0 lang=de coverage=partial action=INVESTIGATE rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

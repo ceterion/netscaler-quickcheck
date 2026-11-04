@@ -9,6 +9,7 @@ For admins who run the Quickcheck without maintaining the repository. Target tim
 | File | Maintained by | Contains | On update |
 |---|---|---|---|
 | `ns_quickcheck.rules` | ceterion | detection patterns, fix builds per CVE (`CVE_TABLE`), confirmed indicators with reference | replaced |
+| `ns_quickcheck.msg.de`, `ns_quickcheck.msg.en` | ceterion | message catalogs (report texts; `msg.de` mandatory, `--lang en` for English) | replaced |
 | `ns_quickcheck.rules.custom` | the operator | own indicators (IOC block) and own fix-build rows (CVE block): field findings, values and bulletins ceterion has not yet picked up | kept |
 
 Both files are evaluated together. If a CVE is in both with a different fix build, the script evaluates both rows and shows both results; the stricter one decides. A custom row can therefore never make an appliance greener than the rules file, only stricter. What the operator cannot bring in through the custom file: new detection patterns (regex) and script changes; see step 7.
