@@ -1,4 +1,4 @@
-ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-11-05d  cli=none  TS
 Quelle: REPO/docs/testdata/fixtures/eol
 Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
 
@@ -38,5 +38,5 @@ Keine Spuren im Fenster: trotzdem vor dem Upgrade Logs extern sichern (Internet-
 HA: Secondary zuerst, Failover, dann Primary. Nach dem Upgrade save ns config und diesen Check wiederholen.
 
 
-Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
-RESULT host=gw-01 build=12.1-65.25 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=0 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=1 yellow=1 orange=0 blocked_seen=0 trusted_seen=0 crashes=0 lang=de coverage=full action=UPDATE rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-11-05d), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=12.1-65.25 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=0 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=1 yellow=1 orange=0 blocked_seen=0 trusted_seen=0 shell_sessions=0 shell_suspect=0 crashes=0 new=0 gone=0 lang=de coverage=full action=UPDATE rules=2026-11-05d script_sha256=X rules_sha256=16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44 msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

@@ -17,7 +17,7 @@ cve-2026-88779.log:INJECTION:0
 cve-2026-107406.log:NSAAAD_CRASH_RE:1
 cve-2026-107406.log:INJECTION:0
 clean.log:*:0
-clean.log:AAA_OK_RE:9
+clean.log:AAA_OK_RE:1
 admin-audit.log:INJECTION:0
 ip-boundary.log:ATTACKER_IP_RE:1
 ip-substring.log:ATTACKER_IP_RE:0
@@ -45,3 +45,9 @@ pitboss-crash.log:NSAAAD_CRASH_LEGACY_RE:2
 crash-extra.log:HTTPERR_CRASH_RE:2
 crash-extra.log:KERNEL_MEM_RE:2
 crash-extra.log:KERNEL_PANIC_RE:2
+nfactor.log:AAA_FACTOR_OK_RE:6
+nfactor.log:AAA_FAIL_RE:12
+aaa-ok-formats.log:AAA_OK_RE:3
+aaa-ok-formats.log:AAA_FAIL_RE:0
+shell.log:SHELL_LOG_RE:9
+shell.log:SHELL_SUSPECT_RE:4

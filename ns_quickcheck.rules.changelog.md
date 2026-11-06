@@ -4,6 +4,69 @@ Ein Eintrag je Änderung ab dem ersten veröffentlichten Regelstand (2026-10-19)
 
 ---
 
+## 2026-11-05d - RULES_VERSION 2026-11-05d
+
+**Anlass:** Betreiber-Gateway 04.11.2026: sechs CSP-Reports der Logon-Seite mit dem Burp-Scanner-Payload fuer OS-Command-Injection im Feld `blocked-uri`; der Quickcheck zeigte sie als Injection-Zeilen mit dem eigenen Gateway-FQDN als "Download-Host".
+
+| Variable | Inhalt | Quelle |
+|---|---|---|
+| `CSP_REPORT_RE` | `AAA Message <n> 0 : +"CSP Violation: ` | Betreiber-Gateway 14.1-73.49, 04.11.2026 |
+| `CSP_REPORT_PATH_RE` | `/cgi/csp-report\|csp[-_]?report` | Standardannahme fuer den Report-Pfad, nicht lab-verifiziert |
+
+**Vorher:** 2026-11-05c | **Nachher:** SHA-256 16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44
+**Test:** Fixture `csp` (drei Reports mit Payload, drei POSTs im Access-Log)
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-11-05c - RULES_VERSION 2026-11-05c
+
+**Anlass:** Shell-Aktivitaet war bisher nur ueber die CLI-Auditzeilen (`SHELL shell_command=`) sichtbar; interaktive Shells schreiben nur nach `/var/log/bash.log`.
+
+| Variable | Inhalt | Quelle |
+|---|---|---|
+| `SHELL_LOG_RE` | `bash[<pid>]: <konto> on <tty> shell_command="` | Lab ns-lab-141, 14.1-73.49, 04.11.2026 |
+| `SHELL_SUSPECT_RE` | Download mit URL, `chmod +x`/`7xx`, `base64 -d`, `openssl enc`, `nohup`, Interpreter `-e`, `crontab -`, Loeschen oder Kuerzen unter `/var/log`, Schreiben oder Kopieren nach `/var/netscaler/logon`, `/netscaler/ns_gui`, `/var/vpn`, Start aus `/tmp` oder `/var/tmp`, `nc`/`ncat`/`socat` | Standardmuster, kein Lab-Nachweis |
+| `SHELL_OWN_RE` | `ns_quickcheck`, `ns_snapshot`, `ns_collector` | eigene Werkzeuge |
+
+**Vorher:** 2026-11-05b | **Nachher:** SHA-256 d641bbd03066498fa095ea0df5a8ae2ef9f8361cc739d9a6b503f942000573d3
+**Test:** Testlog `shell.log` (9 Zeilen, 4 verdaechtig), Fixture `shell`
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-11-05b - RULES_VERSION 2026-11-05b
+
+**Anlass:** Betreiber-Gateway 14.1-73.49 schreibt `SSLVPN LOGIN <n> 0 : Context` mit einem Leerzeichen, das Lab mit zwei; `AAA_OK_RE` traf dort keine Erfolgszeile, dafuer die Diagnosezeile `"AAA LOGIN : X509 cert not found"` und die Anfragezeilen `AAA LOGIN REQ` (seit 17.28 als Erfolg gezaehlt: eine Anfrage nach einem Fehlversuch konnte die Adresse als Nutzer einstufen).
+
+| Variable | Aenderung |
+|---|---|
+| `AAA_OK_RE` | `0 : +Context` und `0 : +"authenticate user: succeeded`; lose Alternative `AAA LOGIN` entfernt |
+| `AAA_FAIL_RE`, `AAA_FACTOR_OK_RE`, `AAA_FACTOR_FAIL_RE` | `0 : +` statt `0 :  ` |
+
+**Vorher:** 2026-11-05 | **Nachher:** SHA-256 7081c81858e051cb27fdfd83235cb832f55e87ca08938e8b7809547e87add8c1
+**Test:** Testlog `aaa-ok-formats.log` (beide Formate positiv, `X509`-Zeile negativ)
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
+## 2026-11-05 - RULES_VERSION 2026-11-05
+
+**Anlass:** nFactor-Gateways: Fehlversuche eigener Nutzer nach bestandenem erstem Faktor (OTP) waren von Fremdversuchen nicht unterscheidbar.
+
+| Variable | Inhalt | Quelle |
+|---|---|---|
+| `AAA_FACTOR_OK_RE` | `AAATM Message <n> 0 :  "(<sitzung>) Authentication succeeded, current factor: <faktor>, for user: ` | Syslog-Export eines Betreibers, 02.11.2026 (Severity DEBUG, `<135>`) |
+| `AAA_FACTOR_FAIL_RE` | Gegenstück `Authentication failed, current factor: ...` | abgeleitet aus demselben Format, nicht beobachtet |
+
+Keine Indikatoren geändert. Die Zeilen liegen lokal nur mit `audit logLevel ALL` in `ns.log`; ohne sie meldet das Script bei nFactor-Config eine INFO.
+
+**Vorher:** 2026-10-28e | **Nachher:** SHA-256 61ae3fd02462d20a6c8f510548d624a9c429b269ad2d8893541813085b1929c8
+**Test (Bearbeiter):** Testlog `nfactor.log` (6 Faktor-Zeilen, 12 Fehlversuche), Fixture `nfactor`
+**Bearbeiter:** ceterion AG, Jens Miltenberger
+
+---
+
 ## 2026-10-28e - RULES_VERSION 2026-10-28e
 
 **Anlass:** Stock-Hash fuer 14.1-73.49.

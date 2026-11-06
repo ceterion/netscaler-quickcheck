@@ -1,0 +1,3 @@
+Oct  7 11:00:05 <local7.notice> gw-01 bash[5001]: root on /dev/pts/0 shell_command="ls -l"
+Oct  7 11:00:12 <local7.notice> gw-01 bash[5001]: root on /dev/pts/0 shell_command="cat /etc/passwd"
+Oct  8 08:15:00 <local7.notice> gw-01 bash[6001]: root on /dev/ttyu0 shell_command="df -h"

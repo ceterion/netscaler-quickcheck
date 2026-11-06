@@ -13,6 +13,38 @@ Deutsch und führend. Englische Fassung: [CHANGELOG.md](CHANGELOG.md), späteste
 - `--compare` mit Hash-Diff statt mtime, Cron und `httpd.conf` im Vergleich
 - Stock-Listen und Stock-Hashes für 13.1 und FIPS
 
+## v18.8 (2026-11-06)
+
+Absturz-Ereignisse vor dem Fensterbeginn werden verworfen; Reichweite des Logbestands aus der ersten lesbaren Datumszeile; Testhaken `QC_NOW` für Fixtures mit Fenstergrenzen.
+
+## v18.7 (2026-11-06)
+
+Windows-Zeilenenden in Betreiberdateien werden beim Einlesen entfernt und gemeldet; Fehlermeldungen vor dem Katalog-Laden lesbar.
+
+## v18.6 (2026-11-06)
+
+Profilmarken je Teilprüfung in Block 4; Nicht-ASCII in INFO-Werten bereinigt; CSP-Befundtext und README 15 präzisiert. Anonymisierer tokenbasiert (unabhängig von der Tabellengröße). Prüfungen: Sequenzlauf mit Referenzen für JSON, Kontendateien und kumulierte Listen, Laufzeit-Fixture mit 2000 Adressen, sieben neue Fixtures.
+
+## v18.5 (2026-11-05)
+
+Anonymisierer mit einem Muster je Klasse (Minuten auf Sekunden), `anon_add` gebündelt; Kontendateien ohne anon-Fassung (`ANON_ACCOUNTS=0`, bei Bedarf `--anon <datei>`); `QC_PROFILE` mit Start, Ende, Dauer je Block, auch im JSON; Config-Vorlage zweisprachig mit Lint.
+
+## v18.4 (2026-11-05)
+
+`msg()`: Endlosschleife bei Werten mit `%<ziffer>` (URL-kodierte Payloads) seit 18.0 behoben; Platzhalter-Bereinigung nur in der Vorlage (`%2527` blieb nicht erhalten). Lint `msg-percent` in `release.sh`.
+
+## v18.3 (2026-11-05)
+
+Laufzeit: Logcache (`LOG_CACHE_MAX_MB`), CSP-Block in einem Durchlauf, `QC_PROFILE=1` mit Sekunden je Block, VIP-Fallback auf `add cs vserver`.
+
+## v18.2 (2026-11-05)
+
+CSP-Reports: Grundlast-INFO, `CSP_SCAN_LEVEL`, "Zu tun" mit Firewall-Suche (lokales Zeitfenster, VIPs, Access-Log-Gegenprobe). Versionsregel: jede Änderung an Script, Regeldatei oder Katalog ergibt eine neue Version; Release-Notes gelaufener Stände sind eingefroren.
+
+## v18.1 (2026-11-05)
+
+Sammeladressen: Adressen mit vielen erfolgreichen Anmeldungen vieler Konten (`AAA_SHARED_OK`, `AAA_SHARED_USERS`) sind Proxy, NAT oder Carrier; ihre Fehlversuche werden als INFO geführt (`aaa_shared`), kontenbezogene Prüfungen bleiben. Kategorie `trusted_aaa_sleeper`. Empfehlung je Adresse unter Schläfer- und Spraying-Zeilen (Erfolge der Adresse, Konten ohne Erfolg, Lage A bis E). nFactor: Fehlversuch nach bestandenem erstem Faktor desselben Kontos ist ein Nutzer mit falschem Passwort (`aaa_factor_ok`, Empfehlung F; Faktor-Zeilen lokal nur mit `audit logLevel ALL`). Später Erfolg: Erfolg desselben Kontos von derselben Adresse innerhalb `AAA_OK_WIN_LATE` (24 h) nach dem letzten Fehlversuch ist ein Nutzer (`aaa_late_user`, Empfehlung G). Shell-Aktivität aus `bash.log` (nur mit `SHELL_CHECK=1`, interaktive TTYs, Befehle begrenzt) (Sitzungen, Login-Korrelation, `SHELL_SUSPECT_RE`, `shell_sessions`/`shell_suspect` in RESULT), `AAA_FACTOR_LOG`. Scanner-Payloads in CSP-Reports als eigener Befund (`csp_scanner`, Quelle über den CSP-Report-Pfad), Gateway-FQDN anonymisiert. Regelstand 2026-11-05d (`AAA_OK_RE`: ein oder zwei Leerzeichen vor `Context`, `X509`-Diagnosezeile und `AAA LOGIN REQ`-Anfragen ausgeschlossen, die seit 17.28 als Erfolge zählten und eine Adresse nach einem Fehlversuch als Nutzer einstufen konnten; auf 14.1-73.49 wurden vorher keine Erfolge gezählt). Fehler behoben: `msg()` vor dem Katalog, `--anon` aus Pipes, Konten aus Erfolgszeilen in der Zuordnungstabelle. Treffer gegen Proxy: "Erfolg nach Fehlserie" braucht Maschinen-Takt oder genau ein Erfolgskonto; Kontenzahl allein macht auf einer Sammeladresse keine Maschine. Kontonamen normalisiert (Kleinschreibung, Domänenpräfix). `code` je Befund im JSON wird jetzt wirklich ausgegeben (in 18.0 angekündigt, aber nicht geschrieben). Abdeckung gegen Rotation (`coverage=partial`, wenn der Logbestand nicht bis zum Fensterbeginn reicht). Vergleich mit dem letzten Lauf: neue und weggefallene Rot-/Gelb-Befunde, `new=<n>`, `gone=<n>`. Kontendateien: `_accounts.tsv` (je Konto, Lage A bis G), `_logons.tsv` (Zeitachse), `ns_quickcheck_observed_accounts.tsv` (kumuliert, Ereignisse einmal gezählt) mit anon-Fassungen; Gelb bei Konto mit Fehlversuchen an `ACC_DAYS_MIN` Tagen ohne jeden Erfolg. `[TRUST]` kompakt (ein Block, eine Zeile je Adresse; Warnung "war als Angreifer gefuehrt" einmalig). Sitzungsgeheimnisse (`Session Key`, `NSC_*`, `SESSID`) maskiert. Fixtures `shared`, `shared-hit`, `nfactor`, `late`.
+
 ## v18.0 (2026-10-31)
 
 Nachrichtenkatalog: alle Texte in `ns_quickcheck.msg.de` und `ns_quickcheck.msg.en`, `--lang de|en` und `LANG_QC`, Rückfall je Key auf Deutsch; `code` je Befund im JSON, `lang` und `msg_sha256` in RESULT; deutsche Ausgabe byteidentisch zu 17.44 (Referenzreports in `docs/testdata/reference/`, geprüft von `release.sh`); sechs Stellen, an denen das Script seine eigene Ausgabe parste, auf Datenfelder umgestellt. Regelstand 2026-10-28e unverändert.

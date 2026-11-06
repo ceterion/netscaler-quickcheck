@@ -1,4 +1,4 @@
-# Herkunftsprotokoll ns_quickcheck.rules 2026-10-28e
+# Herkunftsprotokoll ns_quickcheck.rules 2026-11-05d
 
 Erzeugt aus der Regeldatei durch docs/provenance.sh (Beschreibung: ns_quickcheck_README.md, Abschnitt 8.2); je Wert Quelle, Veroeffentlichungsdatum beim Erstautor, Fundstelle, Status und Regelstand der Aufnahme. Status PRUEFEN = Fundstelle noch nicht verifiziert, Wert inaktiv; ENTFERNEN = keine Primaerquelle, wird beim naechsten Regelstand geloescht.
 

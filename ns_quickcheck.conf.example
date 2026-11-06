@@ -1,6 +1,7 @@
 # ns_quickcheck.conf.example - Vorlage. Auf der Appliance als ns_quickcheck.conf anlegen (root:wheel 600); fehlt die Datei,
 # gelten Defaults. Die Vorlage wird bei Updates mitgeliefert, die Betreiberdatei nie ueberschrieben.
-# ns_quickcheck.conf - optionale Konfiguration fuer ns_quickcheck_V15.sh
+# ns_quickcheck.conf - optionale Konfiguration fuer ns_quickcheck.sh; je Parameter ein deutscher und ein englischer Kommentar
+# ns_quickcheck.conf - optional configuration for ns_quickcheck.sh; one German and one English comment per parameter
 # Copyright 2026 ceterion AG
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -18,56 +19,120 @@
 # sh-Syntax, keine Leerzeichen um das Gleichheitszeichen.
 
 # Zeitfenster fuer Angriffsspuren in Stunden
+# Window in hours for attack traces
 HOURS=72
 
 # Reportverzeichnis (Text und JSON je Lauf). Wird vom Snapshot-Archiv 1 mitgenommen (ab Snapshot V6).
+# Report directory (text and JSON per run); snapshot archive 1 picks it up (snapshot V6 and later)
 REPORT_DIR=/var/nssnapshot/quickcheck
 # Reports aelter als N Tage werden beim naechsten Lauf geloescht
+# Reports older than N days are deleted on the next run
 REPORT_KEEP_DAYS=30
-# Arbeitsverzeichnis fuer Zwischendateien und --compare (Snapshot-Set wird dort entpackt). Leer = $BASE_DIR/tmp,
-# Rueckfall /var/tmp. Nie /tmp: liegt auf NetScaler auf dem kleinen Root-Dateisystem.
+# Arbeitsverzeichnis fuer Zwischendateien und --compare (Snapshot-Set wird dort entpackt). Leer = $BASE_DIR/tmp, Rueckfall /var/tmp. Nie /tmp: liegt auf NetScaler auf dem kleinen Root-Dateisystem
+# Working directory for temporary files and --compare (the snapshot set is unpacked there). Empty = $BASE_DIR/tmp, fallback /var/tmp. Never /tmp: on NetScaler it is on the small root file system
 WORK_BASE=""
 
-# Regeldatei (Builds, Angriffsmuster, Pfade) und Betreiber-Whitelist
+# Regeldatei (Builds, Angriffsmuster, Pfade)
+# Rules file (builds, attack patterns, paths)
 RULES_FILE=/var/nssnapshot/ns_quickcheck.rules
+# Betreiber-Whitelist
+# Operator whitelist
 WHITELIST_FILE=/var/nssnapshot/ns_quickcheck.whitelist
 
-# CLI-Ebene (Option B). Leer = Werte aus ns_snapshot.conf verwenden; gesetzt = hat Vorrang.
-# Service-User fuer die CLI-Ebene (Anlage: README Abschnitt 3.1). Leer = Werte aus ns_snapshot.conf, falls der Snapshot laeuft.
+# CLI-Ebene (Option B): Service-User fuer read-only NITRO/CLI-Abfragen (Anlage: README Abschnitt 3.1). Leer = Werte aus ns_snapshot.conf, falls der Snapshot laeuft
+# CLI layer (option B): service user for read-only NITRO/CLI queries (setup: README section 3.1). Empty = values from ns_snapshot.conf if the snapshot runs
 # CLI_USER=ns-quickcheck
+# Datei mit dem Kennwort des Service-Users (600)
+# File holding the service user's password (600)
 # CLI_SECRET_FILE=/var/nssnapshot/ns_quickcheck.secret
+# Zeitlimit je CLI-Abfrage in Sekunden
+# Time limit per CLI query in seconds
 # CLI_TIMEOUT=20
 
 # Obergrenze fuer httpaccess-Logs in MB, die fuer die Quell-IP-Korrelation gelesen werden (0 = alle)
+# Upper limit in MB of httpaccess logs read for the source-IP correlation (0 = all)
 ACCESS_LOG_MAX_MB=200
 # Zeilen je Detailliste in Terminal und Report; 0 = alles (Vorgabe), z. B. 50 bei Angriffsstuermen
+# Lines per detail list in terminal and report; 0 = all (default), e.g. 50 during attack storms
 DETAIL_MAX=0
 
 # Erlaubte Management-Adressen als ERE (Admin-Netze, Sprungserver); leer = nur RFC 1918 gilt als intern. Beispiel: "^10\\.1\\.|^192\\.168\\.10\\."
+# Allowed management addresses as ERE (admin networks, jump hosts); empty = only RFC 1918 counts as internal
 MGMT_NET_RE=""
 # Webshell-Sondierungen (Requests auf nicht existierende Webshell-Pfade): yellow (Vorgabe) oder info (nur Zaehlung, kein Einfluss auf das Verdict)
+# Webshell probing (requests to non-existent webshell paths): yellow (default) or info (count only, no effect on the verdict)
 PROBE_LEVEL=yellow
 
-# Gateway-Anmeldefehler (AAA): Schwellen fuer Gelb; Vorgaben 5 Fehlversuche je Adresse, 10 verschiedene Benutzernamen je Adresse
+# Gateway-Anmeldefehler (AAA): Schwelle fuer Gelb, Fehlversuche je Adresse
+# Gateway logon failures (AAA): threshold for yellow, failed attempts per address
 AAA_FAIL_IP=5
+# Gateway-Anmeldefehler (AAA): Schwelle fuer Gelb, verschiedene Benutzernamen je Adresse
+# Gateway logon failures (AAA): threshold for yellow, distinct user names per address
 AAA_FAIL_USERS=10
 # Minuten nach dem letzten Fehlversuch, in denen ein Erfolg desselben Kontos von derselben Adresse als "Nutzer" gilt
+# Minutes after the last failure in which a success of the same account from the same address counts as "user"
 AAA_OK_WIN=5
 # Brute Force: ab so vielen Fehlversuchen auf ein einzelnes Konto im Fenster, von beliebig vielen Adressen
+# Brute force: from this many failures on a single account in the window, from any number of addresses
 AAA_BF_MIN=20
 # Schlaefer: Fehlversuche an so vielen verschiedenen Kalendertagen (Fenster oder kumulierte Liste), mehrere Konten, unter Maschinen-Takt
+# Sleeper: failures on this many distinct calendar days (window or cumulative list), several accounts, below machine rate
 AAA_SLEEPER_DAYS=2
 # Fehlversuche je Minute, ab denen eine Adresse als Maschine gilt
+# Failures per minute from which an address counts as a machine
 AAA_RATE=10
 # Zeichen je Logzeile in Terminal und Report; 0 = ungekuerzt
+# Characters per log line in terminal and report; 0 = unshortened
 LINE_MAX=400
 # PHP-Speicher-/Fatal-Muster im Management-Portal (CTX697263): ab so vielen Zeilen im Fenster wird gemeldet; auf gefixtem Build nur INFO
+# PHP memory/fatal patterns in the management portal (CTX697263): reported from this many lines in the window; INFO only on a fixed build
 PHP_ANOMALY_MIN=3
 # Vertraute Adressen (ns_quickcheck.trusted_ips): trust = eigene Stufe [TRUST] ohne Verdict-Wirkung, yellow = als Gelb
+# Trusted addresses (ns_quickcheck.trusted_ips): trust = own level [TRUST] without verdict effect, yellow = as yellow
 TRUST_LEVEL=trust
 # Fusszeile "Erstellt mit netscaler-quickcheck ..." im Report und in den anon-Fassungen; 0 = aus
+# Footer "Created with netscaler-quickcheck ..." in the report and the anonymized copies; 0 = off
 FOOTER=1
 # leeres Core-Verzeichnis /var/core/<n> innerhalb 15 min nach Boot: info (Boot-Nachlauf, Vorgabe) oder yellow (als Absturz-Ereignis)
+# Empty core directory /var/core/<n> within 15 min after boot: info (boot aftermath, default) or yellow (as a crash event)
 CORE_BOOT_LEVEL=info
 # Sprache von Report, Terminal und Listen: de (Vorgabe) oder en; --lang geht vor
+# Language of report, terminal and lists: de (default) or en; --lang takes precedence
 LANG_QC=de
+# Spaeter Erfolg: Minuten nach dem letzten Fehlversuch, in denen ein Erfolg desselben Kontos von derselben Adresse als Nutzer gilt (INFO)
+# Later success: minutes after the last failure in which a success of the same account from the same address counts as a user (INFO)
+AAA_OK_WIN_LATE=1440
+# Gelb, wenn ein Konto kumuliert an so vielen Tagen Fehlversuche ohne jeden Erfolg hat
+# Yellow when an account has failures on this many days without any success, cumulated over all runs
+ACC_DAYS_MIN=3
+# Shell-Aktivitaet aus /var/log/bash.log auswerten (1 = ein); Vorgabe aus, Systemscripte koennen dort tausende Zeilen schreiben
+# Evaluate shell activity from /var/log/bash.log (1 = on); default off, system scripts can write thousands of lines there
+SHELL_CHECK=0
+# Befehlszeilen je Liste im Report
+# Command lines per list in the report
+SHELL_CMD_MAX=50
+# Shell-Sitzung ohne Anmeldung in auth.log in diesem Zeitraum davor ist Gelb (Minuten)
+# A shell session without a logon in auth.log within this many minutes before is yellow
+SHELL_LOGIN_WIN=10
+# eigene Logdatei fuer nFactor-Faktorzeilen (AAATM, Severity DEBUG); leer = ns.log
+# Separate log file for nFactor factor lines (AAATM, severity DEBUG); empty = ns.log
+AAA_FACTOR_LOG=
+# Scanner-Payload im CSP-Report: red (Vorgabe) oder yellow fuer Betreiber mit regelmaessigem Schwachstellenscan
+# Scanner payload in a CSP report: red (default) or yellow for operators with regular vulnerability scans
+CSP_SCAN_LEVEL=red
+# ns.log-Familie und messages einmal entpackt im Arbeitsordner halten, wenn die Archive zusammen kleiner sind (MB)
+# Keep the ns.log family and messages decompressed once in the working directory when the archives together are smaller (MB)
+LOG_CACHE_MAX_MB=500
+# Start, Ende und Dauer je Block nach stderr, als INFO in Block 6 und im JSON (1 = ein)
+# Start, end and duration per block to stderr, as INFO in block 6 and in the JSON (1 = on)
+QC_PROFILE=0
+
+# Sammeladresse (Proxy, NAT, Carrier): ab so vielen erfolgreichen Anmeldungen einer Adresse im Fenster ...
+# Shared address (proxy, NAT, carrier): from this many successful logons of one address in the window ...
+AAA_SHARED_OK=20
+# ... und so vielen verschiedenen erfolgreichen Konten werden ihre Fehlversuche als INFO gefuehrt (aaa_shared)
+# ... and this many distinct successful accounts its failures are reported as INFO (aaa_shared)
+AAA_SHARED_USERS=10
+# anon-Fassungen von _accounts.tsv, _logons.tsv und observed_accounts.tsv im Lauf erzeugen (1 = ein); sonst bei Bedarf mit --anon <datei>
+# Anonymized copies of _accounts.tsv, _logons.tsv and observed_accounts.tsv in the run (1 = on); otherwise on demand with --anon <file>
+ANON_ACCOUNTS=0

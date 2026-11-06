@@ -1,0 +1,4 @@
+# Kundendaten-Lint: erlaubte Treffer, eine Zeichenfolge je Zeile (Versionsnummern, Build-Nummern, Beispiele)
+209.141.43.95
+M..ller
+m..ller

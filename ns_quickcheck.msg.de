@@ -12,6 +12,7 @@ TAG_ACTION	ACTION
 TAG_RESULT	RESULT
 # --- HDR: Kopf, Blockueberschriften, anon-Hinweise
 HDR_CFG_FROM_SNAPSHOT_CONF	cli_user aus ns_snapshot.conf
+HDR_CRLF_FIXED	Windows-Zeilenenden (CR) beim Einlesen entfernt: %1; Dateien bitte mit LF speichern (tr -d '\r')
 HDR_CFG_FROM_QUICKCHECK_CONF	cli_user aus ns_quickcheck.conf
 HDR_CVE_CONFLICT_COND_FRAG	%1 %2 (Fix gleich, Bedingung Regeldatei %3, custom %4);
 HDR_CVE_CONFLICT_FIX_FRAG	%1 %2 (Regeldatei Fix %3, custom Fix %4);
@@ -108,6 +109,23 @@ TRACE_DETAIL_MORE	... und %1 weitere (DETAIL_MAX=%2)
 TRACE_BLOCKED_TAG_FRAG	 (Sperre ab %1%2)
 TRACE_BLOCKED_TAG_NODATE_FRAG	 (gesperrt, Datum unbekannt: nur markiert%1)
 TRACE_NET24_ROW	%1 (%2 Adresse(n), %3 Request(s))
+SHELL_SUSPECT_RED	%1 Shell-Sitzung(en) mit verdaechtigen Befehlen (Download, chmod +x, base64, nohup, Interpreter, crontab, Log loeschen, Schreiben in Web-Verzeichnisse, Start aus /tmp, nc/socat):
+SHELL_SESSION_ROW	%1 bis %2  %3@%4  Shell-PID %5  %6 Befehl(e)  Anmeldung davor: %7 von %8
+SHELL_SUSPECT_TODO_DET	Zu tun:        Befehle oben gegen das Change-Protokoll pruefen; unbekannt = Incident-Prozess, Appliance isolieren, /var/log/bash.log und /var/core sichern, Citrix Support.
+SHELL_NOLOGIN_YEL	%1 Shell-Sitzung(en) ohne Anmeldung in auth.log in den %2 min davor (Shell ohne Login ist das Muster einer Webshell mit /bin/sh), Sitzungen mit Anmeldung von aussen: %3
+SHELL_EXT_YEL	Shell-Sitzung(en) nach Anmeldung von Adressen ausserhalb RFC 1918 und MGMT_NET_RE: %1
+SHELL_NOLOGIN_DET	Pruefen:       Konsole (ttyu0) oder Session eines laenger angemeldeten Admins sind unkritisch; pts ohne jede Anmeldung im Fenster ist zu klaeren.
+SHELL_CHECK_OFF_INFO	Shell-Aktivitaet (bash.log) nicht ausgewertet: SHELL_CHECK=1 in ns_quickcheck.conf schaltet den Block ein (nur interaktive Sitzungen, Befehle begrenzt durch SHELL_CMD_MAX)
+SHELL_SESSIONS_INFO	Shell-Sitzungen im Fenster: %1 (%2); Befehle vollstaendig im Report
+ADDR_SRC_SHELL	auth.log Anmeldung vor Shell-Sitzung mit verdaechtigen Befehlen
+TRACE_COV_ROTATION_FRAG	 %1 reicht nur bis %2 (%3 Dateien, rund %4 Tage je Rotation);
+TRACE_COV_ROTATION_INFO	Logbestand kuerzer als das Fenster (Beginn %1):%2 aeltere Ereignisse sind nicht mehr pruefbar, die kumulierte Adressliste haelt sie; Fenster verkuerzen oder Rotation in /etc/newsyslog.conf vergroessern
+PROFILE_INFO	Laufzeit je Block (QC_PROFILE=1; Start-Ende Dauer): %1
+CMP_PREV_INFO	Vergleich mit dem letzten Lauf (%1): %2 Befund(e) neu, %3 weggefallen
+CMP_PREV_NEW_DET	Neu:           %1
+CMP_PREV_GONE_ROW	%1 (%2): %3
+CMP_PREV_GONE_DET	Weggefallen:   nicht mehr im Logbestand oder behoben; Adressen stehen weiter in ns_quickcheck_observed_ips.tsv
+CMP_PREV_SAME_INFO	Vergleich mit dem letzten Lauf (%1): keine neuen und keine weggefallenen Rot-/Gelb-Befunde
 TRACE_COV_NO_NSLOG_FRAG	 ns.log-Familie fehlt im Fenster;
 TRACE_COV_NO_HTTPACCESS_FRAG	 httpaccess fehlt im Fenster (Dropper, Sondierung, Quellen);
 TRACE_COV_UNREADABLE_FRAG	 %1 Logdatei(en) nicht lesbar;
@@ -118,6 +136,16 @@ TRACE_NO_NSLOG_YEL	Keine ns.log/nsvpn.log/messages im Fenster (Pfad %1) - Logs r
 TRACE_INJ_COVERED_ORG	%1 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Log-Poisoning), %2 bis %3 - abgedeckt: Download-Host(s) gesperrt, Build gefixt:
 TRACE_INJ_COVERED_HOST_DET	%1: %2, Versuch vom %3 liegt davor
 TRACE_INJ_COVERED_TODO_DET	Zu tun: nichts; ein neuer Versuch mit diesem Host nach dem Sperrdatum waere wieder Rot.
+TRACE_CSP_INJ_RED	%1 CSP-Report(s) der Logon-Seite mit Injection-Payload im Feld blocked-uri (Scanner-Muster), %2 bis %3:
+TRACE_CSP_INJ_WHAT_DET	Was das ist:   Der Browser meldet Verstoesse gegen die Content-Security-Policy der Logon-Seite per POST (application/csp-report) an den im Header genannten report-uri; NetScaler loggt den Bericht als AAA-Meldung. Die Felder des Berichts (document-uri, blocked-uri) kommen vom Client und sind frei beschreibbar; hier steht darin ein OS-Command-Injection-Payload (echo <marker>$()\ <marker>\nz^xyu||a, dreifach fuer ', " und ohne Quoting), das Standardmuster von Burp Scanner und Nuclei. NetScaler hat den Bericht nur geloggt; der Marker erschiene nur bei Erfolg in einer Antwort.
+TRACE_CSP_SRC_DET	Quelle:        %1 (%2 POST(s) auf den CSP-Report-Pfad im Access-Log, 120 s um die Reportzeiten)%3
+TRACE_CSP_SRC_NONE_DET	Quelle:        nicht in den Appliance-Logs: die Reports erreichen den Webserver nicht (Packet Engine), kein POST im Access-Log. Adresse ueber Firewall-Logs (POSTs zur Gateway-VIP um die Reportzeiten) oder kuenftig ueber eine Responder-Policy, die den report-uri-Pfad mit CLIENT.IP.SRC loggt (README 15)
+TRACE_CSP_TODO1_DET	Zu tun:        1. Intern klaeren, ob im Fenster %1 ein beauftragter Pentest oder Schwachstellenscan lief.
+TRACE_CSP_TODO2_DET	               2. Quelle aus der Firewall: Verbindungen auf %1Port 443 in diesem Fenster je Quelladresse zaehlen; der Scanner hat hunderte kurze Sessions, beginnt kurz vor dem ersten Report und war an den Vortagen nicht zu sehen.
+TRACE_CSP_TODO3_DET	               3. Gegenprobe Access-Log (solange nicht rotiert): zcat -f /var/log/httpaccess.log* | grep -aE '%1' | awk '{print $1}' | sort | uniq -c | sort -rn | head
+TRACE_CSP_TODO4_DET	               4. Ohne Auftrag: Adresse sperren, in ns_quickcheck.blocked_ips eintragen (Bemerkung: Scanner, Burp-Muster); Abuse-Meldung erst nach Punkt 1. Keine Aktion an der Appliance noetig, der Payload wurde nicht ausgefuehrt.
+TRACE_CSP_BASE_INFO	CSP-Reports der Logon-Seite ohne Payload im Fenster: %1 (Browser-Erweiterungen, Fremdscripte; Grundlast, kein Befund); haeufigste blockierte Quellen: %2
+ADDR_SRC_CSP	httpaccess POST auf CSP-Report-Pfad zur Zeit eines Scanner-Payloads
 TRACE_INJ_RED	%1 Logon-Zeile(n) mit Injection-Mustern (CVE-2026-88771 / Log-Poisoning), %2 bis %3:
 TRACE_INJ_SRC_LINES_FRAG	%1  in %2 von %3 Zeile(n)
 TRACE_INJ_SRC_MATCH_FRAG	%1  passt zu %2 von %3 Versuchszeit(en)%4
@@ -280,6 +308,23 @@ AAA_RATE_MACHINE_NET	Bewertung: Angriff (Netz mit Maschinen), sperren
 AAA_RATE_UNCLEAR	Bewertung: unklar, beobachten
 AAA_RATE_UNCLEAR_BURST	Bewertung: unklar, ein Konto in kurzem Burst: typisch Client mit altem gespeichertem Passwort, Nutzer anrufen
 AAA_RATE_USER	Bewertung: Nutzer (Erfolg danach)
+AAA_SHARED_INFO	Sammeladresse(n), Proxy, NAT oder Carrier: %1 Adresse(n) mit mindestens %2 erfolgreichen Anmeldungen von mindestens %3 Konten im Fenster; ihre Fehlversuche sind Nutzer dahinter, kein Befund:
+AAA_SHARED_ROW	%1 %2 Erfolge auf %3 Konten, %4 Fehlversuche auf %5 Konten
+AAA_SHARED_RESULT_DET	Ergebnis:      Kontenbezogene Pruefungen gelten weiter (Brute Force je Konto, Erfolg nach Fehlserie, Maschinen-Takt, Spraying ohne Erfolg). Schwellen: AAA_SHARED_OK, AAA_SHARED_USERS in ns_quickcheck.conf.
+AAA_ADV_SUCC_ROW	                 Erfolge dieser Adresse: %1 auf %2 Konten (%3). Ohne jeden Erfolg von hier: %4
+AAA_ADV_A	                 Empfehlung: Tippfehler eigener Nutzer (dieselben Konten melden sich an), kein Handlungsbedarf. Bei Wiederholung Passwort-Reset anbieten.
+AAA_ADV_B	                 Empfehlung: Fehlversuche nur auf Konten, die von hier nie Erfolg hatten, waehrend andere Konten dieser Adresse sich anmelden: altes gespeichertes Passwort auf einem Geraet oder Fremdversuch ueber die Adresse eines Nutzers (Proxy, NAT). Kontoinhaber fragen, bei Wiederholung Konto schuetzen.
+AAA_ADV_C	                 Empfehlung: keine Anmeldung dieser Adresse, Konten im Fenster nirgends erfolgreich: Woerterbuch- oder Leak-Spraying. Adresse sperren und eintragen.
+AAA_ADV_D	                 Empfehlung: keine Anmeldung dieser Adresse, aber die Konten existieren (anderswo erfolgreich): Fremdversuch auf bekannte Konten. Adresse sperren, Kontoinhaber informieren, MFA pruefen.
+AAA_ADV_E	                 Empfehlung: ein einzelnes Konto ohne Erfolg: Geraet mit altem gespeichertem Passwort oder gezielter Versuch auf dieses Konto. Kontoinhaber fragen, bei Wiederholung Konto schuetzen und Adresse sperren.
+AAA_FACTOR_INFO	nFactor: %1 Adresse(n), deren Fehlversuche alle nach einem bestandenen ersten Faktor desselben Kontos kamen (120 s); Nutzer mit falschem Passwort, kein Fremdversuch:
+AAA_FACTOR_ROW	%1 %2 Fehlversuche auf %3 Konten nach bestandenem Faktor: %4
+AAA_ADV_F	                 Empfehlung: Konto hat den ersten Faktor (OTP) bestanden und scheitert am Passwort: AD-Passwort vergessen oder Passwort-Manager mit altem Wert. Nutzer ansprechen, Passwort-Reset. Kein Fremdversuch.
+AAA_ADV_FACTOR_FRAG	                 Davon %1 Fehlversuch(e) nach bestandenem erstem Faktor (Nutzer mit falschem Passwort). Empfehlung gilt fuer die uebrigen.
+AAA_NFACTOR_NO_LINES	nFactor konfiguriert, aber keine Faktor-Zeilen im lokalen Log (AAATM, Severity DEBUG): Passwortfehler eigener Nutzer sind von Fremdversuchen nicht unterscheidbar; lokal mitschreiben mit audit logLevel ALL (README 15)
+AAA_LATE_INFO	Spaeter Erfolg: %1 Adresse(n), deren Konten sich innerhalb von %2 h nach dem letzten Fehlversuch von derselben Adresse angemeldet haben; Nutzer, kein Fremdversuch:
+AAA_LATE_ROW	%1 %2 Fehlversuche auf %3 Konten, Erfolg bis %4 h spaeter von derselben Adresse: %5
+AAA_ADV_G	                 Empfehlung: Passwort erinnert oder zurueckgesetzt, kein Fremdversuch, solange der Erfolg von derselben Adresse kam. Bei haeufiger Wiederholung desselben Kontos: Geraet mit altem gespeichertem Passwort suchen.
 AAA_SPRAY_ROW	%1 %2 Fehlversuche %3 Konten  %4 bis %5, bis %6/min  Erfolg danach: %7  %8  [Bemerkung: Konten %9]
 AAA_SPRAY_MORE_DET	und %1 weitere Adresse(n), vollstaendig in der Adressliste dieses Laufs
 AAA_TOP_ACCOUNTS_DET	Konten mit den meisten Fehlversuchen: %1
@@ -301,8 +346,8 @@ TRUST_UNLIMITED_FRAG	 gueltig unbefristet
 TRUST_NOTE_FRAG	 [Bemerkung: %1]
 TRUST_TAG_FRAG	 [Adresse in trusted_ips%1]%2
 TRUST_EVT_INTERNAL	als intern gewertet (Management, SSH oder Anmeldefehler)
-TRUST_LISTED_BEFORE_YEL	%1 steht in trusted_ips, war in der Adressliste dieser Appliance aber als %2 gefuehrt - Eintrag pruefen (Tippfehler? gewollt?)
-TRUST_ACTIVE_TRU	Vertraute Adresse %1%2 im Fenster aktiv [Bemerkung: %3]:
+TRUST_LISTED_BEFORE_YEL	%1 Adresse(n) stehen seit diesem Lauf in trusted_ips, waren in der Adressliste dieser Appliance aber als Angreifer gefuehrt - Eintraege pruefen: %2
+TRUST_ACTIVE_TRU	%1 vertraute Adresse(n) im Fenster aktiv (gueltig unbefristet: %2, befristet: %3); Wirkungs-Befunde bleiben Rot:
 TRUST_NOTE_NONE	ohne
 TRUST_UNTIL_PAREN_FRAG	 (gueltig bis %1)
 TRUST_UNLIMITED_PAREN_FRAG	 (gueltig unbefristet)
@@ -427,6 +472,9 @@ ADDR_SRC_AAA_FAIL_TRUSTED	ns.log AAA Fehlversuche (vertraut)
 ADDR_SRC_AAA_BF_TRUSTED	ns.log AAA Brute Force auf Konto (vertraut)
 ADDR_SRC_AAA_BF	ns.log AAA Brute Force auf Konto
 ADDR_SRC_AAA_HIT	ns.log AAA Erfolg nach Fehlserie
+ADDR_SRC_AAA_SHARED	ns.log AAA Fehlversuche (Sammeladresse, viele Erfolge)
+ADDR_SRC_AAA_FACTOR	ns.log AAA Fehlversuche nach bestandenem Faktor
+ADDR_SRC_AAA_LATE	ns.log AAA Fehlversuche mit spaeterem Erfolg derselben Adresse
 ADDR_SRC_AAA_SLEEPER	ns.log AAA Fehlversuche ueber Tage
 ADDR_SRC_AAA_MACHINE	ns.log AAA Fehlserie (Maschine)
 ADDR_RUN_LIST_HEAD	Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
@@ -453,6 +501,13 @@ SHARE_HEAD	# ns_quickcheck share %1  stand %2  quelle ns_quickcheck  (keine Appl
 SHARE_FILES	Adresslisten anon: %1 und %2; Share-Datei fuer ceterion (nach Durchsicht): %3
 # --- FOOT: Fusszeile und Dateihinweise
 FOOT_CREATED	Erstellt mit netscaler-quickcheck %1 (Regelstand %2), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+ACC_HEAD	# Konten dieses Laufs mit Fehlversuchen, ns_quickcheck %1, %2, %3; lage = Empfehlung A-G der Adresse (siehe Report), - = keine
+LOGON_HEAD	# Anmelde-Ereignisse dieses Laufs, ns_quickcheck %1, %2, %3; ergebnis fail|ok|factor_ok|factor_fail; konto normalisiert, konto_roh wie im Log
+ACC_CUM_HEAD	# Konten kumuliert ueber alle Laeufe, %1, Stand %2; Ereignisse nur einmal gezaehlt (last_epoch); keine Loeschung
+ACC_NEVER_OK_YEL	%1 Konto/Konten mit Fehlversuchen an mindestens %2 Tagen ohne jeden Erfolg (kumuliert ueber alle Laeufe; ns_quickcheck_observed_accounts.tsv):
+ACC_NEVER_OK_DET	Konten:        %1 - Kontoinhaber fragen (Geraet mit altem Passwort, Passwort-Manager) oder Fremdversuch auf dieses Konto
+FOOT_ACCOUNTS	Konten: %1 (%2 Konten)  Anmeldungen: %3  kumuliert: %4 (%5 Konten)  je mit _anon-Fassung
+FOOT_ACCOUNTS_NOANON	Konten: %1 (%2 Konten)  Anmeldungen: %3  kumuliert: %4 (%5 Konten)  intern; anon bei Bedarf: sh %6 --anon <datei> > <datei>_anon.tsv
 FOOT_FILES	Report: %1  JSON: %2 (defanged)  anon: %3 und %4 (fuer Weitergabe)
 # --- PIN: --pin-Ausgabe
 PIN_HEAD	# Pin-Zeilen fuer ns_quickcheck.whitelist (%1 unter %2), erzeugt %3 von ns_quickcheck %4; vorher Diff gegen Vorversion, dann Zeilen uebernehmen

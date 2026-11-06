@@ -1,0 +1,25 @@
+# Konten dieses Laufs mit Fehlversuchen, ns_quickcheck V, gw-01, TS; lage = Empfehlung A-G der Adresse (siehe Report), - = keine
+konto	fehl	erfolg	adressen	erster_fehl	letzter_fehl	erfolg_nach_fehl	lage
+user01	1	4	1	T	T	T	A
+user02	1	4	1	T	T	T	A
+user03	1	4	1	T	T	T	A
+user04	1	4	1	T	T	T	A
+user05	1	4	1	T	T	T	A
+user06	1	3	1	T	T	T	A
+user07	1	3	1	T	T	T	A
+user08	1	3	1	T	T	T	A
+user09	1	3	1	T	T	T	A
+user10	1	3	1	T	T	T	A
+user11	1	3	1	T	T	T	A
+victim01	1	0	1	T	T	-	B
+victim02	1	0	1	T	T	-	B
+victim03	1	0	1	T	T	-	B
+victim04	1	0	1	T	T	-	B
+victim05	1	1	1	T	T	T	B
+victim06	1	0	1	T	T	-	B
+victim07	1	0	1	T	T	-	B
+victim08	1	0	1	T	T	-	B
+victim09	1	0	1	T	T	-	B
+victim10	1	0	1	T	T	-	B
+victim11	1	0	1	T	T	-	B
+victim12	1	0	1	T	T	-	B

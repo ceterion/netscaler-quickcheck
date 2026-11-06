@@ -1,0 +1,1 @@
+-r-xr-xr-x 1 root wheel 160000 Jan 1 /bin/sh

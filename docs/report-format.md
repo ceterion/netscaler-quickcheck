@@ -27,6 +27,8 @@ Space-separated `key=value`, one line, always last in the report:
 | `red`, `yellow`, `orange` | integer | finding counts by colour; orange = covered by the operator's block list |
 | `blocked_seen` | integer | blocked addresses observed in this run |
 | `lang` | `de` or `en` | output language of this run (18.0) |
+| `shell_sessions`, `shell_suspect` | n | shell sessions in the window from bash.log and those with suspicious commands (18.1) |
+| `new`, `gone` | n | red/yellow finding codes new or vanished against the newest previous JSON of the host in the report directory (18.1); 0 when there is no previous run |
 | `crashes` | integer | crash events in the window (Pitboss, kernel, Apache error log, core files), one per process and PID (17.41) |
 | `trusted_seen` | integer | trusted addresses (trusted list) active in this run, each reported as `[TRUST]` |
 | `coverage` | `full`, `partial` | whether every core check had data; `partial` never yields `OK` |
@@ -47,6 +49,7 @@ Space-separated `key=value`, one line, always last in the report:
   "yellow": [ { "code": "KEY", "text": "...", "details": [ "..." ] } ],
   "orange": [ { "code": "KEY", "text": "...", "details": [ "..." ] } ],
   "trust":  [ { "code": "KEY", "text": "...", "details": [ "..." ] } ],
+  "profile": [ { "block": "block4", "start": "HH:MM:SS", "end": "HH:MM:SS", "seconds": n } ],   (only with QC_PROFILE=1, 18.5)
   "source_url": "https://ceterion.com/netscaler-quickcheck" }
 ```
 
@@ -58,7 +61,7 @@ Per-run file: tab-separated `category`, `ip`, `count`, `observed_in`, `blocked` 
 
 Cumulative file, 11 tab-separated columns: `category`, `ip`, `count_last`, `last_window_h`, `count_max`, `max_window_h`, `days`, `first_seen`, `last_seen`, `observed_in`, `blocked`. `days` counts calendar days on which a run saw the address (several runs on one day count once); counts are per run and never summed, because every run reads the same logs again.
 
-Categories: `payload_download_host`, `injection_source`, `injection_source_candidate`, `dropper_requester`, `outbound_hit`, `webshell_probe`, `webshell_hit`, `webserver_direct`, `mgmt_access`, `ssh_login_external`, `ssh_bruteforce`, `aaa_bruteforce`, `aaa_sleeper`, `aaa_hit`. `crash_trigger`: address whose request preceded a process crash by at most 120 seconds (17.41). Addresses from the trusted list appear with the prefix `trusted_` (for example `trusted_webshell_probe`); the import command in the file header excludes them. Own, RFC 1918 and `MGMT_NET_RE` addresses never appear.
+Categories: `payload_download_host`, `injection_source`, `injection_source_candidate`, `dropper_requester`, `outbound_hit`, `webshell_probe`, `webshell_hit`, `webserver_direct`, `mgmt_access`, `ssh_login_external`, `ssh_bruteforce`, `aaa_bruteforce`, `aaa_sleeper`, `aaa_hit`. `csp_scanner`: address that posted CSP reports with an injection payload to the logon page (18.1). `shell_source`: logon address before a shell session with suspicious commands (18.1). `aaa_shared`: address with many successful logons from many accounts (proxy, NAT, carrier), failures reported as INFO, never in the share file (18.1). `crash_trigger`: address whose request preceded a process crash by at most 120 seconds (17.41). Addresses from the trusted list appear with the prefix `trusted_` (for example `trusted_webshell_probe`); the import command in the file header excludes them. Own, RFC 1918 and `MGMT_NET_RE` addresses never appear.
 
 ## Verdict rules
 
@@ -78,3 +81,11 @@ Keys are only added, never renamed. A consumer must ignore unknown keys and cate
 ## Finding codes (18.0)
 
 Every finding in `red`, `yellow`, `orange` and `trust` carries `code`, the key of its message in the catalog (`ns_quickcheck.msg.<lang>`), for example `TRACE_CRASH_RED` or `AAA_SPRAY_YEL`. Codes are stable across languages and across rewordings of the text; a Collector should key on `code`, not on the text. The result line carries `lang` and `msg_sha256` (hash of the catalog used).
+
+## Account files (18.1)
+
+Three tab-separated files per run, mode 600; anonymized copies only with `ANON_ACCOUNTS=1` (18.5), otherwise on demand with `--anon <file>` (`_anon.tsv`; accounts and internal addresses mapped, attacker addresses kept). Comment lines start with `#`, the first data line is the header.
+
+- `ns_quickcheck_<host>_<ts>_accounts.tsv`: `konto fehl erfolg adressen erster_fehl letzter_fehl erfolg_nach_fehl lage`, one row per account with failed attempts in the window; `lage` is the advice code A to G of the account's address, `-` if none.
+- `ns_quickcheck_<host>_<ts>_logons.tsv`: `konto konto_roh zeit adresse ergebnis detail`, one row per event; `ergebnis` is `fail`, `ok`, `factor_ok` or `factor_fail`; `detail` the failure reason, `login <client>` or `factor <name> succeeded|failed`; `adresse` is `-` for factor lines; `konto` normalized (lower case, domain prefix removed), `konto_roh` as in the log.
+- `ns_quickcheck_observed_accounts.tsv`: `konto zuerst zuletzt tage fehl_gesamt erfolg_gesamt adressen_max letzte_lage last_epoch`, cumulated over all runs of the appliance, never deleted; only events newer than `last_epoch` are added, so overlapping windows do not double count. Accounts with `tage >= ACC_DAYS_MIN` and `erfolg_gesamt = 0` raise a yellow finding.

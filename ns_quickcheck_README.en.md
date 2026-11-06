@@ -2,7 +2,7 @@
 
 One run on the appliance, one verdict: build against the Citrix bulletins, attack traces, quick compromise check, address lists, anonymized reports. Rule-driven, works offline, extensible with your own indicators. Built in October 2026 for CTX697096, CTX697174 and CTX697191, designed for the bulletins that follow.
 
-Script V18.0, rules file format 2 (version 2026-10-28e), README v37 en (2026-10-31, English edition of v37; German is the leading version); the version in the repository always matches the script, the history is in section 17. Apache 2.0, Copyright 2026 ceterion AG.
+Script V18.1, rules file format 2 (version 2026-10-28e), README v37 en (2026-10-31, English edition of v37; German is the leading version); the version in the repository always matches the script, the history is in section 17. Apache 2.0, Copyright 2026 ceterion AG.
 
 **Language note:** output (terminal, report, finding texts in the JSON, address lists) is German by default and English with `--lang en` or `LANG_QC=en` (since 18.0; both catalogs are shipped). Field names, verdicts, categories and the RESULT line are language-neutral; texts of the rules file (CVE descriptions) stay as written there. Some sections of this edition still quote the German output lines with their meaning; they are being moved to the English catalog texts.
 
@@ -18,7 +18,7 @@ Which section is for whom: **Operators** (the admin who runs the script): 1 to 7
    sh ns_quickcheck.sh --lang en
    ```
 3. Read the exit code (`echo $?` right after the run): 0 `OK`, 1 `INVESTIGATE`, 2 `UPDATE` or `FORENSICS_FIRST`, 3 aborted with the reason on stderr (rules file missing, core variable missing, option without value). 1 and 2 are verdicts, not errors. If the run aborts without a `RESULT` line, repeat it with `sh -x ns_quickcheck.sh --no-out 2>/tmp/qc_trace.txt >/tmp/qc_out.txt` and send both files anonymized (`--anon`, section 5.3).
-4. Read the header line: `ns_quickcheck 18.0  host=<n>  modus=online  regeln=2026-10-28e`. If it shows `cli=none`, the CLI layer is missing (section 3); the script runs anyway. Below it are the loaded operator files (custom file, blocklist, whitelist), and block 4 lists the log families read with their file counts.
+4. Read the header line: `ns_quickcheck 18.1  host=<n>  modus=online  regeln=2026-10-28e`. If it shows `cli=none`, the CLI layer is missing (section 3); the script runs anyway. Below it are the loaded operator files (custom file, blocklist, whitelist), and block 4 lists the log families read with their file counts.
 5. Scroll to the end: `ACTION: OK`, `UPDATE`, `INVESTIGATE` or `FORENSICS_FIRST`. What that means is in section 7, column "Do now".
 6. Before the `RESULT` line you find the external addresses of this run with their status (new or known since) and blocklist status; `coverage=full` in `RESULT` confirms that all core checks had data.
 7. All further files (config, whitelist, block list, custom file, mapping table) belong in the same directory. The files of this run are in `/var/nssnapshot/quickcheck/`: report, JSON, address list, anonymized versions. Only `_anon.*` may leave the organization (section 5.3).
@@ -26,7 +26,7 @@ Which section is for whom: **Operators** (the admin who runs the script): 1 to 7
 A clean run looks like this (shortened, anonymized; `fenster=168h` here comes from `HOURS=168` in the config, the script default is 72 h):
 
 ```
-ns_quickcheck 18.0  host=gw-01  modus=online  fenster=168h  regeln=2026-10-28e  cli=nscli (user01, cli_user aus ns_snapshot.conf)
+ns_quickcheck 18.1  host=gw-01  modus=online  fenster=168h  regeln=2026-10-28e  cli=nscli (user01, cli_user aus ns_snapshot.conf)
   [INFO]  Custom-Datei des Betreibers geladen: 78 aktive Indikator-Zeile(n), 0 CVE-Zeile(n) (betreiber-2026-10-20)
   [INFO]  Sperrliste: 3 Eintrag/Eintraege (ns_quickcheck.blocked_ips und ACLs der Appliance); Befunde zu gesperrten Adressen vor dem Sperrdatum werden ORANGE (abgedeckt)
 Whitelist: /var/nssnapshot/ns_quickcheck.whitelist (4 Regeln)
@@ -181,6 +181,20 @@ Optional, next to the script, 600; one line per setting `NAME=value`, missing li
 | `AAA_FAIL_USERS` | 10 | distinct accounts per address from which it counts as machine |
 | `AAA_RATE` | 10 | failed attempts per minute from which an address counts as machine |
 | `AAA_OK_WIN` | 5 | minutes after the last failed attempt within which a success of the same account from the same address means "user" |
+| `AAA_SHARED_OK`, `AAA_SHARED_USERS` | 20, 10 | shared address: with this many successful logons from this many accounts an address counts as proxy, NAT or carrier; its failed attempts are INFO (`aaa_shared`), account-based checks still apply |
+| `AAA_OK_WIN_LATE` | 1440 | minutes after the last failure in which a later success of the same account from the same address marks the address as a user (INFO, `aaa_late_user`); a success from another address does not count |
+| `ACC_DAYS_MIN` | 3 | yellow when an account has failed attempts on this many days without any success, cumulated over all runs (`ns_quickcheck_observed_accounts.tsv`) |
+| `ANON_ACCOUNTS` | 0 | anonymized copies of the account files in the run; default off, on demand `sh ns_quickcheck.sh --anon <file> > <file>_anon.tsv` (uses the mapping table of the last run) |
+| `LOG_CACHE_MAX_MB`, `QC_PROFILE` | 500, 0 | log cache: `ns.log` family and `messages` decompressed once into the working directory when the archives are smaller together (runtime); `QC_PROFILE=1` shows seconds per block |
+| `CSP_SCAN_LEVEL` | red | scanner payload in a CSP report as red (default) or yellow; for operators with regular vulnerability scans, since there is no source address for `trusted_ips` |
+| `SHELL_CHECK`, `SHELL_CMD_MAX` | 0, 50 | evaluate shell activity from `/var/log/bash.log` (default off: system scripts write thousands of lines there with account `(null)`); interactive TTYs only; command lines per list in the report |
+| `SHELL_LOGIN_WIN` | 10 | minutes: a shell session (pts) without a logon in `auth.log` within this time before is yellow; console exempt |
+| `AAA_FACTOR_LOG` | empty | separate log file for the nFactor factor lines (audit action with severity DEBUG), e.g. `/var/log/aaa_debug.log`; empty = `ns.log` |
+
+**CSP reports (18.1):** The logon page sends the header `Content-Security-Policy` with `report-uri <path>`; the browser reports violations (such as blocked inline scripts) by `POST` with `Content-Type: application/csp-report` to that path, and NetScaler logs the report as the AAA message "CSP Violation". The report fields (`document-uri`, `blocked-uri`) come from the client and are freely writable, and vulnerability scanners fill them with injection payloads (Burp, Nuclei). The quickcheck shows such reports as a red finding of their own. The reports do not reach the web server, so no source address is in the logs. To see it in future: take the path from the header; if `curl -skL -D - -o /dev/null https://<gateway>/logon/LogonPoint/index.html | grep -i content-security` shows nothing, use the browser (developer tools, network, response headers of the logon page, directive `report-uri`, or the `POST` with `application/csp-report` while the page loads) and add a responder policy on the gateway vserver that logs `POST` to that path with `CLIENT.IP.SRC` through an audit message action without blocking; the address then appears in `ns.log`, and the quickcheck reads it from the responder line as for injection findings.
+
+**Window and rotation (18.1):** In online mode the script checks whether the oldest file of `ns.log`, `messages` and `httpaccess` reaches back to the window start. If the rotation is shorter (NetScaler keeps 25 files of 100 KB each), the header says "Log stock shorter than the window" with the reach and days per rotation, and RESULT carries `coverage=partial`; no OK is possible then. Remedy: a shorter window (`--hours 72` in the cron run, the weekly view comes from the cumulative address list) or a larger rotation in `/etc/newsyslog.conf` (does not survive an upgrade; put it in the operations manual). Block 6 compares each run with the newest previous JSON of the host: new and vanished red/yellow findings are listed (`new=<n>`, `gone=<n>` in RESULT); a finding that rotates out of the log stock appears once as "gone", its addresses stay in `ns_quickcheck_observed_ips.tsv`.
+| nFactor | - | a failure within 120 s after a passed first factor of the same account (`AAA_FACTOR_OK_RE`) counts as a user with a wrong password (`aaa_factor_ok`, advice F). The factor lines (`AAATM ... Authentication succeeded, current factor`) have severity DEBUG and reach the local `ns.log` only with `set audit syslogParams -logLevel ALL`; without them the header says so |
 | `AAA_BF_MIN` | 20 | failed attempts on a single account from which it counts as brute force |
 | `AAA_SLEEPER_DAYS` | 2 | days with attempts, or span between first and last attempt, from which an address counts as sleeper |
 

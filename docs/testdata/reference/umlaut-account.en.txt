@@ -1,0 +1,53 @@
+ns_quickcheck V  host=gw-01  mode=offline  window=1000000h  rules=2026-11-05d  cli=none  TS
+  [INFO]  Language en; 0 keys without translation (shown in German)
+Source: REPO/docs/testdata/fixtures/umlaut-account
+Whitelist: not present (REPO/ns_quickcheck.whitelist). All findings unfiltered
+
+== 1 Build ==
+  [OK]    Build 14.1-73.49 contains all 13 fix(es) for 14.1 from the rules file
+  [INFO]  Last boot: 2026-10-06 12:55 (N days)
+
+== 2 Exposure ==
+  [OK]    No SAML SP/IdP - SAML-dependent CVEs not relevant
+  [INFO]  DTLS active on 1 gateway vServer(s) (precondition for CVE-2026-88772; mitigated on a fixed build)
+  [OK]    Enhanced ISN Generation active
+  [INFO]  Management portal: NSIP not determinable from ns.conf, ACL mitigation (CTX697263) not checked
+
+== 3 Mitigation ==
+  [INFO]  No mitigation policy found (not required on a fixed build without traces)
+
+== 4 Attack traces (last 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl lines (CPU snapshots with process command lines) diverted up front: 1. They are only checked for suspicious processes, so the quickcheck does not find itself
+  [INFO]  Logs read in the window: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 0, auth.log 0, httpaccess.log (management) 1, cron 0 file(s)
+  [OK]    No injection patterns in logon lines of the last 1000000h
+  [OK]    No crashes in the window (Pitboss, kernel, Apache error log, /var/core)
+  [OK]    No suspicious processes in the CPU snapshots
+  [INFO]  Web server error log not checked: no httperror* file in the window (1000000h)
+  [OK]    Management layer (NITRO, GUI) addressed from internal addresses only
+  [INFO]  Logons not checked: no auth.log file in the window (1000000h)
+  [YELLOW] Password spraying (many accounts, few attempts per account): 6 failed attempts in the window, 1 address(es) above the thresholds, 0 of them machines:
+          | 1 address(es) unclear (human pace without success, listed first), 0 machines (by failed attempts), 0 users (success after, no finding):
+          | 203.0.113.81        6 failed attempts   1 accounts  07.10. 13:20 to 07.10. 13:25, up to 1/min  Success after: no  Rating: unclear, monitor  [Note: accounts m..ller]
+          |                  Successes of this address: 0 on 0 accounts (-). Never successful from here: m..ller(6)
+          |                  Advice: a single account without success: a device with a stale saved password or a targeted attempt on this account. Ask the account owner, protect the account and block the address if it repeats.
+          | Accounts with the most failed attempts: müller (6) 
+          | 1 different accounts in total, 0 of them only once (dictionary or leak spraying)
+          | Log:           REPO/docs/testdata/fixtures/umlaut-account/var/log/ns.log (6)
+          | Result:        machine = 10 or more attempts/min or 10 or more accounts from one address, or an address in a /24 with at least two machines; user = success of the same account within 5 min; unclear = human pace without success (also behind carrier NAT); one account in a short burst = usually a client with an old password. No CVE relation, but a risk for accounts without MFA.
+          | To do:         1. Block and record networks and machine addresses at the firewall (more effective than lockout: spraying with one attempt per account stays below any lockout threshold). 2. Check MFA for all gateway accounts. 3. Tune the thresholds (AAA_FAIL_IP, AAA_RATE, AAA_FAIL_USERS, AAA_OK_WIN, AAA_BF_MIN) in ns_quickcheck.conf.
+
+== 5 Compromise quick check ==
+  [INFO]  Monitor script runs under the stock daemon (PID 4410, parent: /netscaler/monuploadd monuploadd -P ) - regular mechanism
+  [OK]    No security-relevant changes between ns.conf.0 and ns.conf
+  [OK]    No quick check hits (does not replace a full IoC scan)
+
+== 6 Verdict ==
+ACTION: INVESTIGATE
+The appliance is patched and shows no signs of compromise. There are observations someone must assess; they are listed above with 'To do'.
+Then repeat this check: once the points are clarified or whitelisted, the result becomes OK.
+Open points:
+  - Official Citrix IoC scan (Console or Support) as a second opinion if the appliance was exposed before the fix.
+
+
+Created with netscaler-quickcheck V (rules stand 2026-11-05d), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=0 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=0 yellow=1 orange=0 blocked_seen=0 trusted_seen=0 shell_sessions=0 shell_suspect=0 crashes=0 new=0 gone=0 lang=en coverage=full action=INVESTIGATE rules=2026-11-05d script_sha256=X rules_sha256=16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44 msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

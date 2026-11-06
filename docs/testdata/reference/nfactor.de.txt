@@ -1,0 +1,56 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-11-05d  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/nfactor
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [OK]    Build 14.1-73.49 enthaelt alle 13 Fix(es) fuer 14.1 der Regeldatei
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+
+== 3 Mitigation ==
+  [INFO]  Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Spuren nicht erforderlich)
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 0, auth.log 0, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [OK]    Keine Injection-Muster in Logon-Zeilen der letzten 1000000h
+  [OK]    Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [INFO]  Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (1000000h)
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
+  [GELB]  Schlaefer (langsames Spraying ueber Tage, unter allen Schwellen, 1 Adresse(n)):
+          | 203.0.113.62        6 Fehlversuche   6 Konten   an 2 Tag(en) ueber 2 Tage (07.10. bis 08.10.), hoechstens 1/min   Erfolg danach: nein  [Bemerkung: Konten user800, user810, user820, user801, user811, +1]
+          |                  Erfolge dieser Adresse: 0 auf 0 Konten (-). Ohne jeden Erfolg von hier: user800(1),user810(1),user820(1),user801(1),user811(1),user821(1)
+          |                  Empfehlung: keine Anmeldung dieser Adresse, Konten im Fenster nirgends erfolgreich: Woerterbuch- oder Leak-Spraying. Adresse sperren und eintragen.
+          | Ergebnis:      Absichtlich langsam, damit Lockout und Ratenschwellen nicht greifen; sichtbar nur ueber die Zeitachse (Fenster und kumulierte Adressliste).
+          | Zu tun:        Adresse sperren und eintragen; sie wird wiederkommen, die Sperrliste zeigt es.
+  [INFO]  nFactor: 1 Adresse(n), deren Fehlversuche alle nach einem bestandenen ersten Faktor desselben Kontos kamen (120 s); Nutzer mit falschem Passwort, kein Fremdversuch:
+          | 203.0.113.61     6 Fehlversuche auf 1 Konten nach bestandenem Faktor: user777
+          |                  Empfehlung: Konto hat den ersten Faktor (OTP) bestanden und scheitert am Passwort: AD-Passwort vergessen oder Passwort-Manager mit altem Wert. Nutzer ansprechen, Passwort-Reset. Kein Fremdversuch.
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+  [OK]    Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+
+== 6 Verdict ==
+ACTION: INVESTIGATE
+Das Geraet ist gepatcht und zeigt keine Kompromittierungszeichen. Es gibt aber Beobachtungen, die jemand einordnen muss; sie stehen oben mit 'Zu tun'.
+Danach diesen Check wiederholen: sind die Punkte geklaert oder in der Whitelist, wird das Ergebnis OK.
+Offene Punkte:
+  - Offizieller Citrix-IoC-Scan (Console oder Support) als zweite Meinung, falls die Appliance vor dem Fix exponiert war.
+
+Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
+  203.0.113.61       aaa_factor_ok          neu                              Sperrliste: nein
+  203.0.113.62       aaa_sleeper            neu                              Sperrliste: nein
+  2 Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-11-05d), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=0 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=0 yellow=1 orange=0 blocked_seen=0 trusted_seen=0 shell_sessions=0 shell_suspect=0 crashes=0 new=0 gone=0 lang=de coverage=full action=INVESTIGATE rules=2026-11-05d script_sha256=X rules_sha256=16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44 msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

@@ -1,0 +1,15 @@
+Oct  5 09:00:01 <local0.notice> 192.0.2.5 10/05/2026:09:00:01 GMT gw-01 0-PPE-0 : default GUI CMD_EXECUTED 5001 0 :  User nsroot - Remote_ip 192.0.2.5 - Command "add system user ops-ro" - Status "Success"
+Oct  5 09:00:02 <local0.notice> 192.0.2.5 10/05/2026:09:00:02 GMT gw-01 0-PPE-0 : default CLI CMD_EXECUTED 5002 0 :  User nsroot - Remote_ip 192.0.2.5 - Command "shell" - Status "Success"
+Oct  5 09:00:03 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=grep -c . /var/log/ns.log user=nsroot
+Oct  5 09:00:04 <local0.notice> gw-01 0-PPE-0 : default SHELL sh_command=sh /var/nssnapshot/ns_quickcheck.sh --no-out user=nsroot
+Oct  5 09:00:05 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=/netscaler/nsprofmon_mgmt.pl -ys user=nsroot
+Oct  5 09:01:10 <local0.info> 198.51.100.40 10/05/2026:09:01:10 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5101 0 :  Request from client 198.51.100.40 for user "user03" vserver gw-vs
+Oct  5 09:01:11 <local0.info> 198.51.100.40 10/05/2026:09:01:11 GMT gw-01 0-PPE-0 : default AAA Message 5102 0 :  "authenticate user: succeeded for user user03"
+Oct  5 09:02:00 <local0.info> 198.51.100.41 10/05/2026:09:02:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5103 0 :  Request from client 198.51.100.41 for user "o'neill.sean" vserver gw-vs
+Oct  5 09:03:00 <local0.info> 198.51.100.42 10/05/2026:09:03:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5104 0 :  Request from client 198.51.100.42 for user "user04" User-Agent "CitrixReceiver/26.9.0 Windows/10.0 X1Class"
+Oct  5 09:04:00 <local0.info> 198.51.100.43 10/05/2026:09:04:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5105 0 :  Request from client 198.51.100.43 for user "DOMAIN\user05" vserver gw-vs
+Oct  5 09:05:00 <local0.info> 198.51.100.44 10/05/2026:09:05:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5106 0 :  Request from client 198.51.100.44 for user "user06+ext@example.net" vserver gw-vs
+Oct  5 09:06:00 <local0.info> 198.51.100.45 10/05/2026:09:06:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5107 0 :  Request from client 198.51.100.45 for user "müller.jörg" vserver gw-vs
+Oct  5 09:07:00 <local0.info> 198.51.100.46 10/05/2026:09:07:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5108 0 :  Request from client 198.51.100.46 for user "sh.arma" vserver gw-vs
+Oct  5 09:08:00 <local0.info> 198.51.100.47 10/05/2026:09:08:00 GMT gw-01 0-PPE-0 : default AAA LOGIN REQ 5109 0 :  Request from client 198.51.100.47 for user "grep.thomas" vserver gw-vs
+Oct  6 12:50:00 <local0.notice> gw-01 0-PPE-0 : default SHELL shell_command=reboot user=nsroot

@@ -1,4 +1,4 @@
-ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-10-28e  cli=none  TS
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-11-05d  cli=none  TS
   [INFO]  Vertrauensliste: 1 Eintrag/Eintraege (ns_quickcheck.trusted_ips), 1 abgelaufen und uebergangen; vertraute Adressen erscheinen als [TRUST], Wirkungs-Befunde bleiben Rot
 Quelle: REPO/docs/testdata/fixtures/trusted
 Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
@@ -39,8 +39,8 @@ Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefilt
   [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
   [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
   [OK]    Keine Gateway-Anmeldefehler im Fenster
-  [TRUST] Vertraute Adresse 198.51.100.45 (gueltig bis 2099-12-31) im Fenster aktiv [Bemerkung: Fixture: eigener Scanner, Dropper-Requests gewollt]:
-          | dropper_requester: 1 (httpaccess DROPPER_PATH_RE)
+  [TRUST] 1 vertraute Adresse(n) im Fenster aktiv (gueltig unbefristet: 0, befristet: 1); Wirkungs-Befunde bleiben Rot:
+          | 198.51.100.45    dropper_requester: 1 (httpaccess DROPPER_PATH_RE)   gueltig bis 2099-12-31 [Bemerkung: Fixture: eigener Scanner, Dropper-Requests gewollt]
           | Pruefen:       Ist der Eintrag richtig und noch gewollt? Falsch eingetragen = Zeile aus ns_quickcheck.trusted_ips loeschen, dann wird das beim naechsten Lauf wieder bewertet. Wirkungs-Befunde (Injection, Webshell 200, Erfolg nach Fehlserie, aktive Verbindung) bleiben auch fuer vertraute Adressen Rot.
 
 == 5 Kompromittierungs-Schnellcheck ==
@@ -62,5 +62,5 @@ Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
   2 Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
 
 
-Erstellt mit netscaler-quickcheck V (Regelstand 2026-10-28e), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
-RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=1 yellow=0 orange=0 blocked_seen=0 trusted_seen=1 crashes=0 lang=de coverage=full action=INVESTIGATE rules=2026-10-28e script_sha256=X rules_sha256=b8ea6f58168ed41f00829c527790aa22ae5358ccded5ffdfd8dc06542a8c5e4d msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-11-05d), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=1 yellow=0 orange=0 blocked_seen=0 trusted_seen=1 shell_sessions=0 shell_suspect=0 crashes=0 new=0 gone=0 lang=de coverage=full action=INVESTIGATE rules=2026-11-05d script_sha256=X rules_sha256=16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44 msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns

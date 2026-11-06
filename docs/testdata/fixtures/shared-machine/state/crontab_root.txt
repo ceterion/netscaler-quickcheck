@@ -1,0 +1,1 @@
+0 4 * * * /usr/bin/nice -n 19 /bin/sh /var/nssnapshot/ns_snapshot.sh >/dev/null 2>&1

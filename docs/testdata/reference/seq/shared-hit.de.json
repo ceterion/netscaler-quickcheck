@@ -1,0 +1,12 @@
+{
+  "script": "ns_quickcheck", "version": "V", "host": "gw-01", "ts": "TS",
+  "result": {"action": "FORENSICS_FIRST", "blocked_seen": "0", "build": "14.1-73.49", "cli": "none", "compromise": "1", "coverage": "full", "crashes": "0", "custom": "none", "custom_sha256": "none", "cve_conflict": "0", "cve_custom": "0", "gone": "0", "host": "gw-01", "isn_open": "0", "lang": "de", "mitigation": "0", "mode": "offline", "msg_sha256": "X", "new": "0", "orange": "0", "red": "1", "rules": "2026-11-05d", "rules_sha256": "16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44", "runtime": "Ns", "saml": "0", "save_missing": "0", "script_sha256": "X", "shell_sessions": "0", "shell_suspect": "0", "traces": "1", "trusted_seen": "0", "unsaved": "0", "vuln63": "0", "vuln79": "0", "vuln96": "0", "vuln_open": "0", "window": "1000000h", "yellow": "0"},
+  "mitigation_hits": {},
+  "observed_ips": [{"category": "aaa_hit", "ip": "203.0.113.71", "count": 1, "observed_in": "ns.log AAA Erfolg nach Fehlserie", "blocked": ""},{"category": "aaa_shared", "ip": "203.0.113.70", "count": 11, "observed_in": "ns.log AAA Fehlversuche (Sammeladresse, viele Erfolge)", "blocked": ""}],
+  "red": [{"code": "AAA_HIT_RED", "text": "Erfolgreiche Anmeldung nach Fehlserie von Angriffs-Adresse (1 Adresse(n)): die Kampagne hat ein Passwort gefunden:", "details": ["203.0.113.71  12 Fehlversuche, 12 Konten, danach erfolgreich: victim05","203.0.113.70     41 Erfolge auf 12 Konten, 11 Fehlversuche auf 11 Konten"]}],
+  "yellow": [],
+  "orange": [],
+  "trust": [],
+  "profile": [],
+  "source_url": "https://ceterion.com/netscaler-quickcheck"
+}

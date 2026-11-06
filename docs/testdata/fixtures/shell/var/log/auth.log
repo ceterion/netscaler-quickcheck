@@ -1,0 +1,2 @@
+Oct  7 08:58:40 gw-01 sshd[990]: Accepted keyboard-interactive/pam for nsroot from 10.10.0.5 port 50123 ssh2
+Oct  7 14:29:30 gw-01 sshd[1990]: Accepted password for nsroot from 203.0.113.88 port 44321 ssh2

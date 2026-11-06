@@ -29,7 +29,7 @@
 # Bestehende Werte werden nie gekuerzt oder ersetzt (Ausnahme FIX_*), damit alte Vektoren pruefbar bleiben.
 # Aenderungshistorie mit Belegen: ns_quickcheck.rules.changelog.md
 
-RULES_VERSION="2026-10-28e"
+RULES_VERSION="2026-11-05d"
 RULES_FORMAT="2"
 RULES_SOURCE="Lab 27.10. (Crash-Formate), CTX697096, CTX697174, CTX697191, CISA KEV, CISA SIGMA 261399 r1, CERT-EU 28.09., Mandiant/GTIG 29.09., watchTowr 28.09. und 07.10., Unit 42 30.09., LevelBlue 02.10., Sygnia 01.10., SOCRadar 07.10. (Daten nur mit Fundstelle beim Erstautor; Zusammenstellungen Dritter sind Verweise), Zscaler ThreatLabz 16.10., CTX697263 22.10."
 
@@ -237,9 +237,34 @@ MGMT_PATH_RE='"(GET|POST|PUT|DELETE) /(nitro/v1|menu|admin_ui|rapi)/'
 
 # +2026-10-21 Gateway-Anmeldefehler (ns.log, AAA): Credential Stuffing und Password Spraying; Schwellen AAA_FAIL_IP und AAA_FAIL_USERS
 #   in ns_quickcheck.conf. Quelle: NetScaler-Syslog-Format AAA LOGIN_FAILED / authenticate user failed (Citrix-Dokumentation Audit-Logging).
-AAA_FAIL_RE='AAA (LOGIN_FAILED|Message [0-9]+ 0 :  "authenticate user: failed)|AAA LOGIN_FAILED|SSLVPN LOGIN_FAILED'
+# 2026-11-05b: ein oder zwei Leerzeichen nach "0 :" (14.1-73.49 beim Betreiber schreibt "0 : Context", das Lab "0 :  Context");
+#   die lose Alternative "AAA LOGIN" entfernt, sie traf die Diagnosezeile 'AAA Message ... "AAA LOGIN : X509 cert not found"' (kein Erfolg, keine Adresse)
+AAA_FAIL_RE='AAA (LOGIN_FAILED|Message [0-9]+ 0 : +"authenticate user: failed)|AAA LOGIN_FAILED|SSLVPN LOGIN_FAILED'
 # +2026-10-21 Erfolgreiche Gateway-Anmeldungen (ns.log, AAA): fuer die Paarung "Fehlserie, dann Erfolg" je Adresse und Konto.
-AAA_OK_RE='AAA (LOGIN|Message [0-9]+ 0 :  "authenticate user: succeeded)|SSLVPN LOGIN [0-9]+ 0 :  Context|AAA LOGIN [0-9]+ 0 :  Context'
+AAA_OK_RE='AAA Message [0-9]+ 0 : +"authenticate user: succeeded|SSLVPN LOGIN [0-9]+ 0 : +Context|AAA LOGIN [0-9]+ 0 : +Context'
+
+# +2026-11-05 nFactor: Faktor-Ergebnisse je Konto (Severity DEBUG, <135>; lokal nur mit audit logLevel ALL, sonst nur am Remote-Syslog).
+#   Format aus dem Syslog-Export eines Betreibers, 02.11.2026: 'AAATM Message 3025428 0 :  "(0-8601) Authentication succeeded, current factor: 2FA, for user: konto"'
+#   Ein LOGIN_FAILED nach bestandenem Faktor desselben Kontos (120 s) ist ein Nutzer mit falschem Passwort, kein Fremdversuch.
+AAA_FACTOR_OK_RE='AAATM Message [0-9]+ 0 : +"\([0-9-]+\) Authentication succeeded, current factor: [^,]+, for user: '
+AAA_FACTOR_FAIL_RE='AAATM Message [0-9]+ 0 : +"\([0-9-]+\) Authentication failed, current factor: [^,]+, for user: '
+
+# +2026-11-05c Shell-Aktivitaet: /var/log/bash.log (Lab ns-lab-141, 14.1-73.49, 04.11.2026):
+#   'bash[92388]: root on /dev/pts/0 shell_command="ls -l"'; interaktive Shells erzeugen keine SHELL-Auditzeile in ns.log.
+#   SHELL_SUSPECT_RE sind Standardmuster ohne Lab-Nachweis (Download mit URL, chmod +x, base64 -d, openssl enc, nohup, Interpreter -e,
+#   crontab, Loeschen unter /var/log, Schreiben oder Kopieren in Web-Verzeichnisse, Start aus /tmp oder /var/tmp, nc/ncat/socat).
+#   SHELL_OWN_RE: eigene Werkzeuge, damit sich der Lauf nicht selbst findet.
+SHELL_LOG_RE='bash\[[0-9]+\]: [^ ]+ on [^ ]+ shell_command="'
+SHELL_SUSPECT_RE='(^|[^A-Za-z0-9_])(fetch|curl|wget|ftp)[^"]*(https?|ftp)://|(^|[^A-Za-z0-9_])chmod[[:space:]]+([ugoa]*\+[rwx]*x|[0-7]*7[0-7]{2})([^0-9]|$)|(^|[^A-Za-z0-9_])base64[[:space:]]+(-d|--decode)|(^|[^A-Za-z0-9_])openssl[[:space:]]+enc([^A-Za-z]|$)|(^|[^A-Za-z0-9_])nohup([^A-Za-z]|$)|(^|[^A-Za-z0-9_])(python[0-9.]*|perl|php)[[:space:]]+-e([^A-Za-z]|$)|(^|[^A-Za-z0-9_])crontab[[:space:]]+-|(^|[^A-Za-z0-9_])rm[[:space:]]+(-[a-z]+[[:space:]]+)*/var/log/|>[[:space:]]*/var/log/[^ ]+[[:space:]]*$|(>|cp[[:space:]]+[^ ]+[[:space:]]+|mv[[:space:]]+[^ ]+[[:space:]]+)(/var/netscaler/logon|/netscaler/ns_gui|/var/vpn)|^(sh|bash|\.)?[[:space:]]*(/var/tmp|/tmp)/[^ ]+|(^|[^A-Za-z0-9_])(nc|ncat|socat)[[:space:]]+-'
+SHELL_OWN_RE='ns_quickcheck|ns_snapshot|ns_collector'
+
+# +2026-11-05d CSP-Reports der Logon-Seite: 'AAA Message <n> 0 :  "CSP Violation: Detected for user , while accessing page https://<gateway>/ trying to
+#   access blocked page <blocked-uri> which violates script-src directive"'. Das Feld blocked-uri kommt aus dem Browser und ist vom
+#   Client frei beschreibbar; Betreiber-Gateway 04.11.2026: darin das Burp-Scanner-Payload fuer OS-Command-Injection
+#   (echo <marker>$()\ <marker>\nz^xyu||a #' &echo ... #|" &echo ... #). Eigener Befund statt Injection-Zeile; kein Download-Host.
+#   CSP_REPORT_PATH_RE: Pfad, unter dem der Browser (oder Scanner) den Report sendet; Standardannahme, nicht lab-verifiziert.
+CSP_REPORT_RE='AAA Message [0-9]+ 0 : +"CSP Violation: '
+CSP_REPORT_PATH_RE='/cgi/csp-report|csp[-_]?report'
 
 # +2026-10-23 PHP2Shell (CTX697263, CVE-2026-109618/109619): Hypothese, keine veroeffentlichte Signatur. Die CVEs nutzen Out-of-Memory-
 #   und Fatal-Error-Pfade im PHP des Management-Portals; Apache meldet solche Zustaende im Fehlerlog. Das Script wertet diese Muster

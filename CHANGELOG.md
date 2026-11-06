@@ -13,6 +13,38 @@ English summary. The German version [CHANGELOG.de.md](CHANGELOG.de.md) is leadin
 - `--compare` with hash diff instead of mtime, cron and `httpd.conf` included in the comparison
 - Stock lists and stock hashes for 13.1 and FIPS
 
+## v18.8 (2026-11-06)
+
+Crash events before the window start are dropped; log stock reach from the first readable date line; test hook `QC_NOW` for fixtures with window boundaries.
+
+## v18.7 (2026-11-06)
+
+Windows line endings in operator files are removed while reading and reported; error messages before the catalog is loaded are readable.
+
+## v18.6 (2026-11-06)
+
+Profiling marks per sub-check in block 4; non-ASCII in INFO values sanitized; CSP finding text and README 15 made precise. Anonymizer token-based (independent of table size). Checks: sequence run with references for JSON, account files and cumulative lists, runtime fixture with 2,000 addresses, seven new fixtures.
+
+## v18.5 (2026-11-05)
+
+Anonymizer with one pattern per class (minutes to seconds), batched `anon_add`; account files without anonymized copies (`ANON_ACCOUNTS=0`, on demand `--anon <file>`); `QC_PROFILE` with start, end and duration per block, also in the JSON; bilingual config template with lint.
+
+## v18.4 (2026-11-05)
+
+`msg()`: endless loop on values containing `%<digit>` (URL-encoded payloads) since 18.0 fixed; placeholder cleanup only in the template (`%2527` was not preserved). Lint `msg-percent` in `release.sh`.
+
+## v18.3 (2026-11-05)
+
+Runtime: log cache (`LOG_CACHE_MAX_MB`), CSP block in one pass, `QC_PROFILE=1` with seconds per block, VIP fallback to `add cs vserver`.
+
+## v18.2 (2026-11-05)
+
+CSP reports: baseline INFO, `CSP_SCAN_LEVEL`, "to do" with the firewall search (local window, VIPs, access-log cross-check). Version rule: every change to script, rules or catalog is a new version; release notes of versions that ran are frozen.
+
+## v18.1 (2026-11-05)
+
+Shared addresses: addresses with many successful logons from many accounts (`AAA_SHARED_OK`, `AAA_SHARED_USERS`) are proxy, NAT or carrier; their failed attempts are reported as INFO (`aaa_shared`), account-based checks still apply. Category `trusted_aaa_sleeper`. Advice per address under sleeper and spraying rows (successes of the address, accounts without success, situations A to E). nFactor: a failure after a passed first factor of the same account is a user with a wrong password (`aaa_factor_ok`, advice F; factor lines reach the local log only with `audit logLevel ALL`). Later success: a success of the same account from the same address within `AAA_OK_WIN_LATE` (24 h) after the last failure is a user (`aaa_late_user`, advice G). Shell activity from `bash.log` (only with `SHELL_CHECK=1`, interactive TTYs, commands capped) (sessions, logon correlation, `SHELL_SUSPECT_RE`, `shell_sessions`/`shell_suspect` in RESULT), `AAA_FACTOR_LOG`. Scanner payloads in CSP reports as their own finding (`csp_scanner`, source via the CSP report path), gateway FQDN anonymized. Rules stand 2026-11-05d (`AAA_OK_RE`: one or two spaces before `Context`, `X509` diagnostic line and `AAA LOGIN REQ` requests excluded, which counted as successes since 17.28 and could rate an address as a user after a failure; on 14.1-73.49 no successes were counted before). Fixed: `msg()` before the catalog, `--anon` from pipes, accounts from success lines in the mapping table. Hit vs. proxy: "success after a failure series" needs machine rate or exactly one succeeding account; account count alone does not make a shared address a machine. Account names normalized (lower case, domain prefix). `code` per finding in the JSON is now really emitted (announced in 18.0, not written). Coverage against rotation (`coverage=partial` when the log stock does not reach the window start). Comparison with the last run: new and vanished red/yellow findings, `new=<n>`, `gone=<n>`. Account files: `_accounts.tsv` (per account, situation A to G), `_logons.tsv` (timeline), `ns_quickcheck_observed_accounts.tsv` (cumulated, events counted once) with anonymized copies; yellow for an account failing on `ACC_DAYS_MIN` days without any success. Compact `[TRUST]` block (one block, one line per address; "listed as attacker" warning once). Session secrets (`Session Key`, `NSC_*`, `SESSID`) masked. Fixtures `shared`, `shared-hit`, `nfactor`, `late`.
+
 ## v18.0 (2026-10-31)
 
 Message catalog: all texts in `ns_quickcheck.msg.de` and `ns_quickcheck.msg.en`, `--lang de|en` and `LANG_QC`, per-key fallback to German; `code` per finding in the JSON, `lang` and `msg_sha256` in the result line; German output byte-identical to 17.44 (reference reports under `docs/testdata/reference/`, checked by `release.sh`); six places where the script parsed its own output now use data fields. Rules stand 2026-10-28e unchanged. Fixed before release from lab and operator runs on 2026-11-04: three FreeBSD sh parser crashes (patterns with quotes or parentheses in `${}`), missing `comm`, empty source detail on injection findings from responder lines; fixture `responder`, platform lints 5 and 6. Trusted list: validity shown as "valid until" or explicitly "valid without expiry", remark also on the address-list line of the original, hint on findings for expired entries.

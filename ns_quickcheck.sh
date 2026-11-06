@@ -16,7 +16,7 @@
 # NetScaler ADC / Gateway - Sicherheits-Triage auf der Appliance: ein Lauf, ein Verdict. Entstanden fuer CTX697096,
 # CTX697174 und CTX697191, gebaut fuer die Bulletins danach.
 #
-# Version : 18.0 (2026-10-30)
+# Version : 18.8 (2026-11-06)
 # Autor   : ceterion AG, Jens Miltenberger
 # Plattform: NetScaler 13.1 / 14.1 (FreeBSD), /bin/sh. Offline auch Linux/macOS/WSL.
 # Dateien : ns_quickcheck.conf (optional), ns_quickcheck.rules, ns_quickcheck.whitelist (optional)
@@ -61,6 +61,78 @@
 # Exit-Codes: 0 OK, 1 INVESTIGATE, 2 UPDATE oder FORENSICS_FIRST, 3 Fehler
 #
 # Changelog
+#   18.8  2026-11-06 Absturz-Ereignisse vor dem Fensterbeginn werden verworfen (Lab: elf Tage alte Segfaults als Rot, weil nur die
+#                    Datei nach Aenderungszeit gewaehlt wurde); Ereignisse ohne lesbaren Zeitstempel bleiben. Reichweite des Logbestands
+#                    aus der ersten Zeile mit lesbarem Datum (erste 50 Zeilen) statt der ersten Zeile.
+#   18.7  2026-11-06 Windows-Zeilenenden (CR) in Betreiberdateien (Config, Whitelist, Sperr-, Vertrauensliste, Custom-Regeln)
+#                    werden beim Einlesen entfernt und im Kopf gemeldet (Betreiber: ": not found" je Zeile, HOURS keine Zahl).
+#                    Fehlermeldungen vor dem Katalog-Laden nutzen den deutschen Katalog, falls er neben dem Script liegt.
+#   18.6  2026-11-06 Profilmarken je Teilpruefung in Block 4 (injection, csp, crash, dropper, httperr, mgmt, auth, aaa, shell,
+#                    trust); Nicht-ASCII in INFO-Werten bereinigt (Rohbytes aus CSP-Werten standen im Report); CSP-Befundtext:
+#                    Browser-Bericht per POST application/csp-report an den report-uri, Felder vom Client.
+#   18.5  2026-11-05 Anonymisierer: ein Muster je Klasse (ip, host, user) statt eines je Tabelleneintrag und Zeile; anon_add
+#                    gebuendelt. ANON_ACCOUNTS=0: keine anon-Fassungen der Kontendateien im Lauf, bei Bedarf --anon <datei>
+#                    (Footer nennt den Befehl). QC_PROFILE: Start, Ende, Dauer je Block, auch im JSON (profile).
+#   18.4  2026-11-05 msg(): Endlosschleife, wenn ein eingesetzter Wert selbst %<ziffer> enthaelt (URL-kodierte Payloads wie
+#                    %2527 in CSP- und Injection-Zeilen; Betreiber-Gateway 05.11., Shell minutenlang bei 100 %). Ersetzung jetzt
+#                    von links nach rechts ohne erneutes Durchsuchen eingesetzter Werte; nicht belegte Platzhalter werden vor dem
+#                    Einsetzen aus der Vorlage entfernt, nie aus Werten (vorher wurde %2527 zu 527).
+#   18.3  2026-11-05 Laufzeit: ns.log-Familie und messages werden einmal entpackt und dedupliziert in den Arbeitsordner
+#                    geschrieben (LOG_CACHE_MAX_MB, Vorgabe 500), catns liest danach die Cache-Datei statt 16 mal alle Archive
+#                    (Betreiber-Gateway mit 2 Tagen Rotation: Minuten CPU, Abbruch). CSP-Block in einem Durchlauf. QC_PROFILE=1
+#                    schreibt Sekunden je Block nach stderr und als INFO in Block 6. VIP-Fallback auf add cs vserver.
+#   18.2  2026-11-05 CSP-Reports: Grundlast-INFO (Reports ohne Payload, haeufigste blockierte Quellen), CSP_SCAN_LEVEL=red|yellow
+#                    fuer Betreiber mit regelmaessigen Scans, "Zu tun" mit Firewall-Suche (lokales Zeitfenster, Gateway-VIPs,
+#                    Access-Log-Gegenprobe). Versionsregel: jede Aenderung an Script, Regeldatei oder Katalog ergibt eine neue
+#                    Versionsnummer; release.sh prueft die eingefrorenen Release-Notes gelaufener Staende.
+#   18.1  2026-11-05 CSP-Reports (CSP_REPORT_RE): Injection-Payload im Feld blocked-uri ist ein eigener Rot-Befund "Scanner-Payload
+#                    im CSP-Report" mit Quellsuche ueber CSP_REPORT_PATH_RE im Access-Log, ohne Download-Host (der FQDN in der
+#                    Zeile ist das Gateway selbst). Anonymisierung: oeffentliche Gateway-Namen aus "accessing page https://<host>/"
+#                    und "Hostname: <host>" (Responder) kommen in die Zuordnungstabelle; sie standen im Klartext.
+#   18.1  2026-11-05 Betreiber-Lauf 05.11. 06:13 abgebrochen: bash.log enthielt tausende Zeilen aus Systemscripten (Konto und TTY
+#                    "(null)", mastools), der Report wuchs auf 4000 Zeilen, die Kontendateien formatierten jede Zeile mit einem
+#                    eigenen perl-Aufruf. Neu: SHELL_CHECK=0 als Vorgabe (Shell-Block nur auf Wunsch), nur interaktive TTYs
+#                    (/dev/pts*, /dev/ttyu*), Befehle im Report auf SHELL_CMD_MAX begrenzt, Kontendateien in einem perl-Durchlauf.
+#   18.1  2026-11-05 Shell-Aktivitaet (bash.log, sh.log): Sitzungen je Shell-PID mit Konto, TTY, Beginn, Ende, Befehlen (INFO);
+#                    Gelb ohne Anmeldung in auth.log in den SHELL_LOGIN_WIN Minuten davor (Shell ohne Login = Webshell-Muster)
+#                    oder mit Anmeldung von nicht interner Adresse; Rot bei SHELL_SUSPECT_RE mit Befehl, Quelladresse als
+#                    shell_source. shell_sessions=<n> shell_suspect=<n> in RESULT. AAA_FACTOR_LOG: eigene Datei fuer Faktor-Zeilen.
+#   18.1  2026-11-05 [TRUST] kompakt: ein Block mit einer Zeile je vertrauter Adresse (Kategorien, Gueltigkeit, Bemerkung) und
+#                    dem Pruefabsatz einmal statt einem Block je Adresse; die Warnung "steht in trusted_ips, war als Angreifer
+#                    gefuehrt" ist eine Zeile mit allen Adressen und erscheint nur im ersten Lauf, in dem die Adresse vertraut ist.
+#   18.1  2026-11-05 Sitzungsgeheimnisse: "Session Key", "SessionId"/"SessionID" aus show aaa session sowie Cookie-Werte (NSC_*)
+#                    in Responder-Zeilen werden schon im Original-Report maskiert (***), nicht erst in der anon-Fassung;
+#                    der Zaehler "Geheimnisse maskiert" nennt sie mit.
+#   18.1  2026-11-05 Befund-Code im JSON: in 18.0 angekuendigt und dokumentiert, aber nicht ausgegeben (msg.last wurde nie
+#                    gelesen); jetzt "code" je Befund in red/yellow/orange/trust. Abdeckung gegen Rotation: reicht die aelteste
+#                    Datei einer Logfamilie nicht bis zum Fensterbeginn, coverage=partial mit INFO (Tage je Rotation). Vergleich mit
+#                    dem letzten Lauf (juengstes JSON im Reportverzeichnis): neue und weggefallene Rot-/Gelb-Codes als INFO,
+#                    new=<n> und gone=<n> in RESULT.
+#   18.1  2026-11-05 Anonymisierung: Konten mit Nicht-ASCII-Zeichen (Umlaute) erscheinen im Report mit "." je Byte (show);
+#                    diese Schreibweise kommt jetzt ebenfalls in die Zuordnungstabelle, sonst blieb der Name lesbar (m..ller statt mueller).
+#   18.1  2026-11-05 Kontendateien: <report>_accounts.tsv (je Konto: Fehlversuche, Erfolge, Adressen, Lage A-G), <report>_logons.tsv
+#                    (Zeitachse je Ereignis), ns_quickcheck_observed_accounts.tsv (kumuliert je Konto, Ereignisse nur einmal gezaehlt);
+#                    Gelb bei Konto mit Fehlversuchen an >= ACC_DAYS_MIN Tagen ohne jeden Erfolg; anon-Fassungen; Footer-Zeile.
+#   18.1  2026-11-05 Betreiber-Lauf 14:49: Sammeladresse mit 11 Konten je einmal gescheitert und 5 danach erfolgreich wurde als
+#                    "Erfolg nach Fehlserie" (Rot, FORENSICS_FIRST) gewertet. Neu: Kontenzahl allein macht keine Maschine mehr, wenn
+#                    die Adresse die Sammel-Schwellen erfuellt; ein Treffer braucht Maschinen-Takt oder genau ein Konto mit Erfolg
+#                    nach der Fehlserie (ein Sprayer findet ein Passwort, Nutzer hinter einem Proxy finden viele). Kontonamen werden
+#                    normalisiert (Kleinschreibung, Domaenenpraefix ab), Rohformen gehen in die Zuordnungstabelle.
+#   18.1  2026-11-05 Fehler: msg() vor dem Katalog aufgerufen (CLI_USER aus der Snapshot-Config, Fehlerpfade der Optionen):
+#                    Notfall-msg() am Anfang, Kopfzeilen-Hinweis wird nach dem Laden aufgeloest. --anon liest jetzt auch
+#                    Pipes (/dev/stdin). Konten aus Erfolgszeilen kommen in die Zuordnungstabelle (vorher nur aus Fehlversuchen).
+#   18.1  2026-11-05 Spaeter Erfolg: Erfolg desselben Kontos von derselben Adresse innerhalb AAA_OK_WIN_LATE (24 h) nach dem
+#                    letzten Fehlversuch ergibt "Nutzer, Erfolg nach n h" als INFO (aaa_late_user) statt Gelb; von anderer
+#                    Adresse bleibt die Bewertung.
+#   18.1  2026-11-05 nFactor: LOGIN_FAILED nach bestandenem erstem Faktor desselben Kontos (AAA_FACTOR_OK_RE, 120 s)
+#                    gilt als Nutzer mit falschem Passwort; Adressen, deren Fehlversuche alle so erklaert sind, werden INFO
+#                    (aaa_factor_ok, Empfehlung F), teilweise erklaerte mit Zusatz; fehlende Faktor-Zeilen bei nFactor-Config
+#                    ergeben eine INFO (Severity DEBUG nur mit audit logLevel ALL lokal).
+#   18.1  2026-11-04 Sammeladressen: eine Adresse mit vielen erfolgreichen Anmeldungen vieler Konten im Fenster
+#                    (AAA_SHARED_OK, AAA_SHARED_USERS) ist ein Proxy, NAT oder Carrier; ihre Fehlversuche werden als INFO
+#                    gefuehrt (Kategorie aaa_shared, nie in Share-Datei und Feed), kontenbezogene Pruefungen (Brute Force,
+#                    Erfolg nach Fehlserie, Maschinen-Takt, Spraying ohne Erfolg) bleiben unveraendert. Kategorie der
+#                    vertrauten Schlaefer heisst trusted_aaa_sleeper (vorher trusted_aaa_schlaefer).
 #   18.0  2026-10-30 Nachrichtenkatalog: alle Report-, Terminal- und Dateitexte liegen in ns_quickcheck.msg.<sprache>
 #                    (KEY<TAB>Text, Platzhalter %1..%9) neben dem Script; --lang de|en (Config LANG_QC), Vorgabe de;
 #                    fehlende Keys fallen auf de zurueck und werden im Kopf gezaehlt. Jeder Befund traegt den Key als
@@ -327,7 +399,7 @@
 PATH=/netscaler:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin; export PATH
 LC_ALL=C; export LC_ALL
 umask 077
-VERSION="18.0"; RULES_MIN="2026-10-23"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
+VERSION="18.8"; RULES_MIN="2026-10-23"   # aeltere Regeldateien laufen, aber Pruefungen ohne ihre Variablen entfallen
 SELF="$0"; case "$SELF" in /*) ;; *) SELF="$(pwd)/$SELF" ;; esac
 SELFDIR=$(cd "$(dirname "$SELF")" 2>/dev/null && pwd || dirname "$SELF")
 BASE_DIR=/var/nssnapshot
@@ -339,10 +411,22 @@ REPORT_DIR="$BASE_DIR/quickcheck"
 REPORT_KEEP_DAYS=30
 LINE_MAX=400            # Zeichen je Logzeile in Terminal und Report; 0 = ungekuerzt
 AAA_FAIL_IP=5           # Gateway-Anmeldefehler: ab so vielen Fehlversuchen von einer Adresse im Fenster Gelb
+LOG_CACHE_MAX_MB=500    # ns.log-Familie und messages einmal entpackt im Arbeitsordner halten, wenn die Archive zusammen kleiner sind (Laufzeit)
+ANON_ACCOUNTS=0         # 1 = anon-Fassungen von _accounts.tsv, _logons.tsv und observed_accounts.tsv im Lauf erzeugen (sonst bei Bedarf --anon <datei>)
+QC_PROFILE=0            # 1 = Start, Ende, Dauer je Block nach stderr und als INFO in Block 6
+CSP_SCAN_LEVEL=red      # Scanner-Payload im CSP-Report: red (Vorgabe) oder yellow fuer Betreiber mit regelmaessigem Schwachstellenscan
+SHELL_CHECK=0           # 1 = Shell-Aktivitaet aus /var/log/bash.log auswerten (Block 4); Vorgabe aus, weil Systemscripte dort tausende Zeilen schreiben koennen
+SHELL_CMD_MAX=50        # Befehlszeilen je Liste im Report (verdaechtige und alle)
+SHELL_LOGIN_WIN=10      # Minuten: Shell-Sitzung ohne Anmeldung in auth.log in diesem Zeitraum davor ist Gelb (Shell ohne Login)
+AAA_FACTOR_LOG=""       # eigene Logdatei fuer nFactor-Faktorzeilen (AAATM, Severity DEBUG), z. B. /var/log/aaa_debug.log; leer = ns.log
+ACC_DAYS_MIN=3          # Gelb, wenn ein Konto kumuliert an so vielen Tagen Fehlversuche ohne jeden Erfolg hat (ns_quickcheck_observed_accounts.tsv)
+AAA_OK_WIN_LATE=1440    # Minuten (24 h) nach dem letzten Fehlversuch, in denen ein spaeterer Erfolg desselben Kontos von derselben Adresse als "Nutzer, Erfolg spaeter" gilt (INFO)
 AAA_OK_WIN=5            # Minuten nach dem letzten Fehlversuch, in denen ein Erfolg desselben Kontos von derselben Adresse als "Nutzer" gilt
 AAA_SLEEPER_DAYS=2      # Schlaefer: Fehlversuche an so vielen verschiedenen Tagen, mehrere Konten, unter Maschinen-Takt
 AAA_BF_MIN=20           # Brute Force: ab so vielen Fehlversuchen auf ein einzelnes Konto im Fenster (von beliebig vielen Adressen)
 AAA_RATE=10             # Fehlversuche je Minute, ab denen eine Adresse als Maschine gilt
+AAA_SHARED_OK=20        # Sammeladresse (Proxy, NAT, Carrier): ab so vielen erfolgreichen Anmeldungen einer Adresse im Fenster ...
+AAA_SHARED_USERS=10     # ... und so vielen verschiedenen erfolgreichen Konten werden ihre Fehlversuche als INFO gefuehrt (aaa_shared)
 AAA_FAIL_USERS=10       # ab so vielen verschiedenen Benutzernamen mit Fehlversuch von einer Adresse Gelb (Password Spraying)
 CORE_BOOT_LEVEL=info    # leeres Core-Verzeichnis /var/core/<n> innerhalb 15 min nach Boot: info (Boot-Nachlauf) oder yellow (als Absturz-Ereignis)
 LANG_QC=de              # Sprache von Report, Terminal und Adresslisten: de oder en (Katalog ns_quickcheck.msg.<sprache> neben dem Script)
@@ -359,6 +443,15 @@ CLI_USER=""
 CLI_SECRET_FILE="$BASE_DIR/ns_snapshot.secret"
 CLI_TIMEOUT=20
 ACCESS_LOG_MAX_MB=200
+# Notfall-msg() (18.7): vor dem Katalog-Laden den deutschen Katalog neben dem Script lesen, sonst Key plus Argumente
+msg() { _ek="$1"; shift; _et=$(grep "^$_ek	" "$(dirname "$0")/ns_quickcheck.msg.de" 2>/dev/null | head -1 | cut -f2-)
+  if [ -z "$_et" ]; then printf '%s' "$_ek"; for _a in "$@"; do printf ' %s' "$_a"; done; return; fi
+  _ei=1; for _a in "$@"; do _et=$(printf '%s' "$_et" | awk -v p="%$_ei" -v v="$_a" 'BEGIN { ORS="" } { i=index($0, p); if (i) { print substr($0, 1, i-1) v substr($0, i+length(p)) } else print }'); _ei=$((_ei + 1)); done
+  printf '%s' "$_et" | sed 's/%[1-9]//g'; }
+CRLF_FIXED=""
+# crlf_read <datei>: Inhalt ohne Wagenruecklauf (Windows-Zeilenenden in Betreiberdateien), merkt sich die Datei fuer den Kopf
+crlf_has() { grep -q "$(printf '\r')" "$1" 2>/dev/null; }
+CFG_NOTE_KEY=""
 FROM=""; COMPARE=""; OUTFILE=""; NO_OUT=0; ANON_FILE=""; FULL=1; DO_CLI=1; CONF_FILE=""; KI_BUNDLE=0
 
 # --- Config-Schichtung ---------------------------------------------------------
@@ -369,7 +462,7 @@ if safe_file "$SNAPCONF"; then
   _cu=$(sed -n 's/^CLI_USER=//p' "$SNAPCONF" | tail -1 | tr -d '"'"'"' ')
   _cs=$(sed -n 's/^CLI_SECRET_FILE=//p' "$SNAPCONF" | tail -1 | tr -d '"'"'"' ')
   _ct=$(sed -n 's/^CLI_TIMEOUT=//p' "$SNAPCONF" | tail -1 | tr -d '"'"'"' ')
-  [ -n "$_cu" ] && { CLI_USER="$_cu"; CFG_NOTE="$(msg HDR_CFG_FROM_SNAPSHOT_CONF)"; }
+  [ -n "$_cu" ] && { CLI_USER="$_cu"; CFG_NOTE_KEY=HDR_CFG_FROM_SNAPSHOT_CONF; }
   [ -n "$_cs" ] && CLI_SECRET_FILE="$_cs"
   [ -n "$_ct" ] && CLI_TIMEOUT="$_ct"
 fi
@@ -382,9 +475,12 @@ done
 if [ -f "$CONF_FILE" ]; then
   if safe_file "$CONF_FILE"; then
     _before="$CLI_USER"
-    # shellcheck disable=SC1090
-    . "$CONF_FILE"
-    [ "$CLI_USER" != "$_before" ] && [ -n "$CLI_USER" ] && CFG_NOTE="$(msg HDR_CFG_FROM_QUICKCHECK_CONF)"
+    if crlf_has "$CONF_FILE"; then CRLF_FIXED="$CRLF_FIXED $(basename "$CONF_FILE")"; eval "$(tr -d '\r' < "$CONF_FILE")"
+    else
+      # shellcheck disable=SC1090
+      . "$CONF_FILE"
+    fi
+    [ "$CLI_USER" != "$_before" ] && [ -n "$CLI_USER" ] && CFG_NOTE_KEY=HDR_CFG_FROM_QUICKCHECK_CONF
   else
     echo "$(msg ERR_CONF_IGNORED "$CONF_FILE")" >&2
   fi
@@ -487,9 +583,9 @@ CUSTOM_SHA=""; [ -r "${RULES_FILE}.custom" ] && CUSTOM_SHA=$(sha256_of "${RULES_
 # aus Block 4 (ADMIN_CMD_RE-Ausschluss, LOGON_HINT_RE-Vorfilter). Keine Appliance, keine Whitelist.
 if [ -n "$TESTLOG" ]; then
   : "${LOGON_HINT_RE:=}"; : "${TRIGGER_RE:=}"; : "${OBFUSC_RE:=}"; : "${CMD_NAMES:=}"; : "${LOGIN_PATH_RE:=}"
-  : "${NSAAAD_CRASH_RE:=}"; : "${NSAAAD_CRASH_LEGACY_RE:=}"; : "${PITBOSS_RE:=}"; : "${KERNEL_EXIT_RE:=}"; : "${HTTPERR_CRASH_RE:=}"; : "${KERNEL_MEM_RE:=}"; : "${KERNEL_PANIC_RE:=}"; : "${DTLS_FAIL_RE:=}"; : "${PPE_CRASH_RE:=}"; : "${ADMIN_CMD_RE:=}"; : "${DROPPER_PATH_RE:=}"; : "${SUSPECT_PROC_RE:=}"; : "${HTTPERR_EXEC_RE:=}"; : "${HTTPERR_PROBE_RE:=}"; : "${AUTH_LOGIN_RE:=}"; : "${AUTH_FAIL_RE:=}"; : "${MGMT_PATH_RE:=}"; : "${AAA_FAIL_RE:=}"; : "${AAA_OK_RE:=}"; : "${HTTPERR_PHP_ANOMALY_RE:=}"
+  : "${NSAAAD_CRASH_RE:=}"; : "${NSAAAD_CRASH_LEGACY_RE:=}"; : "${PITBOSS_RE:=}"; : "${KERNEL_EXIT_RE:=}"; : "${AAA_FACTOR_OK_RE:=}"; : "${AAA_FACTOR_FAIL_RE:=}"; : "${SHELL_LOG_RE:=}"; : "${SHELL_SUSPECT_RE:=}"; : "${SHELL_OWN_RE:=}"; : "${CSP_REPORT_RE:=}"; : "${CSP_REPORT_PATH_RE:=}"; : "${HTTPERR_CRASH_RE:=}"; : "${KERNEL_MEM_RE:=}"; : "${KERNEL_PANIC_RE:=}"; : "${DTLS_FAIL_RE:=}"; : "${PPE_CRASH_RE:=}"; : "${ADMIN_CMD_RE:=}"; : "${DROPPER_PATH_RE:=}"; : "${SUSPECT_PROC_RE:=}"; : "${HTTPERR_EXEC_RE:=}"; : "${HTTPERR_PROBE_RE:=}"; : "${AUTH_LOGIN_RE:=}"; : "${AUTH_FAIL_RE:=}"; : "${MGMT_PATH_RE:=}"; : "${AAA_FAIL_RE:=}"; : "${AAA_OK_RE:=}"; : "${HTTPERR_PHP_ANOMALY_RE:=}"
   CMDRE="[;|&\`]([[:space:]]|%20)*($CMD_NAMES)([[:space:]<>;|&\`\$]|%20|%3B|\\\$|$)|(%3B|%7C|%26)($CMD_NAMES)(%20|%24|%3B|%7C|$)"
-  CHECKS="INJECTION TRIGGER_RE OBFUSC_RE CMD LOGIN_PATH_RE ATTACKER_IP_RE ATTACKER_DOM_RE NSAAAD_CRASH_RE NSAAAD_CRASH_LEGACY_RE PITBOSS_RE KERNEL_EXIT_RE HTTPERR_CRASH_RE KERNEL_MEM_RE KERNEL_PANIC_RE DTLS_FAIL_RE PPE_CRASH_RE DROPPER_PATH_RE SUSPECT_PROC_RE HTTPERR_EXEC_RE HTTPERR_PROBE_RE AUTH_LOGIN_RE AUTH_FAIL_RE MGMT_PATH_RE AAA_FAIL_RE AAA_OK_RE HTTPERR_PHP_ANOMALY_RE"
+  CHECKS="INJECTION TRIGGER_RE OBFUSC_RE CMD LOGIN_PATH_RE ATTACKER_IP_RE ATTACKER_DOM_RE NSAAAD_CRASH_RE NSAAAD_CRASH_LEGACY_RE PITBOSS_RE KERNEL_EXIT_RE HTTPERR_CRASH_RE KERNEL_MEM_RE KERNEL_PANIC_RE DTLS_FAIL_RE PPE_CRASH_RE DROPPER_PATH_RE SUSPECT_PROC_RE HTTPERR_EXEC_RE HTTPERR_PROBE_RE AUTH_LOGIN_RE AUTH_FAIL_RE MGMT_PATH_RE AAA_FAIL_RE AAA_OK_RE AAA_FACTOR_OK_RE AAA_FACTOR_FAIL_RE SHELL_LOG_RE SHELL_SUSPECT_RE HTTPERR_PHP_ANOMALY_RE"
   tl_count() { # $1 datei $2 pruefung
     case "$2" in
       INJECTION) grep -avE "$ADMIN_CMD_RE" "$1" | grep -aiE "$LOGON_HINT_RE" | grep -acE "$TRIGGER_RE|$OBFUSC_RE|$CMDRE" ;;
@@ -564,6 +660,8 @@ HOST=$(hostname 2>/dev/null | cut -d. -f1)
 [ "$MODE" = offline ] && [ -f "$META" ] && HOST=$(awk -F'\t' '$1=="hostname"{print $2}' "$META")
 [ -n "$HOST" ] || HOST=netscaler
 TS=$(date +%Y%m%d_%H%M%S); NOW=$(date +%s)
+# QC_NOW (nur offline, Testhaken 18.8): fester Bezugszeitpunkt (Epoche), damit Fixtures mit Fenstergrenzen stabile Referenzen liefern
+[ "$MODE" = offline ] && case "${QC_NOW:-}" in *[!0-9]*|"") ;; *) NOW=$QC_NOW ;; esac
 # Arbeitsverzeichnis: /var/tmp (auf NetScaler das grosse Dateisystem), nicht /tmp auf dem kleinen Root-Dateisystem
 WTMP="${WORK_BASE:-${TMPDIR:-}}"
 if [ -z "$WTMP" ]; then
@@ -573,6 +671,10 @@ fi
 # Reste abgebrochener Laeufe im eigenen Arbeitsverzeichnis entfernen (aelter als ein Tag)
 case "$WTMP" in "$BASE_DIR"/tmp) find "$WTMP" -maxdepth 1 -type d -name 'qc.*' -mtime +1 -exec rm -rf {} + 2>/dev/null ;; esac
 WORK=$(mktemp -d "$WTMP/qc.XXXXXX" 2>/dev/null) || { WORK="$WTMP/qc.$$"; mkdir -p "$WORK"; }
+# crlf_clean VAR: Betreiberdatei mit Windows-Zeilenenden als bereinigte Kopie im Arbeitsordner lesen (18.7)
+crlf_clean() { eval "_cf=\${$1:-}"; [ -n "$_cf" ] && [ -f "$_cf" ] || return 0; crlf_has "$_cf" || return 0
+  _cc="$WORK/crlf_$(basename "$_cf")"; tr -d '\r' < "$_cf" > "$_cc"; chmod 600 "$_cc"; eval "$1=\"\$_cc\""; CRLF_FIXED="$CRLF_FIXED $(basename "$_cf")"; }
+crlf_clean WHITELIST_FILE; crlf_clean CUSTOM_FILE
 
 # --- Nachrichtenkatalog (18.0): KEY<TAB>Text, Platzhalter %1..%9; de ist Pflicht, andere Sprachen fallen je Key auf de zurueck ---
 MSG_LANG="${LANG_OPT:-${LANG_QC:-de}}"; case "$MSG_LANG" in de|en) ;; *) echo "ERROR: --lang: nur de oder en" >&2; exit 3 ;; esac
@@ -589,15 +691,24 @@ fi
 MSG_SHA256=$(sha256 -q "$MSG_FILE" 2>/dev/null || sha256sum "$MSG_FILE" 2>/dev/null | cut -c1-64)
 # msg KEY [wert1 ... wert9]: Text des Katalogs mit eingesetzten Platzhaltern; unbekannter Key wird als [KEY] gezeigt
 msg() {
-  _mk="$1"; shift; printf '%s' "$_mk" > "$WORK/msg.last" 2>/dev/null; eval "_mt=\"\${MSG_$_mk:-}\""; [ -n "$_mt" ] || { printf '%s' "[$_mk]"; return; }
+  _mk="$1"; shift; case "$_mk" in TAG_*) ;; *_RED|*_YEL|*_ORG|*_TRU) printf '%s' "$_mk" > "$WORK/msg.last" 2>/dev/null ;; esac; eval "_mt=\"\${MSG_$_mk:-}\""; [ -n "$_mt" ] || { printf '%s' "[$_mk]"; return; }
   # Platzhalter ohne Muster in Anfuehrungszeichen (FreeBSD-sh-Parser): %n ist kein Glob-Zeichen, daher unquoted sicher
-  _mi=1; for _mv in "$@"; do _mp="%$_mi"
-    while :; do case "$_mt" in *$_mp*) _mt="${_mt%%$_mp*}$_mv${_mt#*$_mp}" ;; *) break ;; esac; done; _mi=$((_mi + 1)); done
-  while :; do case "$_mt" in *%[1-9]*) _mr="${_mt#*%}"; _md=$(printf '%.1s' "$_mr"); _mp="%$_md"; _mt="${_mt%%$_mp*}${_mt#*$_mp}" ;; *) break ;; esac; done
+  # Ein Durchlauf von links nach rechts: jeweils den fruehesten Platzhalter %1..%9 suchen, Wert einsetzen, dahinter weitermachen.
+  # Eingesetzte Werte werden nie erneut durchsucht (Endlosschleife bei %2527 im Wert); Platzhalter ohne Argument entfallen.
+  _mo=""; _mr="$_mt"
+  while :; do
+    case "$_mr" in *%[1-9]*) ;; *) break ;; esac
+    _bd=""; _bl=${#_mr}
+    for _d in 1 2 3 4 5 6 7 8 9; do case "$_mr" in *%$_d*) _px="${_mr%%%$_d*}"; [ ${#_px} -lt "$_bl" ] && { _bl=${#_px}; _bd=$_d; } ;; esac; done
+    _px="${_mr%%%$_bd*}"; eval "_mv=\${$_bd:-}"
+    _mo="$_mo$_px$_mv"; _mr="${_mr#*%$_bd}"
+  done
+  _mt="$_mo$_mr"
   printf '%s' "$_mt"
 }
 # msg_raw KEY: Vorlage unveraendert (mit %n), fuer awk/perl, die selbst einsetzen
 msg_raw() { eval "printf '%s' \"\${MSG_$1:-}\""; }
+[ -n "$CFG_NOTE_KEY" ] && CFG_NOTE="$(msg "$CFG_NOTE_KEY")"
 # Kennung als Spaltenfeld: auf 8 Zeichen aufgefuellt, ab 8 Zeichen ein Leerzeichen dahinter (entspricht der Ausgabe bis 17.44)
 tagf() { _t=$(msg "$1"); _l=${#_t}; if [ "$_l" -ge 8 ]; then printf '  %s ' "$_t"; else printf '  %-8s' "$_t"; fi; }
 
@@ -635,16 +746,37 @@ anon_add() { # art original
   esac
   printf '%s\t%s\t%s\n' "$1" "$2" "$r" >> "$ANON_MAP"
 }
+# anon_add_many <art>: Werte von stdin (eine je Zeile), ein awk-Durchlauf statt drei Prozesse je Wert (18.5); gleiche Regeln wie anon_add
+anon_add_many() {
+  _am="$ANON_MAP"; [ -f "$_am" ] || : > "$_am"
+  # perl statt awk: Varianten desselben Kontos (Rohform, Umlaute, gepunktete Form, Kleinschreibung) bekommen denselben Ersatz
+  ART="$1" RES="$ANON_RESERVED" MAPF="$_am" perl -e '
+    my ($art,$res,$mapf)=($ENV{ART},$ENV{RES},$ENV{MAPF}); my (%seen,%bykey,$n); $n=0;
+    sub key { my $v=lc shift; $v =~ s/[^\x20-\x7e]/./g; return $v }
+    open(my $m,"<",$mapf) or die; while (<$m>) { chomp; my @f=split /\t/; next unless @f>=3; $seen{$f[1]}=1; if ($f[0] eq $art) { $n++; $bykey{key($f[1])} //= $f[2] } } close $m;
+    open(my $o,">>",$mapf) or die;
+    while (my $v=<STDIN>) { chomp $v; next if $v eq ""; next if $seen{$v}; $seen{$v}=1;
+      if ($art eq "user" || $art eq "mail") { next if length($v) < 3; next if $res ne "" && $v =~ /$res/i }
+      my $k=key($v); my $r;
+      if (exists $bykey{$k}) { $r=$bykey{$k} }
+      else { $n++;
+        $r = $art eq "ip" ? ($n<=254 ? "198.51.100.$n" : "203.0.113.".($n-254)) : $art eq "host" ? sprintf("gw-%02d",$n) : $art eq "user" ? sprintf("user%02d",$n)
+           : $art eq "dom" ? "example$n.net" : $art eq "mail" ? "user$n\@example.net" : $art eq "obj" ? sprintf("obj%03d",$n) : $art eq "theme" ? sprintf("theme%02d",$n) : "$art$n";
+        $bykey{$k}=$r }
+      print $o "$art\t$v\t$r\n" } close $o'
+}
 anon_map_build() {
   [ -f "$ANON_MAP" ] || { : > "$ANON_MAP"; chmod 600 "$ANON_MAP" 2>/dev/null; }
   anon_add host "$HOST"; [ -n "$HAPEER" ] && anon_add ip "$HAPEER"
   # Host-Header-Werte aus Responder-/Logzeilen (Hostname: x, Host: x): die Adresse, unter der der Angreifer das Gateway ansprach; Betreiberdatum, kein Angreiferwert
   if [ -n "${INJ:-}" ]; then
-    echo "$INJ" | grep -aoE '(Hostname|Host): *[A-Za-z0-9.-]+' | awk -F': *' '{print $2}' | sort -u | while IFS= read -r v; do
+    printf '%s\n' "$INJ" | grep -aoE '(Hostname|Host): *[A-Za-z0-9.-]+' | awk -F': *' '{print $2}' | sort -u | while IFS= read -r v; do
       echo "$v" | grep -qiE "${ATTACKER_IP_RE:-^\$}|${ATTACKER_DOM_RE:-^\$}" && continue
       echo "$HOSTS" | grep -qx "$v" && continue
       if echo "$v" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then anon_add ip "$v"; else anon_add dom "$v"; fi; done
   fi
+  # oeffentliche Gateway-Namen aus Logzeilen (CSP-Reports "accessing page https://<host>/", Responder "Hostname: <host>"): eigene Hosts
+  [ -n "${NSLOGS:-}" ] && for v in $(catns $NSLOGS 2>/dev/null | grep -aoE 'accessing page https?://[A-Za-z0-9.-]+|Hostname: [A-Za-z0-9.-]+' | sed -E 's#^accessing page https?://##; s#^Hostname: ##' | grep -vE '^[0-9.]+$' | sort -u | head -20); do anon_add host "$v"; done
   if [ -r "$NSCONF" ]; then
     for v in $(cg '^set ns hostName ' | awk '{print $4}'); do anon_add host "$v"; done
     for v in $(cg '^add ns ip6? ' | awk '{print $4}'); do anon_add ip "$v"; done
@@ -677,14 +809,25 @@ anon_map_build() {
 }
 anon_apply() { # infile outfile
   # dynamisch: RFC-1918-Adressen und E-Mail-Adressen im Text nachtragen, dann perl-Ersetzung, laengste Werte zuerst
-  for v in $(grep -oE '\b(10\.[0-9]{1,3}|192\.168|172\.(1[6-9]|2[0-9]|3[01]))\.[0-9]{1,3}\.[0-9]{1,3}\b' "$1" 2>/dev/null | sort -u); do anon_add ip "$v"; done
-  for v in $(grep -oE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$1" 2>/dev/null | sort -u); do anon_add mail "$v"; done
+  grep -oE '\b(10\.[0-9]{1,3}|192\.168|172\.(1[6-9]|2[0-9]|3[01]))\.[0-9]{1,3}\.[0-9]{1,3}\b' "$1" 2>/dev/null | sort -u | anon_add_many ip
+  grep -oE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$1" 2>/dev/null | sort -u | anon_add_many mail
   _np=$(msg TRUST_NOTE_FRAG X | sed 's/^ *//; s/X.*$//')
   MAP="$ANON_MAP" SECRETS="$WORK/anon.secrets" ANONMODE="${3:-report}" RESERVED="$ANON_RESERVED" MSG_COMMENT_REMOVED="$(msg HDR_ANON_COMMENT_REMOVED)" MSG_NOTE_PREFIX="$_np" perl -e '
     open(my $m,"<",$ENV{MAP}) or exit 1; my @r; my $res=$ENV{RESERVED}; while (<$m>) { chomp; my ($k,$o,$n)=split /\t/; next unless defined $n;
       if ($k eq "user" || $k eq "mail") { next if length($o) < 3; next if $o =~ /$res/i }   # ungueltige Altlasten der Tabelle (17.33): nie ersetzen
       push @r,[$k,$o,$n] } close $m;
     @r = sort { length($b->[1]) <=> length($a->[1]) } @r; my $sec=0;
+    my (%map_ip,%map_host,%map_user,@a_ip,@a_host,@a_user);
+    for my $e (@r) { my ($k,$o,$n)=@$e;
+      if ($k eq "ip") { next if exists $map_ip{$o}; $map_ip{$o}=$n; push @a_ip, quotemeta($o) }
+      elsif ($k eq "host") { next if exists $map_host{lc $o}; $map_host{lc $o}=$n; push @a_host, quotemeta($o) }
+      else { next if exists $map_user{lc $o}; $map_user{lc $o}=$n; push @a_user, quotemeta($o) } }
+    my $re_host = @a_host ? join("|", @a_host) : "";
+    # mapu: Token mit Punkten zuerst als Ganzes, sonst Teil vor dem ersten Punkt (Konto vor Domain-Suffix), sonst unveraendert
+    sub mapu { my $t=shift; my $k=lc $t; return $map_user{$k} if exists $map_user{$k};
+      if ($t =~ /^(.*?)([.]+)$/) { my ($h,$r)=($1,$2); return $map_user{lc $h}.$r if exists $map_user{lc $h} }        # Konto vor Satzende "user01."
+      if ($t =~ /^([A-Za-z0-9_-]+)(\..*)$/) { my ($h,$r)=($1,$2); return $map_user{lc $h}.$r if exists $map_user{lc $h} }  # Konto vor Domain-Suffix
+      return $t }
     my $keys = "password|ldapBindDnPassword|radKey|tacacsSecret|secret|sharedSecret|clientSecret|pskKey|community|tsigKey|passplain|encryptionKey|kek|ikeKey";
     while (my $l=<STDIN>) {
       # Geheimnisse ohne Tabelle maskieren: Wert hinter einem Secret-Parameter, Wert vor -encrypted, verschluesselte Bloecke
@@ -692,14 +835,17 @@ anon_apply() { # infile outfile
       $sec += ($l =~ s/(add system user \S+\s+)("[^"]*"|\S+)/$1***/i);
       $sec += ($l =~ s/(add snmp community\s+)("[^"]*"|\S+)/$1***/i);
       $sec += ($l =~ s/\b[0-9a-f]{40,}\b(?=.*-encrypted)/***/gi);
+      $sec += ($l =~ s/(Session\s*Key\s*[:=]\s*)\S+/$1***/gi);
+      $sec += ($l =~ s/((?:NSC_[A-Z_]+|SESSID|AAAC)=)[^;\s"]+/$1***/g);
       $l = $ENV{MSG_COMMENT_REMOVED} . "\n" if $ENV{ANONMODE} eq "file" && $l =~ /^#(?!NS[0-9])/;
       $l =~ s/ ?\Q$ENV{MSG_NOTE_PREFIX}\E[^\]]*\]//g;   # interne Bemerkung der Sperr- und Vertrauensliste nur im Original (Marker aus dem Katalog)
-      for my $e (@r) { my ($k,$o,$n)=@$e; my $q=quotemeta($o);
-        if ($k eq "ip") { $l =~ s/(?<![0-9.])$q(?![0-9.])/$n/g }
-        elsif ($k eq "host") { $l =~ s/(?<![A-Za-z0-9.-])$q(?![A-Za-z0-9-])/$n/gi }   # Hostnamen auch in Dateinamen (ns_quickcheck_<host>_...) und vor Domain-Suffix
-        else { $l =~ s/(?<![A-Za-z0-9._-])$q(?![A-Za-z0-9_-])/$n/gi } }
+      # 18.5: ein Muster je Klasse (laengste zuerst, Alternation wird von perl zu einem Trie), Treffer per Hash nachgeschlagen
+      # 18.6: Token statt Alternation fuer Adressen und Konten (Tabellen mit tausenden Eintraegen): je Token ein Hash-Zugriff
+      if (%map_ip)   { $l =~ s/(?<![0-9.])(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?![0-9.])/exists $map_ip{$1} ? $map_ip{$1} : $1/ge }
+      if ($re_host) { $l =~ s/(?<![A-Za-z0-9.-])($re_host)(?![A-Za-z0-9-])/$map_host{lc $1}/gi }   # Hostnamen auch in Dateinamen und vor Domain-Suffix
+      if (%map_user) { $l =~ s/(?<![A-Za-z0-9._\x80-\xff-])([A-Za-z0-9._\x80-\xff-]+)/mapu($1)/ge }
       # Nachlauf: der Hostname darf nirgends stehen bleiben, auch nicht innerhalb anderer Zeichenketten
-      for my $e (@r) { my ($k,$o,$n)=@$e; next unless $k eq "host"; my $q=quotemeta($o); $l =~ s/$q/$n/gi }
+      if ($re_host) { $l =~ s/($re_host)/$map_host{lc $1}/gi }
       print $l }
     open(my $sf,">",$ENV{SECRETS}); print $sf $sec; close $sf' < "$1" > "$2" 2>/dev/null
   ANON_SECRETS=$(cat "$WORK/anon.secrets" 2>/dev/null)
@@ -748,7 +894,7 @@ yel()  { out "$(tagf TAG_YELLOW)$1" 1 Y; }
 org()  { out "$(tagf TAG_ORANGE)$1" 1 O; }
 tru()  { out "$(tagf TAG_TRUST)$1" 1 T; }
 grn()  { out "$(tagf TAG_OK)$1" "${2:-0}" G; }
-inf()  { out "$(tagf TAG_INFO)$1" "${2:-0}"; }
+inf()  { out "$(tagf TAG_INFO)$(printf '%s' "$1" | tr -c '\11\12\40-\176' '.')" "${2:-0}"; }
 # Detailzeilen (Logzeilen, Pfade): defanged, nicht druckbare Zeichen ersetzt, 200 Zeichen
 show() {
   LM="${LINE_MAX:-400}" perl -ne 'chomp; s/[^\t\x20-\x7e]/./g; s/[;|&`\$<>]/_/g; s/http(s?):/hxxp$1:/gi; my $m=$ENV{LM}+0; print "          | ", ($m>0 ? substr($_,0,$m) : $_), "\n"' 2>/dev/null \
@@ -761,7 +907,15 @@ catlogs()  { for _f in "$@"; do [ -f "$_f" ] || continue; case "$_f" in *.gz) gz
 # Kommandozeilen laufender Prozesse, darunter grep und perl des Quickcheck samt Suchmustern) werden abgezweigt, damit kein
 # Check sich selbst findet; identische Zeilen aus mehreren Dateien (messages spiegelt ns.log) zaehlen einmal.
 NSPROF_FILE="$WORK/nsprofmon.txt"; : > "$NSPROF_FILE"
-catns() { catlogs "$@" | awk -v pf="$NSPROF_FILE" '/nsprofmon_mgmt\.pl/ { print >> pf; next } !seen[$0]++' ; }
+catns() { if [ -n "${NSLOGS_CACHE:-}" ] && [ -s "$NSLOGS_CACHE" ] && [ "$*" = "$NSLOGS" ]; then cat "$NSLOGS_CACHE"; return; fi
+  catlogs "$@" | awk -v pf="$NSPROF_FILE" '/nsprofmon_mgmt\.pl/ { print >> pf; next } !seen[$0]++' ; }
+# Profiling (18.3): prof_mark <name> schreibt die Sekunden seit der letzten Marke
+hms() { perl -MPOSIX -e 'print strftime("%H:%M:%S", localtime($ARGV[0]))' "$1" 2>/dev/null; }
+PROF_T0=$(date +%s); PROF_LAST=$PROF_T0; PROF_LINE=""; PROF_JSON=""
+prof_mark() { [ "${QC_PROFILE:-0}" = 1 ] || return 0; _pn=$(date +%s); _ps=$(hms "$PROF_LAST"); _pe=$(hms "$_pn")
+  PROF_LINE="$PROF_LINE$1 $_ps-$_pe $((_pn - PROF_LAST))s; "; PROF_JSON="$PROF_JSON{\"block\": \"$1\", \"start\": \"$_ps\", \"end\": \"$_pe\", \"seconds\": $((_pn - PROF_LAST))},"
+  printf 'profile: %-12s start %s  ende %s  dauer %ds\n' "$1" "$_ps" "$_pe" "$((_pn - PROF_LAST))" >&2; PROF_LAST=$_pn; }
+prof_total() { [ "${QC_PROFILE:-0}" = 1 ] || return 0; _pn=$(date +%s); printf 'profile: %-12s start %s  ende %s  dauer %ds\n' gesamt "$(hms "$PROF_T0")" "$(hms "$_pn")" "$((_pn - PROF_T0))" >&2; }
 # before_syslog <epoch> <sekunden>: Syslog-Zeilen aus STDIN, deren Kopfzeit in [epoch-sekunden, epoch] liegt; before_apache dito fuer Access-Log-Zeilen
 before_syslog() { CE="$1" WIN="$2" perl -MTime::Local -ne 'my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); my $cy=(localtime)[5]+1900; if (/^([A-Z][a-z][a-z]) +(\d+) (\d\d):(\d\d):(\d\d)/) { my $e=timelocal($5,$4,$3,$2,$M{$1},$cy); print if $e >= $ENV{CE}-$ENV{WIN} && $e <= $ENV{CE} }'; }
 before_apache() { CE="$1" WIN="$2" perl -MTime::Local -ne 'my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); if (m{\[(\d+)/([A-Z][a-z][a-z])/(\d\d\d\d):(\d\d):(\d\d):(\d\d)}) { my $e=timelocal($6,$5,$4,$1,$M{$2},$3); print if $e >= $ENV{CE}-$ENV{WIN} && $e <= $ENV{CE} }'; }
@@ -770,6 +924,7 @@ logs_in_window_all() { ls -t "$LOGDIR"/$1 2>/dev/null | head -2; }
 cg()  { grep -iE -e "$1" "$NSCONF" 2>/dev/null; }
 if [ -n "$ANON_FILE" ]; then
   [ -r "$ANON_FILE" ] || { echo "$(msg ERR_ANON_FILE_UNREADABLE "$ANON_FILE")" >&2; exit 3; }
+  if [ ! -f "$ANON_FILE" ]; then cat "$ANON_FILE" > "$WORK/anon_pipe.txt"; ANON_FILE="$WORK/anon_pipe.txt"; fi   # Pipe oder /dev/stdin: einmal lesbar, daher erst in eine Datei
   anon_map_build; anon_apply "$ANON_FILE" /dev/stdout file
   echo "$(msg ERR_ANON_SUMMARY "$(wc -l < "$ANON_MAP" | tr -d ' ')" "${ANON_SECRETS:-0}")" >&2; exit 0
 fi
@@ -784,7 +939,7 @@ ip_note() { case "$2" in 10.*|192.168.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|12
   if [ -n "$_ti" ]; then printf 'trusted_%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "${3:-1}" "${4:-} (trusted$( [ -n "${_ti#*|}" ] && echo "$(msg TRUST_UNTIL_FRAG "${_ti#*|}"): ${_ti%%|*})")" "$(blocked_info "$2")" >> "$JIPS"; trust_event "$2" "$1: ${3:-1} (${4:-})"
   else printf '%s\t%s\t%s\t%s\t%s\n' "$1" "$2" "${3:-1}" "${4:-}" "$(blocked_info "$2")" >> "$JIPS"; fi; }
 # Sperrliste des Betreibers: ns_quickcheck.blocked_ips neben dem Script oder --blocked <pfad> (adresse_oder_netz TAB wo TAB seit TAB ticket TAB kommentar); dazu ACLs der Appliance
-[ -n "$BLOCKED_FILE" ] || BLOCKED_FILE="$SELFDIR/ns_quickcheck.blocked_ips"; BLOCKED_TAB="$WORK/blocked.tsv"; : > "$BLOCKED_TAB"
+[ -n "$BLOCKED_FILE" ] || BLOCKED_FILE="$SELFDIR/ns_quickcheck.blocked_ips"; crlf_clean BLOCKED_FILE; BLOCKED_TAB="$WORK/blocked.tsv"; : > "$BLOCKED_TAB"
 if [ -r "$BLOCKED_FILE" ]; then
   if perl -e '@s=stat($ARGV[0]) or exit 1; exit(($s[2] & 022) ? 1 : 0)' "$BLOCKED_FILE"; then
     # Format: adresse_oder_netz ; seit ; Bemerkung  (Tab als Trenner weiter erlaubt); Tabelle intern: adresse TAB bemerkung TAB seit TAB leer
@@ -804,7 +959,7 @@ fi
 cg '^add ns (simpleacl|acl6?|acl) ' | grep -i ' DENY' | grep -oE -- '-srcIP(6)? (= )?[0-9.]+(-[0-9.]+)?' | awk '{ v=$NF; sub(/-.*/, "", v); if (v ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) print v "\tnetscaler\t\t" }' | sort -u >> "$BLOCKED_TAB"
 BLOCKED_N=$(grep -c . "$BLOCKED_TAB"); BLOCKED_PRESENT=${BLOCKED_PRESENT:-0}
 # Vertrauensliste des Betreibers: ns_quickcheck.trusted_ips neben dem Script oder --trusted <pfad>; Format adresse_oder_netz ; bis ; Bemerkung
-[ -n "$TRUSTED_FILE" ] || TRUSTED_FILE="$SELFDIR/ns_quickcheck.trusted_ips"; TRUSTED_TAB="$WORK/trusted.tsv"; : > "$TRUSTED_TAB"; TRUST_EVENTS="$WORK/trust_events.tsv"; : > "$TRUST_EVENTS"
+[ -n "$TRUSTED_FILE" ] || TRUSTED_FILE="$SELFDIR/ns_quickcheck.trusted_ips"; crlf_clean TRUSTED_FILE; TRUSTED_TAB="$WORK/trusted.tsv"; : > "$TRUSTED_TAB"; TRUST_EVENTS="$WORK/trust_events.tsv"; : > "$TRUST_EVENTS"
 TRUSTED_N=0; TRUSTED_EXPIRED=0; TRUSTED_BAD=""; TRUSTED_PRESENT=0; : > "$WORK/trusted_expired.tsv"
 if [ -r "$TRUSTED_FILE" ]; then
   if perl -e '@s=stat($ARGV[0]) or exit 1; exit(($s[2] & 022) ? 1 : 0)' "$TRUSTED_FILE"; then
@@ -856,6 +1011,13 @@ blocked_info() {
 blocked_covers() { _bi=$(blocked_info "$1"); [ -n "$_bi" ] || return 1; _since=$(echo "$_bi" | cut -d'|' -f2)
   case "$_since" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) [ "$(echo "$2" | tr -d -)" -lt "$(echo "$_since" | tr -d -)" ] && return 0 ;; esac; return 1; }
 # Datum einer Syslog-Zeile ("Oct 19 ...") oder Access-Log-Zeile ("[19/Oct/2026:...]") als YYYY-MM-DD; Syslog ohne Jahr: aktuelles Jahr, Monat in der Zukunft = Vorjahr
+# log_date_first: erste Zeile mit lesbarem Datum aus stdin (18.8; Dateikoepfe und zerrissene erste Zeilen ueberspringen)
+log_date_first() { perl -e 'my %m=(Jan=>1,Feb=>2,Mar=>3,Apr=>4,May=>5,Jun=>6,Jul=>7,Aug=>8,Sep=>9,Oct=>10,Nov=>11,Dec=>12);
+  my @t=localtime; my ($cy,$cm)=($t[5]+1900,$t[4]+1);
+  while (my $l=<STDIN>) {
+    if ($l =~ /\[(\d\d?)\/([A-Z][a-z][a-z])\/(\d\d\d\d)/ && $m{$2}) { printf "%04d-%02d-%02d\n", $3, $m{$2}, $1; exit }
+    if ($l =~ /^([A-Z][a-z][a-z]) +(\d\d?) / && $m{$1}) { my $y=$cy; $y-- if $m{$1} > $cm; printf "%04d-%02d-%02d\n", $y, $m{$1}, $2; exit }
+    if ($l =~ /^\[[A-Z][a-z][a-z] ([A-Z][a-z][a-z]) +(\d\d?) [\d:.]+ (\d\d\d\d)\]/ && $m{$1}) { printf "%04d-%02d-%02d\n", $3, $m{$1}, $2; exit } } '; }
 log_date() { printf '%s\n' "$1" | perl -e 'my %m=(Jan=>1,Feb=>2,Mar=>3,Apr=>4,May=>5,Jun=>6,Jul=>7,Aug=>8,Sep=>9,Oct=>10,Nov=>11,Dec=>12);
   my @t=localtime; my ($cy,$cm)=($t[5]+1900,$t[4]+1); my $l=<STDIN>; $l="" unless defined $l;
   if ($l =~ /\[(\d\d?)\/([A-Z][a-z][a-z])\/(\d\d\d\d)/ && $m{$2}) { printf "%04d-%02d-%02d\n", $3, $m{$2}, $1; exit }
@@ -866,11 +1028,12 @@ blocked_tag() { _bi=$(blocked_info "$1"); [ -n "$_bi" ] || { expired_tag "$1"; r
   _wn=$( [ -n "$_w" ] && msg TRUST_NOTE_FRAG "$_w" ); if [ -n "$_s" ]; then msg TRACE_BLOCKED_TAG_FRAG "$_s" "$_wn"; else msg TRACE_BLOCKED_TAG_NODATE_FRAG "$_wn"; fi; expired_tag "$1"; }
 RED_COUNT=0; YEL_COUNT=0; ORG_COUNT=0; BLOCKED_SEEN=0
 COMPROMISE=0; VULN=0; VULN9=0; VULN63=0; VULN96=0; NCRASH=0; EOL=0; ISN_OPEN=0; TRACES=0; MITIG_OK=0; SAML=0; SAVE_MISSING=0; UNSAVED=0
-flag_red() { red "$1"; RED_COUNT=$((RED_COUNT + 1)); printf '%s\n' "$1" >> "$JRED"; printf 'R\t%s\n' "$1" >> "$JFIND"; }
-flag_yel() { yel "$1"; YEL_COUNT=$((YEL_COUNT + 1)); printf '%s\n' "$1" >> "$JYEL"; printf 'Y\t%s\n' "$1" >> "$JFIND"; }
-flag_org() { org "$1"; ORG_COUNT=$((ORG_COUNT + 1)); printf 'O\t%s\n' "$1" >> "$JFIND"; }
+last_code() { cat "$WORK/msg.last" 2>/dev/null; }
+flag_red() { _fc=$(last_code); red "$1"; RED_COUNT=$((RED_COUNT + 1)); printf '%s\n' "$1" >> "$JRED"; printf 'R\t%s\t%s\n' "$_fc" "$1" >> "$JFIND"; }
+flag_yel() { _fc=$(last_code); yel "$1"; YEL_COUNT=$((YEL_COUNT + 1)); printf '%s\n' "$1" >> "$JYEL"; printf 'Y\t%s\t%s\n' "$_fc" "$1" >> "$JFIND"; }
+flag_org() { _fc=$(last_code); org "$1"; ORG_COUNT=$((ORG_COUNT + 1)); printf 'O\t%s\t%s\n' "$_fc" "$1" >> "$JFIND"; }
 TRUST_COUNT=0
-flag_tru() { if [ "${TRUST_LEVEL:-trust}" = yellow ]; then flag_yel "$1"; else tru "$1"; printf 'T\t%s\n' "$1" >> "$JFIND"; fi; TRUST_COUNT=$((TRUST_COUNT + 1)); }
+flag_tru() { _fc=$(last_code); if [ "${TRUST_LEVEL:-trust}" = yellow ]; then flag_yel "$1"; else tru "$1"; printf 'T\t%s\t%s\n' "$_fc" "$1" >> "$JFIND"; fi; TRUST_COUNT=$((TRUST_COUNT + 1)); }
 
 # --- CLI-Ebene (wie ns_snapshot V5) --------------------------------------------
 CLI_MODE=none; CLI_REASON=""; CLI_PW=""
@@ -973,6 +1136,7 @@ fi
 # --- Kopf ----------------------------------------------------------------------
 out "$(msg HDR_RUN_LINE "$VERSION" "$HOST" "$MODE" "${HOURS}" "$RULES_VERSION" "$CLI_MODE" "${CLI_USER:+ ($CLI_USER${CFG_NOTE:+, $CFG_NOTE})}" "$(date '+%Y-%m-%d %H:%M:%S %Z')")" 1
 [ "$MSG_LANG" != de ] && out "$(tagf TAG_INFO)$(msg HDR_LANG "$MSG_LANG" "$MSG_MISSING")" 1
+[ -n "$CRLF_FIXED" ] && out "$(tagf TAG_INFO)$(msg HDR_CRLF_FIXED "$(echo $CRLF_FIXED)")" 1
 [ "${CUSTOM_N:-0}" -gt 0 ] || [ "${CVE_CUSTOM_N:-0}" -gt 0 ] && out "$(tagf TAG_INFO)$(msg HDR_CUSTOM_LOADED "${CUSTOM_N:-0}" "${CVE_CUSTOM_N:-0}" "${CUSTOM_VERSION:-$(msg HDR_CUSTOM_NO_VERSION)}")" 1
 [ "${CVE_CONFLICT_N:-0}" -gt 0 ] && out "$(tagf TAG_INFO)$(msg HDR_CVE_CONFLICT "${CVE_CONFLICT_N}" "$CVE_CONFLICTS")" 1
 # Regelstand aelter als der Mindeststand des Scripts? (Stringvergleich ueber sort, Datum YYYY-MM-DD[x])
@@ -1008,7 +1172,7 @@ if [ -n "$PIN_PATH" ]; then
     printf 'webfile:^%s$@sha256=%s\n' "$_esc" "$_h"; done
   rm -rf "$WORK" 2>/dev/null; exit 0
 fi
-hdr "$(msg HDR_BLOCK1)"
+prof_mark block0; hdr "$(msg HDR_BLOCK1)"
 # =============================================================================
 BOOTFILE=""; BOOT=""; BUILD=""; CONFBUILD=""
 if [ "$MODE" = online ]; then
@@ -1074,7 +1238,7 @@ else
   grep '^ISN' "$WORK/cve.txt" | sed 's/^ISN //' > "$WORK/isn.txt"
 fi
 grep '^OPEN' "$WORK/cve.txt" 2>/dev/null | awk -v p="$(msg BUILD_VULN_JSON_PREFIX)" '{ sub(/^OPEN /, ""); print p " " $0 }' >> "$JRED"
-grep '^OPEN' "$WORK/cve.txt" 2>/dev/null | awk -v p="$(msg BUILD_VULN_JSON_PREFIX)" '{ sub(/^OPEN /, ""); printf "R\t%s\n", p " " $0 }' >> "$JFIND"
+grep '^OPEN' "$WORK/cve.txt" 2>/dev/null | awk -v p="$(msg BUILD_VULN_JSON_PREFIX)" '{ sub(/^OPEN /, ""); printf "R\tBUILD_VULN_JSON_PREFIX\t%s\n", p " " $0 }' >> "$JFIND"
 if [ -n "$CONFBUILD" ] && [ -n "$BUILD" ] && [ "$CONFBUILD" != "$BUILD" ]; then
   flag_yel "$(msg BUILD_CONF_NOT_SAVED_YEL "$CONFBUILD" "$BUILD")"; SAVE_MISSING=1
 fi
@@ -1090,7 +1254,7 @@ fi
 [ -n "$BOOT" ] && inf "$(msg BUILD_LAST_BOOT "$(fmtdate "$BOOT")" "$(( (NOW - BOOT) / 86400 ))")" 1
 
 # =============================================================================
-hdr "$(msg HDR_BLOCK2)"
+prof_mark block1; hdr "$(msg HDR_BLOCK2)"
 # =============================================================================
 S_SP=$(cgc '^add authentication samlAction '); S_IDP=$(cgc '^add authentication samlIdPProfile ')
 if [ "${S_SP:-0}" -gt 0 ] || [ "${S_IDP:-0}" -gt 0 ]; then
@@ -1125,7 +1289,7 @@ elif [ -n "${MGMT_ACL_RE:-}" ]; then
 else inf "$(msg EXPO_MGMT_ACL_RULE_MISSING "$RULES_VERSION" "$RULES_MIN")" 1; fi
 
 # =============================================================================
-hdr "$(msg HDR_BLOCK3)"
+prof_mark block2; hdr "$(msg HDR_BLOCK3)"
 # =============================================================================
 RESP_ON=0; cg '^enable ns feature ' | grep -qiw RESPONDER && RESP_ON=1
 PXN=$(cg '^add policy expression ' | grep -iE "$MITIGATION_RULE_RE" | awk '{print $4}' | tr -d '"' | tr '\n' '|' | sed 's/|$//')
@@ -1171,6 +1335,11 @@ hdr "$(msg HDR_BLOCK4 "${HOURS}")"
 MINS=$((HOURS * 60))
 logs_in_window() { find "$LOGDIR" -maxdepth 1 -name "$1" -mmin -"$MINS" 2>/dev/null | sort; }
 NSLOGS=$(logs_in_window 'ns.log*'; logs_in_window 'nsvpn.log*'; logs_in_window 'messages*'; logs_in_window 'notice.log*')
+# Logcache (18.3): einmal entpacken und deduplizieren, wenn die Archive zusammen unter LOG_CACHE_MAX_MB liegen
+NSLOGS_CACHE=""
+if [ -n "$NSLOGS" ]; then _lsz=0; for _f in $NSLOGS; do _lsz=$((_lsz + $(wc -c < "$_f" 2>/dev/null || echo 0))); done
+  if [ "$_lsz" -le "$(( ${LOG_CACHE_MAX_MB:-500} * 1048576 ))" ]; then catns $NSLOGS > "$WORK/nslogs.cache" 2>/dev/null && NSLOGS_CACHE="$WORK/nslogs.cache"; fi; fi
+prof_mark logcache
 ERRLOGS=$(logs_in_window 'httperror*'); AUTHLOGS=$(logs_in_window 'auth.log*'); MGMTLOGS=$(logs_in_window 'httpaccess.log*'); CRONLOGS=$(logs_in_window 'cron*')
 _lc() { echo "$1" | grep -c .; }
 # net24_summary: liest "anzahl adresse" je Zeile von stdin, gibt "a.b.c.0/24 (n Adressen, m Requests)" absteigend aus
@@ -1191,21 +1360,61 @@ for _f in $NSLOGS $ACCLOGS $ERRLOGS $AUTHLOGS $MGMTLOGS; do [ -r "$_f" ] || UNRE
 [ -z "$NSLOGS" ] && { COVERAGE=partial; COVERAGE_WHY="$COVERAGE_WHY$(msg TRACE_COV_NO_NSLOG_FRAG)"; }
 [ -z "$ACCLOGS" ] && { COVERAGE=partial; COVERAGE_WHY="$COVERAGE_WHY$(msg TRACE_COV_NO_HTTPACCESS_FRAG)"; }
 [ "$UNREAD" -gt 0 ] && { COVERAGE=partial; COVERAGE_WHY="$COVERAGE_WHY$(msg TRACE_COV_UNREADABLE_FRAG "$UNREAD")"; }
+# Rotation: reicht die aelteste Datei einer Logfamilie nicht bis zum Fensterbeginn, ist das Fenster nur teilweise abgedeckt (18.1)
+WIN_START=$((NOW - HOURS * 3600)); ROT_NOTE=""
+[ "$MODE" = online ] && for _fam in ns.log messages httpaccess; do
+  _old=$(ls -tr "$LOGDIR"/$_fam* 2>/dev/null | head -1); [ -n "$_old" ] || continue
+  _oe=$(mtime_of "$_old"); [ -n "$_oe" ] || continue; _cnt=$(ls "$LOGDIR"/$_fam* 2>/dev/null | wc -l | tr -d ' ')
+  _fd=$(catlogs "$_old" | head -50 | log_date_first); _reach="${_fd:-$(fmtdate "$_oe")}"
+  if [ "$_oe" -gt "$((WIN_START + 3600))" ]; then _days=$(( (NOW - _oe) / 86400 + 1 )); ROT_NOTE="$ROT_NOTE$(msg TRACE_COV_ROTATION_FRAG "$_fam" "$_reach" "$_cnt" "$_days")"; fi
+done
+if [ -n "$ROT_NOTE" ]; then COVERAGE=partial; COVERAGE_WHY="$COVERAGE_WHY$ROT_NOTE"; inf "$(msg TRACE_COV_ROTATION_INFO "$(fmtdate "$WIN_START")" "$ROT_NOTE")" 1; fi
 _npf=$(catlogs $NSLOGS | grep -ac 'nsprofmon_mgmt\.pl'); [ "${_npf:-0}" -gt 0 ] && inf "$(msg TRACE_NSPROF_DIVERTED "$_npf")" 1
 inf "$(msg TRACE_LOGS_READ "$(_lc "$NSLOGS")" "$(_lc "$ACCLOGS")" "$(_lc "$ERRLOGS")" "$(_lc "$AUTHLOGS")" "$(_lc "$MGMTLOGS")" "$(_lc "$CRONLOGS")" "$( [ "$UNREAD" -gt 0 ] && echo "$(msg TRACE_LOGS_UNREADABLE_FRAG "$UNREAD")")")" 1
 HOSTS=""
+prof_mark block3
 if [ -z "$NSLOGS" ]; then flag_yel "$(msg TRACE_NO_NSLOG_YEL "$LOGDIR")"
 else
-  INJ=$(catns $NSLOGS | grep -avE "$ADMIN_CMD_RE" | grep -aiE "$LOGON_HINT_RE" \
-        | grep -aE "$TRIGGER_RE|$OBFUSC_RE|[;|&\`]([[:space:]]|%20)*($CMD_NAMES)([[:space:]<>;|&\`\$]|%20|%3B|\\\$|$)|(%3B|%7C|%26)($CMD_NAMES)(%20|%24|%3B|%7C|$)" | sort -u)
-  NINJ=$(echo "$INJ" | grep -c .)
+  INJ_PAT="$TRIGGER_RE|$OBFUSC_RE|[;|&\`]([[:space:]]|%20)*($CMD_NAMES)([[:space:]<>;|&\`\$]|%20|%3B|\\\$|$)|(%3B|%7C|%26)($CMD_NAMES)(%20|%24|%3B|%7C|$)"
+  INJ=$(catns $NSLOGS | grep -avE "$ADMIN_CMD_RE" | grep -aiE "$LOGON_HINT_RE" | grep -aE "$INJ_PAT" | sort -u)
+  INJ_CSP=""; if [ -n "$CSP_REPORT_RE" ]; then catns $NSLOGS | grep -aE "$CSP_REPORT_RE" > "$WORK/csp_all.txt"; INJ_CSP=$(grep -aE "$INJ_PAT" "$WORK/csp_all.txt" | sort -u); INJ=$(printf '%s\n' "$INJ" | grep -avE "$CSP_REPORT_RE"); fi
+  NCSP=$(printf '%s\n' "$INJ_CSP" | grep -c .)
+  # Grundlast: CSP-Reports ohne Payload (Browser-Erweiterungen, Fremdscripte); haeufigste blockierte Quellen
+  if [ -n "$CSP_REPORT_RE" ] && [ -s "$WORK/csp_all.txt" ]; then grep -avE "$INJ_PAT" "$WORK/csp_all.txt" > "$WORK/csp_base.txt"; NCSP_BASE=$(grep -c . "$WORK/csp_base.txt")
+    if [ "${NCSP_BASE:-0}" -gt 0 ]; then inf "$(msg TRACE_CSP_BASE_INFO "$NCSP_BASE" "$(grep -aoE 'blocked page [^ ]+' "$WORK/csp_base.txt" | sed 's/^blocked page //' | sort | uniq -c | sort -rn | head -5 | awk '{ printf "%s (%s) ", $2, $1 }')")" 1; fi; fi
+  if [ "$NCSP" -gt 0 ]; then TRACES=1
+    _cf=$(printf '%s\n' "$INJ_CSP" | head -1 | awk '{print $1, $2, $3}'); _cl=$(printf '%s\n' "$INJ_CSP" | tail -1 | awk '{print $1, $2, $3}')
+    if [ "${CSP_SCAN_LEVEL:-red}" = yellow ]; then flag_yel "$(msg TRACE_CSP_INJ_RED "$NCSP" "$_cf" "$_cl")"; else flag_red "$(msg TRACE_CSP_INJ_RED "$NCSP" "$_cf" "$_cl")"; fi
+    printf '%s\n' "$INJ_CSP" | LINE_MAX=0 show 5 1
+    out "          | $(msg TRACE_CSP_INJ_WHAT_DET)" 1
+    # Quelle: POST auf den CSP-Report-Pfad im Access-Log innerhalb von 120 s um die Zeiten der Reports
+    _csrc=""
+    if [ -n "$ACCLOGS" ] && [ -n "$CSP_REPORT_PATH_RE" ]; then
+      _csrc=$(catlogs $ACCLOGS | grep -aE "\"POST [^\"]*($CSP_REPORT_PATH_RE)" | CSP_LINES="$INJ_CSP" perl -MTime::Local -ne '
+        my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); my $now=time; my $y=(localtime $now)[5]+1900;
+        BEGIN { } our %t; if (!%t) { for my $l (split /\n/, $ENV{CSP_LINES}) { next unless $l =~ /^([A-Z][a-z]{2})\s+(\d{1,2}) (\d\d):(\d\d):(\d\d) / && exists $M{$1}; my $e=eval { timelocal($5,$4,$3,$2,$M{$1},$y) }; next unless defined $e; $e=timelocal($5,$4,$3,$2,$M{$1},$y-1) if $e > $now+86400; $t{$e}=1 } }
+        if (m{^(\d+\.\d+\.\d+\.\d+) .*\[(\d+)/([A-Z][a-z][a-z])/(\d\d\d\d):(\d\d):(\d\d):(\d\d)}) { my $ip=$1; my $e=timelocal($7,$6,$5,$2,$M{$3},$4); for my $c (keys %t) { if (abs($e-$c) <= 120) { print "$ip\n"; last } } }' | sort | uniq -c | sort -rn | awk '{ print $2 "\t" $1 }')
+    fi
+    if [ -n "$_csrc" ]; then echo "$_csrc" | while IFS="$(printf '\t')" read -r _ip _n; do out "          | $(msg TRACE_CSP_SRC_DET "$_ip" "$_n" "$(blocked_tag "$_ip")")" 1; ip_note csp_scanner "$_ip" "$_n" "$(msg ADDR_SRC_CSP)"; done
+    else out "          | $(msg TRACE_CSP_SRC_NONE_DET)" 1; fi
+    # Zu tun mit Firewall-Suche: lokales Zeitfenster (Reports tragen GMT), Gateway-VIPs, Access-Log-Gegenprobe
+    _cfe=$(printf '%s\n' "$INJ_CSP" | grep -aoE '[0-9]{4}/[0-9]{2}/[0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{2} GMT' | sort | sed -n '1p;$p' | tr '\n' ' ')
+    _cwin=$(printf '%s' "$_cfe" | perl -MTime::Local -MPOSIX -ne 'my @e; while (m{(\d{4})/(\d{2})/(\d{2}):(\d{2}):(\d{2}):(\d{2}) GMT}g) { push @e, timegm($6,$5,$4,$3,$2-1,$1) } if (@e) { my ($a,$b)=($e[0],$e[-1]); print strftime("%d.%m. %H:%M", localtime($a-180)), "-", strftime("%H:%M", localtime($b+180)), " (", strftime("%H:%M", gmtime($a)), "-", strftime("%H:%M", gmtime($b)), " GMT)" }')
+    _cvip=$(cg '^add (vpn|cs) vserver ' | awk '{print $5}' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | grep -v '^0\.0\.0\.0$' | sort -u | tr '\n' ' ')
+    _cgrep=$(printf '%s' "$_cfe" | perl -MTime::Local -MPOSIX -ne 'my @e; while (m{(\d{4})/(\d{2})/(\d{2}):(\d{2}):(\d{2}):(\d{2}) GMT}g) { push @e, timegm($6,$5,$4,$3,$2-1,$1) } if (@e) { my %h; for (my $t=$e[0]; $t<=$e[-1]+3599; $t+=3600) { $h{strftime("%H", localtime $t)}=1 } print strftime("%d/%b/%Y:", localtime $e[0]), "(", join("|", sort keys %h), ")" }')
+    out "          | $(msg TRACE_CSP_TODO1_DET "${_cwin:--}")" 1
+    out "          | $(msg TRACE_CSP_TODO2_DET "${_cvip:-<VIP> }")" 1
+    out "          | $(msg TRACE_CSP_TODO3_DET "${_cgrep:-DD/Mon/YYYY:HH}")" 1
+    out "          | $(msg TRACE_CSP_TODO4_DET)" 1
+  fi
+  NINJ=$(printf '%s\n' "$INJ" | grep -c .)
   if [ "$NINJ" -gt 0 ]; then
-    FIRST=$(echo "$INJ" | head -1 | awk '{print $1,$2,$3}'); LAST=$(echo "$INJ" | tail -1 | awk '{print $1,$2,$3}')
-    INJ_DATE=$(log_date "$(echo "$INJ" | tail -1)")
+    FIRST=$(printf '%s\n' "$INJ" | head -1 | awk '{print $1,$2,$3}'); LAST=$(printf '%s\n' "$INJ" | tail -1 | awk '{print $1,$2,$3}')
+    INJ_DATE=$(log_date "$(printf '%s\n' "$INJ" | tail -1)")
     # Abdeckung durch Sperrliste: alle Download-Hosts (und, falls bekannt, alle Quell-IPs) gesperrt vor dem Datum des letzten Versuchs
     INJ_COVERED=0
     if [ "$BLOCKED_N" -gt 0 ] && [ "$VULN" -eq 0 ]; then
-      _hosts=$(echo "$INJ" | grep -oE '(https?://|ftp://|fetch |curl |wget )[^ "'"'"']*' | grep -oE '([0-9]+\.){3}[0-9]+' | sort -u); _all=1; _n=0
+      _hosts=$(printf '%s\n' "$INJ" | grep -oE '(https?://|ftp://|fetch |curl |wget )[^ "'"'"']*' | grep -oE '([0-9]+\.){3}[0-9]+' | sort -u); _all=1; _n=0
       for _h in $_hosts; do _n=$((_n+1)); blocked_covers "$_h" "${INJ_DATE:-9999-99-99}" || _all=0; done
       [ "$_n" -gt 0 ] && [ "$_all" -eq 1 ] && INJ_COVERED=1
     fi
@@ -1217,9 +1426,9 @@ else
     TRACES=1
     flag_red "$(msg TRACE_INJ_RED "$NINJ" "$FIRST" "$LAST")"
     fi
-    echo "$INJ" | LINE_MAX=0 show 5 1
-    NPPE=$(echo "$INJ" | grep -oE '[0-9]+-PPE-[0-9]+' | sort -u | grep -c .)
-    HOSTS=$(echo "$INJ" | sed -e 's/\${IFS}/ /g' -e 's/%24%7BIFS%7D/ /g' -e 's/%20/ /g' \
+    printf '%s\n' "$INJ" | LINE_MAX=0 show 5 1
+    NPPE=$(printf '%s\n' "$INJ" | grep -oE '[0-9]+-PPE-[0-9]+' | sort -u | grep -c .)
+    HOSTS=$(printf '%s\n' "$INJ" | sed -e 's/\${IFS}/ /g' -e 's/%24%7BIFS%7D/ /g' -e 's/%20/ /g' \
             | grep -aoiE '((fetch|curl|wget|tftp|nc)[[:space:]][^;|&]*|(https?|ftp)://[^;|&[:space:]]*)' \
             | grep -aoiE '(https?|ftp)://[A-Za-z0-9._-]+|(^|[[:space:]])([0-9]{1,3}\.){3}[0-9]{1,3}' \
             | sed -E -e 's#^[[:space:]]*##' -e 's#^[A-Za-z]+://##' | sort -u | head -10)
@@ -1231,8 +1440,8 @@ else
     if [ -n "$ACCLOGS" ]; then
       SRC_KIND=login; SRC_FILTER="\"(POST|GET) [^\"]*($LOGIN_PATH_RE)"
       # Responder-Zeilen: der Request kam nie beim Webserver an (kein Access-Log); Quelle steht in der Zeile, wenn die Policy sie protokolliert
-      if echo "$INJ" | grep -aq 'RESPONDER'; then SRC_KIND=line
-        SRC=$(echo "$INJ" | grep -aoiE '(from IP|Client_ip|CLIENT\.IP\.SRC|client ip|src_ip|srcip)[ :=]+[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | sort | uniq -c | sort -rn | awk -v m="$(msg_raw TRACE_INJ_SRC_LINES_FRAG)" -v nin="$NINJ" '{ t=m; gsub(/%1/, $2, t); gsub(/%2/, $1, t); gsub(/%3/, nin, t); print $2 "\t-\t-\t" substr(t, length($2)+1) }')
+      if printf '%s\n' "$INJ" | grep -aq 'RESPONDER'; then SRC_KIND=line
+        SRC=$(printf '%s\n' "$INJ" | grep -aoiE '(from IP|Client_ip|CLIENT\.IP\.SRC|client ip|src_ip|srcip)[ :=]+[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | sort | uniq -c | sort -rn | awk -v m="$(msg_raw TRACE_INJ_SRC_LINES_FRAG)" -v nin="$NINJ" '{ t=m; gsub(/%1/, $2, t); gsub(/%2/, $1, t); gsub(/%3/, nin, t); print $2 "\t-\t-\t" substr(t, length($2)+1) }')
       else
       SRC=$(catlogs $ACCLOGS | grep -aE "$SRC_FILTER" | INJ_LINES="$INJ" MSG_MATCH="$(msg_raw TRACE_INJ_SRC_MATCH_FRAG)" MSG_OFF="$(msg_raw TRACE_INJ_SRC_OFFSET_FRAG)" perl -MTime::Local -e '
         my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); my $now=time; my %t;
@@ -1290,6 +1499,7 @@ else
       [ -n "$HOSTS" ] && out "          |$(msg TRACE_INJ_TODO_BLOCK_HOST_DET " $_z")" 1
     fi
   else grn "$(msg TRACE_INJ_NONE_OK "${HOURS}")"; fi
+  prof_mark b4-injection
   # --- Prozessabstuerze (Pitboss und Kernel): Ereignisse je Prozess und PID, Restart-Zaehler, Core-Verzeichnisse
   if [ -n "${PITBOSS_RE:-}" ] && [ -n "${KERNEL_EXIT_RE:-}" ]; then
     catns $NSLOGS | grep -aE "$PITBOSS_RE|$KERNEL_EXIT_RE" > "$WORK/crash_lines.txt"
@@ -1319,6 +1529,8 @@ else
       $5=="restarts" { if ($3 in pend) { rs[pend[$3]]=$6+0; delete pend[$3] } }
       $5=="escalate" { k="ESC" SUBSEP ++m; ord[++n]=k; ep[k]="(Pitboss)"; eid[k]="-"; ed[k]=$1; et[k]=$2; es[k]=mesc " " $6 }
       END { for (i=1;i<=n;i++) { k=ord[i]; printf "%s %s\t%s\t%s\t%s\t%s\n", ed[k], et[k], ep[k], eid[k], (es[k]==""?"-":es[k]), (k in rs ? rs[k] : "-") } }' | sort -r > "$WORK/crash_events.tsv"
+    # 18.8: Ereignisse vor dem Fensterbeginn verwerfen (Dateiauswahl nach Aenderungszeit genuegt nicht); ohne lesbaren Zeitstempel bleiben sie
+    _ws=$(fmtdate "$WIN_START"); awk -F'\t' -v ws="$_ws" '{ ts=$1; if (ts ~ /^[0-9]{4}-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]/ && substr(ts,1,16) < substr(ws,1,16)) next; print }' "$WORK/crash_events.tsv" > "$WORK/crash_events_win.tsv"; mv "$WORK/crash_events_win.tsv" "$WORK/crash_events.tsv"
     NCR=$(grep -c . "$WORK/crash_events.tsv")
     # Core-Verzeichnisse im Fenster (auch ohne Logzeile, etwa nach Rotation)
     # Core-Belege: Verzeichnisse /var/core/<n> (aelteres Muster) und Dateien /var/core/<proc>-<pid> (Standardmuster %N-%P)
@@ -1417,6 +1629,7 @@ else
     if [ "$_nsp" -gt 0 ]; then TRACES=1; flag_yel "$(msg TRACE_NSPROF_SUSPECT_YEL "$_nsp")"; echo "$_sp" | tail -5 | show 5 1
     else grn "$(msg TRACE_NSPROF_NONE_OK)"; fi
   fi
+prof_mark b4-crash
 # Dropper-Transportpfade je Quell-IP (DROPPER_PATH_RE): legitime Downloads, aber im Angriffskontext relevant
 if [ -z "$ACCLOGS" ]; then inf "$(msg TRACE_NO_ACCESSLOG "${HOURS}")" 1; fi
 if [ -n "$DROPPER_PATH_RE" ] && [ -n "$ACCLOGS" ]; then
@@ -1425,7 +1638,7 @@ if [ -n "$DROPPER_PATH_RE" ] && [ -n "$ACCLOGS" ]; then
     NDROP=$(grep -c . "$WORK/drop.txt"); DROP_RED=0
     while read -r _cnt _ip; do ip_note dropper_requester "$_ip" "$_cnt" "$(msg ADDR_SRC_DROPPER)"; done < "$WORK/drop.txt"
     if [ "${NINJ:-0}" -gt 0 ]; then
-      while read -r cnt ip; do echo "$INJ" | grep -qF -- "$ip" && DROP_RED=1; done < "$WORK/drop.txt"
+      while read -r cnt ip; do printf '%s\n' "$INJ" | grep -qF -- "$ip" && DROP_RED=1; done < "$WORK/drop.txt"
     fi
     # Sperrliste: je Adresse Datum des letzten Requests; gesperrt vor dem letzten Request = abgedeckt (ORANGE),
     # gesperrt aber Requests danach = Sperre greift nicht (GELB); nicht gesperrt = Bewertung wie bisher
@@ -1485,6 +1698,7 @@ fi
     TRACES=1; flag_red "$(msg TRACE_DTLS_PPE_RED)"
     out "          | $(msg TRACE_LOG_DET "$(log_hits "$DTLS_FAIL_RE|$PPE_CRASH_RE" $NSLOGS)")" 1
   fi
+  prof_mark b4-dropper
   # --- Webserver-Fehlerlog: (a) Interpreter-Fehler, (b) Sondierung von Webshell-Namen, (c) Client ausserhalb 127.0.0.x
   if [ -z "$ERRLOGS" ]; then inf "$(msg TRACE_NO_ERRLOG "${HOURS}")" 1
   elif [ -z "${HTTPERR_EXEC_RE:-}" ] || [ -z "${HTTPERR_PROBE_RE:-}" ]; then inf "$(msg TRACE_ERRLOG_RULES_MISSING "$RULES_VERSION" "$RULES_MIN")" 1
@@ -1557,6 +1771,7 @@ fi
       out "          | $(msg TRACE_WEBSERVER_DIRECT_RESULT_DET)" 1
       out "          | $(msg TRACE_WEBSERVER_DIRECT_TODO_DET)" 1; fi
   fi
+  prof_mark b4-httperr
   # --- Management-Ebene: Zugriffe auf NITRO und GUI von aussen (httpaccess.log der NSIP)
   if [ -z "$MGMTLOGS" ]; then inf "$(msg TRACE_NO_MGMTLOG "${HOURS}")" 1
   elif [ -z "${MGMT_PATH_RE:-}" ]; then inf "$(msg TRACE_MGMT_RULE_MISSING "$RULES_VERSION" "$RULES_MIN")" 1
@@ -1571,6 +1786,7 @@ fi
       out "          | $(msg TRACE_MGMT_EXTERNAL_TODO_DET)" 1
     else grn "$(msg TRACE_MGMT_INTERNAL_OK)"; fi
   fi
+  prof_mark b4-mgmt
   # --- Anmeldungen an der Appliance (auth.log): Logins von aussen, Backdoor-Konten, Brute Force
   if [ -z "$AUTHLOGS" ]; then inf "$(msg TRACE_NO_AUTHLOG "${HOURS}")" 1
   elif [ -z "${AUTH_LOGIN_RE:-}" ]; then inf "$(msg TRACE_AUTH_RULES_MISSING "$RULES_VERSION" "$RULES_MIN")" 1
@@ -1591,9 +1807,12 @@ fi
     [ -z "$AL" ] && [ -z "$AF" ] && grn "$(msg TRACE_AUTH_NONE_OK)"
   fi
   # --- Gateway-Anmeldefehler (AAA): je Adresse Takt, Konten, Zeitraum, Erfolg danach; Mensch/Maschine; Treffer = Rot
+  prof_mark b4-auth
   if [ -z "${AAA_FAIL_RE:-}" ] || [ -z "${AAA_OK_RE:-}" ]; then inf "$(msg AAA_RULES_MISSING "$RULES_VERSION" "$RULES_MIN")" 1
   elif [ -n "$NSLOGS" ]; then
-    catns $NSLOGS | grep -aE "$AAA_FAIL_RE|$AAA_OK_RE" | grep -avE "$ADMIN_CMD_RE" > "$WORK/aaa_all.txt"
+    catns $NSLOGS | grep -aE "$AAA_FAIL_RE|$AAA_OK_RE${AAA_FACTOR_OK_RE:+|$AAA_FACTOR_OK_RE}" | grep -avE "$ADMIN_CMD_RE" > "$WORK/aaa_all.txt"
+    if [ -n "${AAA_FACTOR_LOG:-}" ] && [ -n "$AAA_FACTOR_OK_RE" ]; then FACTLOGS=$(logs_in_window "$(basename "$AAA_FACTOR_LOG")*"); [ -n "$FACTLOGS" ] && catlogs $FACTLOGS | grep -aE "$AAA_FACTOR_OK_RE" >> "$WORK/aaa_all.txt"; fi
+    NFACTOR_CFG=0; cg '^add authentication loginSchema |^add authentication policylabel ' | grep -q . && NFACTOR_CFG=1
     # eigene Adressen: ns.conf (ns ip, vserver, server, HA, serverIP) mit Objektname; dazu RFC 1918 und MGMT_NET_RE zur Laufzeit
     : > "$WORK/own_ips.txt"
     if [ -r "$NSCONF" ]; then
@@ -1605,34 +1824,55 @@ fi
     fi
     own_obj() { awk -F'\t' -v i="$1" '$1==i { print $2; exit }' "$WORK/own_ips.txt"; }
     # Zeilen -> "epoch TAB ok|fail TAB ip TAB user" (Zeit aus "MM/DD/YYYY:HH:MM:SS" oder "YYYY/MM/DD:HH:MM:SS" der Zeile, sonst Syslog-Zeit)
-    AAA_FAIL_RE="$AAA_FAIL_RE" AAA_OK_RE="$AAA_OK_RE" perl -MTime::Local -e '
+    AAA_FAIL_RE="$AAA_FAIL_RE" AAA_OK_RE="$AAA_OK_RE" AAA_FACTOR_OK_RE="$AAA_FACTOR_OK_RE" AAA_RAWUSERS="$WORK/aaa_rawusers.txt" perl -MTime::Local -e '
       my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); my $now=time; my $cy=(localtime $now)[5]+1900;
-      while (<STDIN>) { chomp; my $k = /$ENV{AAA_FAIL_RE}/ ? "fail" : (/$ENV{AAA_OK_RE}/ ? "ok" : next);
+      my $fre=$ENV{AAA_FACTOR_OK_RE}; open(RAW, ">", $ENV{AAA_RAWUSERS}) or die;
+      while (<STDIN>) { chomp; my $k = /$ENV{AAA_FAIL_RE}/ ? "fail" : (/$ENV{AAA_OK_RE}/ ? "ok" : (($fre ne "" && /$fre/) ? "factor" : next));
         my $e;
         if (/(\d\d)\/(\d\d)\/(\d\d\d\d):(\d\d):(\d\d):(\d\d)/) { $e=eval { timegm($6,$5,$4,$2,$1-1,$3) } }
         elsif (/(\d\d\d\d)\/(\d\d)\/(\d\d):(\d\d):(\d\d):(\d\d)/) { $e=eval { timegm($6,$5,$4,$3,$2-1,$1) } }
         elsif (/^([A-Z][a-z][a-z]) +(\d\d?) (\d\d):(\d\d):(\d\d) / && exists $M{$1}) { $e=eval { timelocal($5,$4,$3,$2,$M{$1},$cy) }; $e=timelocal($5,$4,$3,$2,$M{$1},$cy-1) if defined $e && $e > $now+86400 }
         next unless defined $e;
-        my ($ip,$u)=("",""); $ip=$1 if /(?:Client_ip|from|Clientip|client_ip)[ :=]+(\d+\.\d+\.\d+\.\d+)/i; $u=$1 if /(?:User|user:|for user|user)[ :=]+([^ \s"]+)/;
-        next unless $ip; print "$e\t$k\t$ip\t$u\n" }' < "$WORK/aaa_all.txt" | sort -n > "$WORK/aaa.tsv"
-    NAF=$(awk -F'\t' '$2=="fail"' "$WORK/aaa.tsv" | grep -c .)
+        my ($ip,$u)=("",""); $ip=$1 if /(?:Client_ip|from|Clientip|client_ip)[ :=]+(\d+\.\d+\.\d+\.\d+)/i;
+        my $det="";
+        if ($k eq "factor") { $u=$1 if /for user: ([^ \s"]+)/; $u =~ s/"$//; next unless $u; $det=$1 if /current factor: ([^,]+),/; $det="factor $det" . (/Authentication failed/ ? " failed" : " succeeded"); my $raw=$u; print RAW "$u\n"; $u=lc $u; $u =~ s/^[^\\]+\\//; print "$e\tfactor\t-\t$u\t$raw\t$det\n"; next }
+        $u=$1 if /(?:User|user:|for user|user)[ :=]+([^ \s"]+)/;
+        my $raw=$u; if ($u ne "") { print RAW "$u\n"; $u=lc $u; $u =~ s/^[^\\]+\\//; }
+        if ($k eq "fail") { $det=$1 if /Failure_reason "([^"]*)"/ } else { $det=$1 if /Browser_type "([^"]*)"/; $det =~ s/ .*//; $det="login $det" }
+        next unless $ip; print "$e\t$k\t$ip\t$u\t$raw\t$det\n" }' < "$WORK/aaa_all.txt" | sort -n > "$WORK/aaa.tsv"
+    NAF=$(awk -F'\t' '$2=="fail"' "$WORK/aaa.tsv" | grep -c .); NFL=$(awk -F'\t' '$2=="factor"' "$WORK/aaa.tsv" | grep -c .)
+    [ "$NFACTOR_CFG" -eq 1 ] && [ "$NFL" -eq 0 ] && [ "$NAF" -gt 0 ] && inf "$(msg AAA_NFACTOR_NO_LINES)" 1
     if [ "$NAF" -gt 0 ]; then
       # je Adresse: fail, konten, erster, letzter, max/min, erfolg-danach (gleiches Konto, innerhalb AAA_OK_WIN nach letztem Fehlversuch), Konten-Beispiele
-      awk -F'\t' -v win="$(( ${AAA_OK_WIN:-5} * 60 ))" -v rate="${AAA_RATE:-10}" -v fip="${AAA_FAIL_IP:-5}" -v fus="${AAA_FAIL_USERS:-10}" -v sld="${AAA_SLEEPER_DAYS:-2}" '
-        $2=="fail" { f[$3]++; k=$3 SUBSEP $4; if (!(k in seen)) { seen[k]=1; users[$3]++; ul[$3]=(ul[$3]=="" ? $4 : ul[$3] "," $4) } if (!($3 in first)) first[$3]=$1; last[$3]=$1; lf[k]=$1; m=$3 SUBSEP int($1/60); pm[m]++; if (pm[m]>mx[$3]) mx[$3]=pm[m]; uf[$4]++
+      awk -F'\t' -v win="$(( ${AAA_OK_WIN:-5} * 60 ))" -v rate="${AAA_RATE:-10}" -v fip="${AAA_FAIL_IP:-5}" -v fus="${AAA_FAIL_USERS:-10}" -v sld="${AAA_SLEEPER_DAYS:-2}" -v sok="${AAA_SHARED_OK:-20}" -v sus="${AAA_SHARED_USERS:-10}" -v late="$(( ${AAA_OK_WIN_LATE:-1440} * 60 ))" '
+        $2=="factor" { lastfac[$4]=$1; next }
+        $2=="fail" { f[$3]++; k=$3 SUBSEP $4; fk[k]++; if (($4 in lastfac) && $1-lastfac[$4] >= 0 && $1-lastfac[$4] <= 120) { fexp[$3]++; fexpk[k]++ } if (!(k in seen)) { seen[k]=1; users[$3]++; ul[$3]=(ul[$3]=="" ? $4 : ul[$3] "," $4) } if (!($3 in first)) first[$3]=$1; last[$3]=$1; lf[k]=$1; m=$3 SUBSEP int($1/60); pm[m]++; if (pm[m]>mx[$3]) mx[$3]=pm[m]; uf[$4]++
                      dk=$3 SUBSEP int($1/86400); if (!(dk in dseen)) { dseen[dk]=1; days[$3]++ }
                      if (!(k in useen)) { useen[k]=1; uips[$4]++; uipl[$4]=(uipl[$4]=="" ? $3 : uipl[$4] "," $3) } if (!($4 in ufirst)) ufirst[$4]=$1; ulast[$4]=$1; um=$4 SUBSEP int($1/60); upm[um]++; if (upm[um]>umx[$4]) umx[$4]=upm[um] }
-        $2=="ok"   { k=$3 SUBSEP $4; if ((k in lf) && $1>=lf[k] && $1-lf[k]<=win) { okA[$3]++; okU[$4]=1; okL[$3]=(okL[$3]=="" ? $4 : okL[$3] "," $4) }
+        $2=="ok"   { okAll[$3]++; ku=$3 SUBSEP $4; k=ku; if (!(ku in okseen)) { okseen[ku]=1; okUsers[$3]++; okUL[$3]=(okUL[$3]=="" ? $4 : okUL[$3] "," $4) } okEver[$4]=1
+                     if ((k in lf) && $1>=lf[k] && $1-lf[k]<=late) { lateOk[$3]++; d=$1-lf[k]; if (d>lateMax[$3]) lateMax[$3]=d; if (!((ku) in lateSeen)) { lateSeen[ku]=1; lateUL[$3]=(lateUL[$3]=="" ? $4 : lateUL[$3] "," $4) } }
+                     k=$3 SUBSEP $4; if ((k in lf) && $1>=lf[k] && $1-lf[k]<=win) { okA[$3]++; if (!(k in okAseen)) { okAseen[k]=1; okAcc[$3]++ } okU[$4]=1; okL[$3]=(okL[$3]=="" ? $4 : okL[$3] "," $4) }
                      if (($4 in ulast) && $1>=ulast[$4] && $1-ulast[$4]<=win) { uokAny[$4]=1; uokIp[$4]=$3 } }
         END {
-          for (ip in f) { if (f[ip] < fip && users[ip] < fus) continue; if (mx[ip] >= rate || users[ip] >= fus) { split(ip, o, "."); netm[o[1] "." o[2] "." o[3]]++ } }
+          for (ip in f) { if (f[ip] < fip && users[ip] < fus) continue; st = (okAll[ip]+0 >= sok && okUsers[ip]+0 >= sus) ? 1 : 0; if (mx[ip] >= rate || (users[ip] >= fus && !st)) { split(ip, o, "."); netm[o[1] "." o[2] "." o[3]]++ } }
           for (ip in f) { if (f[ip] < fip && users[ip] < fus && days[ip] < sld) continue
-            mach = (mx[ip] >= rate || users[ip] >= fus) ? 1 : 0
-            split(ip, o, "."); nm = netm[o[1] "." o[2] "." o[3]]+0; bynet = (!mach && nm >= 2) ? 1 : 0; if (bynet) mach = 1
+            sharedThr = (okAll[ip]+0 >= sok && okUsers[ip]+0 >= sus) ? 1 : 0
+            ratemach = (mx[ip] >= rate) ? 1 : 0
+            # Kontenzahl allein ist auf einer Sammeladresse kein Maschinenmerkmal; ein Treffer braucht Takt oder genau ein Erfolgskonto
+            mach = (ratemach || (users[ip] >= fus && !sharedThr && okAcc[ip]+0 <= 1)) ? 1 : 0
+            split(ip, o, "."); nm = netm[o[1] "." o[2] "." o[3]]+0; bynet = (!mach && !sharedThr && nm >= 2) ? 1 : 0; if (bynet) mach = 1
             burst = (!mach && users[ip] == 1 && mx[ip] >= 3 && last[ip]-first[ip] <= 600) ? 1 : 0
             sleeper = (!mach && users[ip] >= 2 && (days[ip] >= sld || last[ip]-first[ip] >= sld*86400)) ? 1 : 0   # Tage mit Versuchen oder Spanne zwischen erstem und letztem Versuch
-            v = (mach && okA[ip]>0) ? "TREFFER" : (mach ? (bynet ? "MASCHINE_NETZ" : "MASCHINE") : (okA[ip]>0 ? "NUTZER" : (sleeper ? "SCHLAEFER" : (burst ? "UNKLAR_BURST" : "UNKLAR"))))
-            printf "%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%d\n", ip, f[ip], users[ip], first[ip], last[ip], mx[ip], okA[ip]+0, v, ul[ip], okL[ip], days[ip] }
+            shared = (!mach && sharedThr) ? 1 : 0   # Sammeladresse: viele Erfolge vieler Konten, kein Maschinenverhalten
+            v = (mach && okA[ip]>0) ? "TREFFER" : (mach ? (bynet ? "MASCHINE_NETZ" : "MASCHINE") : (shared ? "SAMMEL" : (okA[ip]>0 ? "NUTZER" : (sleeper ? "SCHLAEFER" : (burst ? "UNKLAR_BURST" : "UNKLAR")))))
+            fexpn = fexp[ip]+0; if (fexpn > 0 && fexpn >= f[ip] && !mach) { adv="F"; v="FAKTOR" }
+            nlate=0; if (!mach && (v=="SCHLAEFER" || v=="UNKLAR" || v=="UNKLAR_BURST")) { nlu=split(lateUL[ip], lz, ","); if (lateUL[ip]!="" && nlu >= users[ip]) { v="SPAET"; adv="G"; nlate=lateMax[ip] } }
+            # Empfehlung: Konten mit Erfolg von dieser Adresse (A), ohne Erfolg von hier aber bekannt (B), unbekannt (C), bekannt bei Adresse ohne Erfolge (D)
+            nu=split(ul[ip], uu, ","); wsucc=""; nosucc=""; nknown=0; nunk=0
+            for (i=1;i<=nu;i++) { u=uu[i]; if ((ip SUBSEP u) in okseen) { wsucc=(wsucc=="" ? u : wsucc "," u) } else { nosucc=(nosucc=="" ? u "(" fk[ip SUBSEP u] ")" : nosucc "," u "(" fk[ip SUBSEP u] ")"); if (u in okEver) nknown++; else nunk++ } }
+            adv = (okAll[ip]+0 > 0) ? ((nosucc=="") ? "A" : "B") : ((nknown + nunk == 1) ? "E" : ((nknown > 0) ? "D" : "C"))
+            if (fexp[ip]+0 > 0 && fexp[ip] >= f[ip] && !mach) { adv="F"; v="FAKTOR" }
+            printf "%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t%d\t%d\n", ip, f[ip], users[ip], first[ip], last[ip], mx[ip], okA[ip]+0, v, ul[ip], okL[ip], days[ip], okAll[ip]+0, okUsers[ip]+0, adv, okUL[ip], wsucc, nosucc, fexpn, int(nlate/3600) }
           for (u in uf) printf "USER\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n", u, uf[u], (u in okU) ? 1 : 0, uips[u], ufirst[u], ulast[u], umx[u], (u in uokAny) ? 1 : 0, uipl[u], uokIp[u] > "/dev/stderr" }' "$WORK/aaa.tsv" 2>"$WORK/aaa_users.txt" | sort -t"$(printf '\t')" -k2,2 -rn > "$WORK/aaa_ip.txt"
       # Adressen, die nur ein Brute-Force-Konto bearbeitet haben, gehoeren zum Brute-Force-Befund, nicht zum Spraying
       { echo "__keins__"; awk -F'\t' -v bf="${AAA_BF_MIN:-20}" -v rate="${AAA_RATE:-10}" '$3 >= bf || $8 >= rate { print $2 }' "$WORK/aaa_users.txt"; } > "$WORK/aaa_bfusers.txt"   # Platzhalterzeile: leere erste Datei bricht NR==FNR
@@ -1642,16 +1882,17 @@ fi
       _cumsl="$(dirname "${OUTFILE:-.}")/ns_quickcheck_observed_ips.tsv"
       while IFS="$(printf '\t')" read -r _ip _rest; do
         [ -n "$_ip" ] || continue
-        if is_trusted_ip "$_ip"; then ip_note "aaa_$(echo "$_rest" | cut -f7 | tr 'A-Z' 'a-z')" "$_ip" "$(echo "$_rest" | cut -f1)" "$(msg ADDR_SRC_AAA_FAIL_TRUSTED)"; continue; fi
+        if is_trusted_ip "$_ip"; then _tc=$(echo "$_rest" | cut -f7 | tr 'A-Z' 'a-z'); case "$_tc" in schlaefer) _tc=sleeper ;; maschine_netz) _tc=maschine ;; unklar_burst) _tc=unklar ;; sammel) _tc=shared ;; esac; ip_note "aaa_$_tc" "$_ip" "$(echo "$_rest" | cut -f1)" "$(msg ADDR_SRC_AAA_FAIL_TRUSTED)"; continue; fi
         if is_internal_ip "$_ip" || [ -n "$(own_obj "$_ip")" ]; then printf '%s\t%s\n' "$_ip" "$_rest" >> "$WORK/aaa_own.txt"; continue; fi
         _v=$(echo "$_rest" | cut -f7); _u=$(echo "$_rest" | cut -f2)
         if [ "$_v" = UNKLAR ] && [ "$_u" -ge 2 ] && [ -f "$_cumsl" ]; then _td=$(grep -v '^#' "$_cumsl" | awk -F'\t' -v i="$_ip" '$2==i && NF>=11 { if ($7>m) m=$7 } END { print m+0 }'); [ "$_td" -ge "${AAA_SLEEPER_DAYS:-2}" ] && _rest=$(echo "$_rest" | awk -F'\t' -v OFS='\t' -v d="$_td" '{ $7="SCHLAEFER"; $10=d; print }'); fi
         printf '%s\t%s\n' "$_ip" "$_rest" >> "$WORK/aaa_ip2.txt"
       done < "$WORK/aaa_ip.txt"; mv "$WORK/aaa_ip2.txt" "$WORK/aaa_ip.txt"
       NOWN=$(grep -c . "$WORK/aaa_own.txt"); NSLP=$(awk -F'\t' '$8=="SCHLAEFER"' "$WORK/aaa_ip.txt" | grep -c .)
-      NIP=$(grep -c . "$WORK/aaa_ip.txt"); NHIT=$(awk -F'\t' '$8=="TREFFER"' "$WORK/aaa_ip.txt" | grep -c .); NMACH=$(awk -F'\t' '$8 ~ /^MASCHINE/' "$WORK/aaa_ip.txt" | grep -c .)
+      NSHARED=$(awk -F'\t' '$8=="SAMMEL"' "$WORK/aaa_ip.txt" | grep -c .); NFACT=$(awk -F'\t' '$8=="FAKTOR"' "$WORK/aaa_ip.txt" | grep -c .); NLATE=$(awk -F'\t' '$8=="SPAET"' "$WORK/aaa_ip.txt" | grep -c .); NIP=$(awk -F'\t' '$8!="SAMMEL" && $8!="FAKTOR" && $8!="SPAET"' "$WORK/aaa_ip.txt" | grep -c .); NHIT=$(awk -F'\t' '$8=="TREFFER"' "$WORK/aaa_ip.txt" | grep -c .); NMACH=$(awk -F'\t' '$8 ~ /^MASCHINE/' "$WORK/aaa_ip.txt" | grep -c .)
       # Kontonamen in die Zuordnungstabelle (anon-Fassung maskiert sie)
-      cut -f2 "$WORK/aaa_users.txt" | grep -v '^$' | sort -u | while IFS= read -r _u; do anon_add user "$_u"; done
+      { cut -f2 "$WORK/aaa_users.txt"; cut -f4 "$WORK/aaa.tsv"; cat "$WORK/aaa_rawusers.txt" 2>/dev/null; } | grep -v '^$' | sort -u \
+        | perl -ne 'chomp; print "$_\n"; my $v=$_; if ($v =~ s/[^\x20-\x7e]/./g) { print "$v\n"; print lc($v), "\n" }' | sort -u | anon_add_many user
       # Brute Force auf einzelne Konten: viele Versuche auf ein Konto (AAA_BF_MIN) oder AAA_RATE/min auf ein Konto, von beliebig vielen Adressen
       # aaa_users.txt: USER, konto, fehl, erfolg-gleiche-adresse, adressen, erster, letzter, max/min, erfolg-danach-beliebig, adressliste, erfolgsadresse
       awk -F'\t' -v bf="${AAA_BF_MIN:-20}" -v rate="${AAA_RATE:-10}" '$3 >= bf || $8 >= rate' "$WORK/aaa_users.txt" | sort -t"$(printf '\t')" -k3,3 -rn > "$WORK/aaa_bf0.txt"
@@ -1675,22 +1916,34 @@ fi
         awk -F'\t' '$8=="TREFFER" {print $1}' "$WORK/aaa_ip.txt" | while read -r _ip; do ip_note aaa_hit "$_ip" 1 "$(msg ADDR_SRC_AAA_HIT)"; done
         out "          | $(msg AAA_HIT_TODO_DET)" 1; fi
       if [ "$NSLP" -gt 0 ]; then flag_yel "$(msg AAA_SLEEPER_YEL "$NSLP")"
-        awk -F'\t' -v mr="$(msg_raw AAA_SLEEPER_ROW)" 'function m(t,a,b,c,d,e,f,g,h,i) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); gsub(/%6/,f,t); gsub(/%7/,g,t); gsub(/%8/,h,t); gsub(/%9/,i,t); return t } $8=="SCHLAEFER" { split($9, a, ","); ex=a[1]; for (i=2;i<=5 && i in a;i++) ex=ex ", " a[i]; if ($3>5) ex=ex ", +" ($3-5)
+        awk -F'\t' -v mr="$(msg_raw AAA_SLEEPER_ROW)" -v ms="$(msg_raw AAA_ADV_SUCC_ROW)" -v ma="$(msg AAA_ADV_A)" -v mb="$(msg AAA_ADV_B)" -v mc="$(msg AAA_ADV_C)" -v md="$(msg AAA_ADV_D)" -v me="$(msg AAA_ADV_E)" -v mfx="$(msg_raw AAA_ADV_FACTOR_FRAG)" 'function m(t,a,b,c,d,e,f,g,h,i) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); gsub(/%6/,f,t); gsub(/%7/,g,t); gsub(/%8/,h,t); gsub(/%9/,i,t); return t } function adv(ip, oa, ou, oul, ns, code, fx,   l) { l=oul; n=split(oul, z, ","); if (n>3) l=z[1] "," z[2] "," z[3] ",+" (n-3); if (l=="") l="-"; print m(ms, oa, ou, l, (ns=="" ? "-" : ns)); if (fx+0 > 0) print m(mfx, fx); print (code=="A" ? ma : (code=="B" ? mb : (code=="C" ? mc : (code=="E" ? me : md)))) } $8=="SCHLAEFER" { split($9, a, ","); ex=a[1]; for (i=2;i<=5 && i in a;i++) ex=ex ", " a[i]; if ($3>5) ex=ex ", +" ($3-5)
             cmd="perl -MPOSIX -e \"print strftime(q(%d.%m.), localtime(" $4 "))\""; cmd | getline t1; close(cmd); cmd="perl -MPOSIX -e \"print strftime(q(%d.%m.), localtime(" $5 "))\""; cmd | getline t2; close(cmd)
-            sp=int(($5-$4)/86400)+1; print m(mr, sprintf("%-16s", $1), sprintf("%4d", $2), sprintf("%3d", $3), $11, sp, t1, t2, $6, ex) }' "$WORK/aaa_ip.txt" | LINE_MAX=0 show 10 1
+            sp=int(($5-$4)/86400)+1; print m(mr, sprintf("%-16s", $1), sprintf("%4d", $2), sprintf("%3d", $3), $11, sp, t1, t2, $6, ex); adv($1, $12, $13, $15, $17, $14, $18) }' "$WORK/aaa_ip.txt" | LINE_MAX=0 show 30 1
         awk -F'\t' '$8=="SCHLAEFER" {print $1 "\t" $2}' "$WORK/aaa_ip.txt" | while IFS="$(printf '\t')" read -r _ip _n; do ip_note aaa_sleeper "$_ip" "$_n" "$(msg ADDR_SRC_AAA_SLEEPER)"; done
         out "          | $(msg AAA_SLEEPER_RESULT_DET)" 1
         out "          | $(msg AAA_SLEEPER_TODO_DET)" 1; fi
+      if [ "$NLATE" -gt 0 ]; then inf "$(msg AAA_LATE_INFO "$NLATE" "$(( ${AAA_OK_WIN_LATE:-1440} / 60 ))")" 1
+        awk -F'\t' -v mr="$(msg_raw AAA_LATE_ROW)" 'function m(t,a,b,c,d,e) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); return t } $8=="SPAET" { print m(mr, sprintf("%-16s", $1), $2, $3, $19, $9) }' "$WORK/aaa_ip.txt" | LINE_MAX=0 show 10 1
+        awk -F'\t' '$8=="SPAET" {print $1 "\t" $2}' "$WORK/aaa_ip.txt" | while IFS="$(printf '\t')" read -r _ip _n; do ip_note aaa_late_user "$_ip" "$_n" "$(msg ADDR_SRC_AAA_LATE)"; done
+        out "          | $(msg AAA_ADV_G)" 1; fi
+      if [ "$NFACT" -gt 0 ]; then inf "$(msg AAA_FACTOR_INFO "$NFACT")" 1
+        awk -F'\t' -v mr="$(msg_raw AAA_FACTOR_ROW)" 'function m(t,a,b,c,d) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); return t } $8=="FAKTOR" { print m(mr, sprintf("%-16s", $1), $2, $3, $9) }' "$WORK/aaa_ip.txt" | LINE_MAX=0 show 10 1
+        awk -F'\t' '$8=="FAKTOR" {print $1 "\t" $2}' "$WORK/aaa_ip.txt" | while IFS="$(printf '\t')" read -r _ip _n; do ip_note aaa_factor_ok "$_ip" "$_n" "$(msg ADDR_SRC_AAA_FACTOR)"; done
+        out "          | $(msg AAA_ADV_F)" 1; fi
+      if [ "$NSHARED" -gt 0 ]; then inf "$(msg AAA_SHARED_INFO "$NSHARED" "${AAA_SHARED_OK:-20}" "${AAA_SHARED_USERS:-10}")" 1
+        awk -F'\t' -v mr="$(msg_raw AAA_SHARED_ROW)" 'function m(t,a,b,c,d,e) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); return t } $8=="SAMMEL" { print m(mr, sprintf("%-16s", $1), $12, $13, $2, $3) }' "$WORK/aaa_ip.txt" | LINE_MAX=0 show 10 1
+        awk -F'\t' '$8=="SAMMEL" {print $1 "\t" $2}' "$WORK/aaa_ip.txt" | while IFS="$(printf '\t')" read -r _ip _n; do ip_note aaa_shared "$_ip" "$_n" "$(msg ADDR_SRC_AAA_SHARED)"; done
+        out "          | $(msg AAA_SHARED_RESULT_DET)" 1; fi
       if [ "$NIP" -gt "$((NHIT + NSLP))" ]; then
         flag_yel "$(msg AAA_SPRAY_YEL "$NAF" "$NIP" "$NMACH")"
-        [ "$NIP" -gt 1 ] && out "          | $(msg TRACE_NETS_DET "$(awk -F'\t' '$8!="NUTZER" { print $2, $1 }' "$WORK/aaa_ip.txt" | net24_summary)")" 1
+        [ "$NIP" -gt 1 ] && out "          | $(msg TRACE_NETS_DET "$(awk -F'\t' '$8!="NUTZER" && $8!="SAMMEL" && $8!="FAKTOR" && $8!="SPAET" { print $2, $1 }' "$WORK/aaa_ip.txt" | net24_summary)")" 1
         NNUT=$(awk -F'\t' '$8=="NUTZER"' "$WORK/aaa_ip.txt" | grep -c .); NUNK=$(awk -F'\t' '$8 ~ /^UNKLAR/' "$WORK/aaa_ip.txt" | grep -c .)
         out "$(msg AAA_SPRAY_SPLIT_DET "          | $NUNK" "$NMACH" "$NNUT")" 1
-        { awk -F'\t' '$8 ~ /^UNKLAR/' "$WORK/aaa_ip.txt" | head -10; awk -F'\t' '$8 ~ /^MASCHINE/' "$WORK/aaa_ip.txt" | head -10; } | awk -F'\t' -v mx=20 -v mr="$(msg_raw AAA_SPRAY_ROW)" -v rm="$(msg AAA_RATE_MACHINE)" -v rmn="$(msg AAA_RATE_MACHINE_NET)" -v ru="$(msg AAA_RATE_USER)" -v rub="$(msg AAA_RATE_UNCLEAR_BURST)" -v ruc="$(msg AAA_RATE_UNCLEAR)" -v yes="$(msg TRACE_YES)" -v no="$(msg TRACE_NO)" 'function m(t,a,b,c,d,e,f,g,h,i) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); gsub(/%6/,f,t); gsub(/%7/,g,t); gsub(/%8/,h,t); gsub(/%9/,i,t); return t } $8!="TREFFER" && n<mx { n++; split($9, a, ","); ex=a[1]; for (i=2;i<=5 && i in a;i++) ex=ex ", " a[i]; if ($3>5) ex=ex ", +" ($3-5)
+        { awk -F'\t' '$8 ~ /^UNKLAR/' "$WORK/aaa_ip.txt" | head -10; awk -F'\t' '$8 ~ /^MASCHINE/' "$WORK/aaa_ip.txt" | head -10; } | awk -F'\t' -v mx=20 -v mr="$(msg_raw AAA_SPRAY_ROW)" -v ms="$(msg_raw AAA_ADV_SUCC_ROW)" -v ma="$(msg AAA_ADV_A)" -v mb="$(msg AAA_ADV_B)" -v mc="$(msg AAA_ADV_C)" -v md="$(msg AAA_ADV_D)" -v me="$(msg AAA_ADV_E)" -v mfx="$(msg_raw AAA_ADV_FACTOR_FRAG)" -v rm="$(msg AAA_RATE_MACHINE)" -v rmn="$(msg AAA_RATE_MACHINE_NET)" -v ru="$(msg AAA_RATE_USER)" -v rub="$(msg AAA_RATE_UNCLEAR_BURST)" -v ruc="$(msg AAA_RATE_UNCLEAR)" -v yes="$(msg TRACE_YES)" -v no="$(msg TRACE_NO)" 'function m(t,a,b,c,d,e,f,g,h,i) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); gsub(/%6/,f,t); gsub(/%7/,g,t); gsub(/%8/,h,t); gsub(/%9/,i,t); return t } function adv(ip, oa, ou, oul, ns, code, fx,   l) { l=oul; n=split(oul, z, ","); if (n>3) l=z[1] "," z[2] "," z[3] ",+" (n-3); if (l=="") l="-"; print m(ms, oa, ou, l, (ns=="" ? "-" : ns)); if (fx+0 > 0) print m(mfx, fx); print (code=="A" ? ma : (code=="B" ? mb : (code=="C" ? mc : (code=="E" ? me : md)))) } $8!="TREFFER" && n<mx { n++; split($9, a, ","); ex=a[1]; for (i=2;i<=5 && i in a;i++) ex=ex ", " a[i]; if ($3>5) ex=ex ", +" ($3-5)
             cmd="perl -MPOSIX -e \"print strftime(q(%d.%m. %H:%M), localtime(" $4 "))\""; cmd | getline t1; close(cmd); cmd="perl -MPOSIX -e \"print strftime(q(%d.%m. %H:%M), localtime(" $5 "))\""; cmd | getline t2; close(cmd)
             v = ($8=="MASCHINE") ? rm : (($8=="MASCHINE_NETZ") ? rmn : (($8=="NUTZER") ? ru : (($8=="UNKLAR_BURST") ? rub : ruc)))
-            print m(mr, sprintf("%-16s", $1), sprintf("%4d", $2), sprintf("%3d", $3), t1, t2, $6, ($7>0 ? yes : no), v, ex) }
-          END { }' | LINE_MAX=0 show 20 1
+            print m(mr, sprintf("%-16s", $1), sprintf("%4d", $2), sprintf("%3d", $3), t1, t2, $6, ($7>0 ? yes : no), v, ex); adv($1, $12, $13, $15, $17, $14, $18) }
+          END { }' | LINE_MAX=0 show 60 1
         [ "$((NUNK + NMACH))" -gt 20 ] && out "          | $(msg AAA_SPRAY_MORE_DET "$((NUNK + NMACH - 20))")" 1
         awk -F'\t' '$8 ~ /^MASCHINE/ {print $1 "\t" $2}' "$WORK/aaa_ip.txt" | while IFS="$(printf '\t')" read -r _ip _n; do ip_note aaa_bruteforce "$_ip" "$_n" "$(msg ADDR_SRC_AAA_MACHINE)"; done
         out "          | $(msg AAA_TOP_ACCOUNTS_DET "$(sort -t"$(printf '\t')" -k3,3 -rn "$WORK/aaa_users.txt" | head -8 | awk -F'\t' -v sf="$(msg AAA_TOP_ACCOUNT_SUCCESS_FRAG)" '{ printf "%s (%d%s) ", $2, $3, ($4==1 ? sf : "") }')")" 1
@@ -1715,24 +1968,73 @@ fi
 fi
 
 # =============================================================================
-# Vertraute Adressen: gesammelte Ausgabe, ohne Verdict-Wirkung (TRUST_LEVEL=yellow: als Gelb)
+prof_mark b4-aaa
+# --- Shell-Aktivitaet (18.1): bash.log/sh.log, Sitzungen je PID; Login-Korrelation ueber auth.log (Annahme: Anmeldung in SHELL_LOGIN_WIN davor)
+SHELL_N=0; SHELL_SUSPECT=0
+SHELLLOGS=$(logs_in_window 'bash.log*'; logs_in_window 'sh.log*')
+if [ "${SHELL_CHECK:-0}" = 1 ] && [ -n "$SHELL_LOG_RE" ] && [ -n "$SHELLLOGS" ]; then
+  # nur interaktive Sitzungen (pts, Konsole); Systemscripte loggen mit Konto und TTY "(null)"
+  catlogs $SHELLLOGS | grep -aE "$SHELL_LOG_RE" | grep -aE ' on /dev/(pts|ttyu|ttyv|console)' | grep -avE "${SHELL_OWN_RE:-ns_quickcheck}" > "$WORK/shell_lines.txt"
+  if [ -s "$WORK/shell_lines.txt" ]; then
+    catlogs $AUTHLOGS 2>/dev/null | grep -aE "${AUTH_LOGIN_RE:-sshd}" | grep -v '#nsinternal#' > "$WORK/shell_logins.txt"
+    SUSP="$SHELL_SUSPECT_RE" LOGINS="$WORK/shell_logins.txt" WIN="$(( ${SHELL_LOGIN_WIN:-10} * 60 ))" perl -MTime::Local -e '
+      my %M=(Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11); my $now=time; my $y=(localtime $now)[5]+1900;
+      sub ep { my $l=shift; return undef unless $l =~ /^([A-Z][a-z]{2})\s+(\d{1,2}) (\d\d):(\d\d):(\d\d) / && exists $M{$1}; my $e=eval { timelocal($5,$4,$3,$2,$M{$1},$y) }; return undef unless defined $e; $e=timelocal($5,$4,$3,$2,$M{$1},$y-1) if $e > $now+86400; return $e }
+      my @lg; if (open(my $h,"<",$ENV{LOGINS})) { while (<$h>) { chomp; my $e=ep($_); next unless defined $e; my ($u,$ip)=("",""); if (/for ([^ ]+) from ([0-9.]+)/) { ($u,$ip)=($1,$2) } elsif (/ as ([^ ]+)/) { ($u,$ip)=($1,"console") } push @lg, [$e,$u,$ip] } close $h }
+      my (%s,@ord); my $susp=$ENV{SUSP};
+      while (<STDIN>) { chomp; my $e=ep($_); next unless defined $e; next unless /bash\[(\d+)\]: ([^ ]+) on ([^ ]+) shell_command="(.*)"\s*$/; my ($pid,$u,$tty,$cmd)=($1,$2,$3,$4);
+        if (!$s{$pid}) { $s{$pid}={pid=>$pid,u=>$u,tty=>$tty,first=>$e,last=>$e,n=>0,cmds=>[],susp=>[]}; push @ord,$pid }
+        my $x=$s{$pid}; $x->{last}=$e if $e>$x->{last}; $x->{first}=$e if $e<$x->{first}; $x->{n}++; push @{$x->{cmds}}, $cmd;
+        push @{$x->{susp}}, $cmd if $susp ne "" && $cmd =~ /$susp/ }
+      for my $pid (@ord) { my $x=$s{$pid}; my ($lu,$lip)=("","");
+        for my $l (sort { $b->[0] <=> $a->[0] } @lg) { if ($l->[0] <= $x->{first} && $x->{first}-$l->[0] <= $ENV{WIN}) { ($lu,$lip)=($l->[1],$l->[2]); last } }
+        my @t1=localtime($x->{first}); my @t2=localtime($x->{last});
+        printf "%s\t%s\t%s\t%04d-%02d-%02d %02d:%02d\t%02d:%02d\t%d\t%s\t%s\t%d\t%s\n", $pid, $x->{u}, $x->{tty}, $t1[5]+1900,$t1[4]+1,$t1[3],$t1[2],$t1[1], $t2[2],$t2[1], $x->{n}, ($lu eq "" ? "-" : $lu), ($lip eq "" ? "-" : $lip), scalar(@{$x->{susp}}), join(" || ", @{$x->{cmds}}) }
+    ' < "$WORK/shell_lines.txt" > "$WORK/shell_sessions.tsv"
+    SHELL_N=$(grep -c . "$WORK/shell_sessions.tsv"); SHELL_SUSPECT=$(awk -F'\t' '$9+0 > 0' "$WORK/shell_sessions.tsv" | grep -c .)
+    _nologin=$(awk -F'\t' '$8=="-" && $3 !~ /ttyu|console/' "$WORK/shell_sessions.tsv" | grep -c .)
+    _ext=$(awk -F'\t' '$8!="-" && $8!="console" { print $8 }' "$WORK/shell_sessions.tsv" | sort -u | while read -r _ip; do is_internal_ip "$_ip" || echo "$_ip"; done | tr '\n' ' ')
+    if [ "$SHELL_SUSPECT" -gt 0 ]; then TRACES=1; flag_red "$(msg SHELL_SUSPECT_RED "$SHELL_SUSPECT")"
+      awk -F'\t' '$9+0 > 0 { print $8 }' "$WORK/shell_sessions.tsv" | while read -r _ip; do case "$_ip" in -|console) echo x ;; *) is_internal_ip "$_ip" || echo x ;; esac; done | grep -q x && COMPROMISE=1
+      awk -F'\t' -v mr="$(msg_raw SHELL_SESSION_ROW)" 'function m(t,a,b,c,d,e,f,g,h) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); gsub(/%6/,f,t); gsub(/%7/,g,t); gsub(/%8/,h,t); return t } $9+0 > 0 { print m(mr, $4, $5, $2, $3, $1, $6, $7, $8) }' "$WORK/shell_sessions.tsv" | show 10 1
+      awk -F'\t' '$9+0 > 0 { n=split($10, c, " [|][|] "); for (i=1;i<=n;i++) print "    " c[i] }' "$WORK/shell_sessions.tsv" | grep -aE "$SHELL_SUSPECT_RE" | head -n "${SHELL_CMD_MAX:-50}" | show 10 1
+      awk -F'\t' '$9+0 > 0 && $8!="-" && $8!="console" { print $8 }' "$WORK/shell_sessions.tsv" | sort -u | while read -r _ip; do ip_note shell_source "$_ip" 1 "$(msg ADDR_SRC_SHELL)"; done
+      out "          | $(msg SHELL_SUSPECT_TODO_DET)" 1
+    fi
+    if [ "$_nologin" -gt 0 ]; then flag_yel "$(msg SHELL_NOLOGIN_YEL "$_nologin" "${SHELL_LOGIN_WIN:-10}" "${_ext:--}")"
+    elif [ -n "$_ext" ]; then flag_yel "$(msg SHELL_EXT_YEL "$_ext")"; fi
+    if [ "$_nologin" -gt 0 ]; then
+      awk -F'\t' -v mr="$(msg_raw SHELL_SESSION_ROW)" 'function m(t,a,b,c,d,e,f,g,h) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); gsub(/%6/,f,t); gsub(/%7/,g,t); gsub(/%8/,h,t); return t } $8=="-" && $3 !~ /ttyu|console/ { print m(mr, $4, $5, $2, $3, $1, $6, $7, $8) }' "$WORK/shell_sessions.tsv" | show 10 1
+      out "          | $(msg SHELL_NOLOGIN_DET)" 1
+    fi
+    inf "$(msg SHELL_SESSIONS_INFO "$SHELL_N" "$(cut -f2 "$WORK/shell_sessions.tsv" | sort | uniq -c | awk '{ printf "%s (%s) ", $2, $1 }')")" 1
+    awk -F'\t' -v mr="$(msg_raw SHELL_SESSION_ROW)" 'function m(t,a,b,c,d,e,f,g,h) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); gsub(/%4/,d,t); gsub(/%5/,e,t); gsub(/%6/,f,t); gsub(/%7/,g,t); gsub(/%8/,h,t); return t } { print m(mr, $4, $5, $2, $3, $1, $6, $7, $8) }' "$WORK/shell_sessions.tsv" | show 8 1
+    awk -F'\t' '{ n=split($10, c, " [|][|] "); for (i=1;i<=n;i++) print "    " $2 "@" $3 ": " c[i] }' "$WORK/shell_sessions.tsv" | head -n "${SHELL_CMD_MAX:-50}" | show 8 1
+    out "          | $(msg TRACE_LOG_DET "$(log_lines_in "$WORK/shell_lines.txt" $SHELLLOGS)")" 1
+  fi
+elif [ "${SHELL_CHECK:-0}" != 1 ] && [ -n "$SHELLLOGS" ]; then inf "$(msg SHELL_CHECK_OFF_INFO)" 1
+fi
+prof_mark b4-shell
+# Vertraute Adressen (18.1 kompakt): ein Block, eine Zeile je Adresse, Pruefabsatz einmal; ohne Verdict-Wirkung (TRUST_LEVEL=yellow: als Gelb).
+# Einmalige Warnung: Adresse steht neu in trusted_ips, die kumulierte Liste fuehrte sie bisher als Angreifer und hat noch keine trusted_-Zeile.
 if [ -s "$TRUST_EVENTS" ]; then
   _cumt="$(dirname "${OUTFILE:-.}")/ns_quickcheck_observed_ips.tsv"
-  cut -f1 "$TRUST_EVENTS" | sort -u | while read -r _tip; do
-    _ti=$(trusted_info "$_tip"); _tb=$(echo "$_ti" | cut -d'|' -f2); _tm=$(echo "$_ti" | cut -d'|' -f1)
-    if [ -f "$_cumt" ] && grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 !~ /^trusted_/ { f=1 } END { exit f ? 0 : 1 }'; then
-      _pc=$(grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 !~ /^trusted_/ { print $1 }' | sort -u | tr '\n' ',' | sed 's/,$//')
-      flag_yel "$(msg TRUST_LISTED_BEFORE_YEL "$_tip" "$_pc")"; fi
-      flag_tru "$(msg TRUST_ACTIVE_TRU "$_tip" "$( if [ -n "$_tb" ]; then msg TRUST_UNTIL_PAREN_FRAG "$_tb"; else msg TRUST_UNLIMITED_PAREN_FRAG; fi )" "${_tm:-$(msg TRUST_NOTE_NONE)}")"
-    grep "^$_tip	" "$TRUST_EVENTS" | cut -f2 | sort | uniq -c | awk '{ c=$1; $1=""; sub(/^ /,""); print $0 (c>1 ? "  (" c "x)" : "") }' | show 10 1
-    out "          | $(msg TRUST_CHECK_DET)" 1
-  done
-  # Zaehler ausserhalb der Subshell (die Schleife laeuft in einer Pipe)
-  TRUST_COUNT=$(cut -f1 "$TRUST_EVENTS" | sort -u | grep -c .)
-  if [ "${TRUST_LEVEL:-trust}" = yellow ]; then YEL_COUNT=$((YEL_COUNT + TRUST_COUNT)); fi
-  [ -f "$_cumt" ] && YEL_COUNT=$((YEL_COUNT + $(cut -f1 "$TRUST_EVENTS" | sort -u | while read -r _tip; do grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 !~ /^trusted_/ { f=1 } END { exit f ? 0 : 1 }' && echo x; done | grep -c x) ))
+  cut -f1 "$TRUST_EVENTS" | sort -u > "$WORK/trust_ips.txt"; TRUST_COUNT=$(grep -c . "$WORK/trust_ips.txt")
+  _tunl=0; _tlim=0; : > "$WORK/trust_rows.txt"; : > "$WORK/trust_switch.txt"
+  while read -r _tip; do
+    _ti=$(trusted_info "$_tip"); _tb=${_ti#*|}; _tm=${_ti%%|*}
+    if [ -n "$_tb" ]; then _tlim=$((_tlim + 1)); _tv="$(msg TRUST_UNTIL_FRAG "$_tb")"; else _tunl=$((_tunl + 1)); _tv="$(msg TRUST_UNLIMITED_FRAG)"; fi
+    _tc=$(grep "^$_tip	" "$TRUST_EVENTS" | cut -f2 | sort | uniq -c | awk '{ c=$1; $1=""; sub(/^ /,""); printf "%s%s%s", (NR>1 ? "; " : ""), $0, (c>1 ? " (" c "x)" : "") }')
+    printf '%s\t%s\t%s\t%s\n' "$_tip" "$_tc" "$_tv" "$( [ -n "$_tm" ] && msg TRUST_NOTE_FRAG "$_tm" )" >> "$WORK/trust_rows.txt"
+    if [ -f "$_cumt" ] && grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 ~ /^trusted_/ { t=1 } $2==i && $1 !~ /^trusted_/ { a=1 } END { exit (a && !t) ? 0 : 1 }'; then
+      _pc=$(grep -v '^#' "$_cumt" | awk -F'\t' -v i="$_tip" '$2==i && $1 !~ /^trusted_/ { print $1 }' | sort -u | tr '\n' ',' | sed 's/,$//'); printf '%s (%s) ' "$_tip" "$_pc" >> "$WORK/trust_switch.txt"; fi
+  done < "$WORK/trust_ips.txt"
+  if [ -s "$WORK/trust_switch.txt" ]; then flag_yel "$(msg TRUST_LISTED_BEFORE_YEL "$(tr -cd '(' < "$WORK/trust_switch.txt" | wc -c | tr -d ' ')" "$(cat "$WORK/trust_switch.txt")")"; fi
+  flag_tru "$(msg TRUST_ACTIVE_TRU "$TRUST_COUNT" "$_tunl" "$_tlim")"; TRUST_COUNT=$(grep -c . "$WORK/trust_ips.txt")   # flag_tru zaehlt einen Block, gezaehlt werden Adressen
+  awk -F'\t' '{ printf "%-16s %s  %s%s\n", $1, $2, $3, $4 }' "$WORK/trust_rows.txt" | show 10 1
+  out "          | $(msg TRUST_CHECK_DET)" 1
 fi
-hdr "$(msg HDR_BLOCK5)"
+prof_mark b4-trust; hdr "$(msg HDR_BLOCK5)"
 # =============================================================================
 for p in $PAYLOAD_PATHS; do
   [ -e "$ROOT/$p" ] || continue
@@ -1944,7 +2246,7 @@ if [ "$CLI_MODE" != none ]; then
     else grn "$(msg CHECK_UNSAVED_NONE_OK)"; fi
   else inf "$(msg CHECK_RUNNING_EMPTY)" 1; fi
   AS=$(cli "show aaa session" | grep -aciE 'client ip|user')
-  [ "${AS:-0}" -gt 0 ] && inf "$(msg CHECK_AAA_SESSIONS "$AS")" 1 && cli "show aaa session" | show 10
+  [ "${AS:-0}" -gt 0 ] && inf "$(msg CHECK_AAA_SESSIONS "$AS")" 1 && cli "show aaa session" | sed -E 's/([Ss]ession[[:space:]]*[Kk]ey[[:space:]]*[:=][[:space:]]*)[^[:space:]]+/\1***/' | show 10
   SA=$(cli "show ns simpleacl" | grep -aciE 'simpleacl|ACL')
   [ "${SA:-0}" -gt 0 ] && inf "$(msg CHECK_SIMPLEACL "$SA")" 1
 fi
@@ -2003,6 +2305,28 @@ fi
 # =============================================================================
 hdr "$(msg HDR_BLOCK6)"
 # =============================================================================
+prof_mark block5; [ "${QC_PROFILE:-0}" = 1 ] && inf "$(msg PROFILE_INFO "$PROF_LINE")" 1
+# Vergleich mit dem letzten Lauf (18.1): juengstes JSON dieses Hosts im Reportverzeichnis; Rot-/Gelb-Codes neu und weggefallen
+NEW_N=0; GONE_N=0
+if [ "$NO_OUT" -eq 0 ] && [ -d "$(dirname "$OUTFILE")" ]; then
+  PREV_JSON=$(ls -t "$(dirname "$OUTFILE")"/ns_quickcheck_"$HOST"_*.json 2>/dev/null | grep -v "^$JSONFILE$" | head -1)
+  if [ -n "$PREV_JSON" ]; then
+    perl -ne 'if (/^\s*"(red|yellow)": \[(.*)$/) { my ($lv,$b)=($1,$2); while ($b =~ /\{"code": "([A-Z0-9_]*)", "text": "((?:[^"\\]|\\.)*)"/g) { print "$lv\t$1\t$2\n" } }' "$PREV_JSON" 2>/dev/null | grep -v '^[a-z]*		' | sort -u > "$WORK/prev_codes.tsv"
+    awk -F'\t' '$1=="R" { print "red\t" $2 } $1=="Y" { print "yellow\t" $2 }' "$JFIND" | grep -v '	$' | sort -u > "$WORK/cur_codes.tsv"
+    cut -f1,2 "$WORK/prev_codes.tsv" | sort -u > "$WORK/prev_k.txt"
+    # FILENAME statt NR==FNR: eine leere erste Datei wuerde sonst die zweite als erste lesen
+    awk -v a="$WORK/prev_k.txt" 'FILENAME==a { k[$0]=1; next } !($0 in k)' "$WORK/prev_k.txt" "$WORK/cur_codes.tsv" > "$WORK/new_codes.txt"
+    awk -v a="$WORK/cur_codes.tsv" 'FILENAME==a { k[$0]=1; next } !($0 in k)' "$WORK/cur_codes.tsv" "$WORK/prev_k.txt" > "$WORK/gone_codes.txt"
+    NEW_N=$(grep -c . "$WORK/new_codes.txt"); GONE_N=$(grep -c . "$WORK/gone_codes.txt")
+    _pts=$(basename "$PREV_JSON" | grep -oE '[0-9]{8}_[0-9]{6}' | head -1)
+    if [ "$NEW_N" -gt 0 ] || [ "$GONE_N" -gt 0 ]; then inf "$(msg CMP_PREV_INFO "$_pts" "$NEW_N" "$GONE_N")" 1
+      [ "$NEW_N" -gt 0 ] && out "          | $(msg CMP_PREV_NEW_DET "$(awk -F'\t' '{ printf "%s(%s) ", $2, $1 }' "$WORK/new_codes.txt")")" 1
+      if [ "$GONE_N" -gt 0 ]; then awk -F'\t' -v a="$WORK/gone_codes.txt" 'FILENAME==a { g[$0]=1; next } (($1 "\t" $2) in g) && !(($1 "\t" $2) in done) { done[$1 "\t" $2]=1; print $2 "\t" $1 "\t" $3 }' "$WORK/gone_codes.txt" "$WORK/prev_codes.tsv" \
+        | awk -F'\t' -v m="$(msg_raw CMP_PREV_GONE_ROW)" 'function f(t,a,b,c) { gsub(/%1/,a,t); gsub(/%2/,b,t); gsub(/%3/,c,t); return t } { print f(m, $1, $2, substr($3,1,110)) }' | LINE_MAX=0 show 10 1
+        out "          | $(msg CMP_PREV_GONE_DET)" 1; fi
+    else inf "$(msg CMP_PREV_SAME_INFO "$_pts")" 1; fi
+  fi
+fi
 HAPEER=$(cg '^add HA node ' | awk '{print $5}' | head -1)
 if [ "$COMPROMISE" -eq 1 ]; then
   ACTION=FORENSICS_FIRST; RC=2; out "$(msg TAG_ACTION): FORENSICS_FIRST" 1 R
@@ -2060,13 +2384,49 @@ if [ -s "$JIPS" ]; then
   out "" 1
 fi
 VULN_OPEN=$(grep -c "^OPEN" "$WORK/cve.txt" 2>/dev/null); VULN_OPEN=${VULN_OPEN:-0}
-RESULT="RESULT host=$HOST build=${BUILD:-?} mode=$MODE cli=$CLI_MODE window=${HOURS}h saml=$SAML vuln96=$VULN96 vuln_open=$VULN_OPEN vuln63=$VULN63 vuln79=$VULN9 isn_open=$ISN_OPEN traces=$TRACES mitigation=$MITIG_OK unsaved=$UNSAVED save_missing=$SAVE_MISSING compromise=$COMPROMISE red=$RED_COUNT yellow=$YEL_COUNT orange=$ORG_COUNT blocked_seen=${BLOCKED_SEEN:-0} trusted_seen=$TRUST_COUNT crashes=${NCRASH:-0} lang=$MSG_LANG coverage=$COVERAGE action=$ACTION rules=$RULES_VERSION script_sha256=${SCRIPT_SHA:-?} rules_sha256=${RULES_SHA:-?} msg_sha256=${MSG_SHA256:-?} custom=${CUSTOM_VERSION:-none} custom_sha256=${CUSTOM_SHA:-none} cve_custom=${CVE_CUSTOM_N:-0} cve_conflict=${CVE_CONFLICT_N:-0} runtime=$(( $(date +%s) - NOW ))s"
+RESULT="RESULT host=$HOST build=${BUILD:-?} mode=$MODE cli=$CLI_MODE window=${HOURS}h saml=$SAML vuln96=$VULN96 vuln_open=$VULN_OPEN vuln63=$VULN63 vuln79=$VULN9 isn_open=$ISN_OPEN traces=$TRACES mitigation=$MITIG_OK unsaved=$UNSAVED save_missing=$SAVE_MISSING compromise=$COMPROMISE red=$RED_COUNT yellow=$YEL_COUNT orange=$ORG_COUNT blocked_seen=${BLOCKED_SEEN:-0} trusted_seen=$TRUST_COUNT shell_sessions=${SHELL_N:-0} shell_suspect=${SHELL_SUSPECT:-0} crashes=${NCRASH:-0} new=${NEW_N:-0} gone=${GONE_N:-0} lang=$MSG_LANG coverage=$COVERAGE action=$ACTION rules=$RULES_VERSION script_sha256=${SCRIPT_SHA:-?} rules_sha256=${RULES_SHA:-?} msg_sha256=${MSG_SHA256:-?} custom=${CUSTOM_VERSION:-none} custom_sha256=${CUSTOM_SHA:-none} cve_custom=${CVE_CUSTOM_N:-0} cve_conflict=${CVE_CONFLICT_N:-0} runtime=$(( $(date +%s) - NOW ))s"
 [ "${FOOTER:-1}" -eq 1 ] && { out "" 1; out "$(msg FOOT_CREATED "$VERSION" "$RULES_VERSION")" 1; }
 out "$RESULT" 1
 
 # --- JSON ----------------------------------------------------------------------
 if [ "$NO_OUT" -eq 0 ]; then
   IPSFILE="${OUTFILE%.txt}_ips.tsv"
+  # Kontendateien (18.1): <report>_accounts.tsv (eine Zeile je Konto mit Fehlversuchen, Lage A-G der Adresse),
+  # <report>_logons.tsv (Zeitachse je Ereignis), ns_quickcheck_observed_accounts.tsv (kumuliert je Konto ueber alle Laeufe,
+  # nur Ereignisse nach dem letzten gezaehlten Zeitpunkt, damit ueberlappende Fenster nicht doppelt zaehlen)
+  if [ -s "$WORK/aaa.tsv" ]; then ACCFILE="${OUTFILE%.txt}_accounts.tsv"; LOGONFILE="${OUTFILE%.txt}_logons.tsv"
+    ACCCUM="$(dirname "$OUTFILE")/ns_quickcheck_observed_accounts.tsv"
+    awk -F'\t' -v OFS='\t' -v a="$WORK/aaa_ip.txt" 'FILENAME==a { if ($8!="") { n=split($9, uu, ","); for (i=1;i<=n;i++) lage[uu[i] SUBSEP $1]=$14 } next }
+      $4=="" { next }
+      { k=$4; if ($2=="fail") { f[k]++; if (!(k in ff)) ff[k]=$1; lf[k]=$1; if (!((k SUBSEP $3) in a2)) { a2[k SUBSEP $3]=1; na[k]++ } if ((k SUBSEP $3) in lage) L[k]=lage[k SUBSEP $3] }
+        else if ($2=="ok") { o[k]++; if ((k in lf) && $1>=lf[k] && !(k in fo)) fo[k]=$1 }
+        if ($1 > mx[k]) mx[k]=$1 }
+      END { for (k in f) print k, f[k], o[k]+0, na[k]+0, ff[k], lf[k], (k in fo ? fo[k] : "-"), (L[k]=="" ? "-" : L[k]), mx[k] }' "$WORK/aaa_ip.txt" "$WORK/aaa.tsv" | sort > "$WORK/acc_raw.tsv"
+    { echo "$(msg ACC_HEAD "$VERSION" "$HOST" "$TS")"; echo "konto	fehl	erfolg	adressen	erster_fehl	letzter_fehl	erfolg_nach_fehl	lage"
+      perl -MPOSIX -ne 'chomp; my @f=split /\t/; sub d { my $t=shift; return "-" if $t eq "-" || $t eq ""; strftime("%Y-%m-%d %H:%M", localtime($t)) } print join("\t", $f[0], $f[1], $f[2], $f[3], d($f[4]), d($f[5]), d($f[6]), $f[7]), "\n"' "$WORK/acc_raw.tsv"
+    } > "$ACCFILE"; chmod 600 "$ACCFILE" 2>/dev/null
+    { echo "$(msg LOGON_HEAD "$VERSION" "$HOST" "$TS")"; echo "konto	konto_roh	zeit	adresse	ergebnis	detail"
+      perl -MPOSIX -ne 'chomp; my @f=split /\t/; next if !defined $f[3] || $f[3] eq ""; my $r=$f[1]; $r=($f[5] =~ /failed/ ? "factor_fail" : "factor_ok") if $f[1] eq "factor"; print join("\t", $f[3], $f[4], strftime("%Y-%m-%d %H:%M", localtime($f[0])), $f[2], $r, $f[5]), "\n"' "$WORK/aaa.tsv" | sort -t"$(printf '\t')" -k1,1 -k3,3
+    } > "$LOGONFILE"; chmod 600 "$LOGONFILE" 2>/dev/null
+    # kumuliert: Bestand (konto zuerst zuletzt tage fehl erfolg adressen_max lage last_epoch) + neue Ereignisse nach last_epoch
+    { grep -v '^#' "$ACCCUM" 2>/dev/null | grep -v '^konto	' | awk -F'\t' -v OFS='\t' '{ print "B", $0 }'
+      perl -MPOSIX -ne 'chomp; my @f=split /\t/; next if !defined $f[3] || $f[3] eq ""; print "E\t$f[3]\t$f[0]\t$f[1]\t$f[2]\t".strftime("%Y-%m-%d", localtime($f[0]))."\n"' "$WORK/aaa.tsv"
+      awk -F'\t' -v OFS='\t' '{ print "L", $1, $8, $4 }' "$WORK/acc_raw.tsv"; } \
+    | awk -F'\t' -v OFS='\t' '
+        $1=="B" { k=$2; zu[k]=$3; zl[k]=$4; tg[k]=$5; fe[k]=$6; ok[k]=$7; am[k]=$8; lg[k]=$9; le[k]=$10+0; days[k SUBSEP $4]=1; next }
+        $1=="L" { lgn[$2]=$3; an[$2]=$4; next }
+        $1=="E" { k=$2; t=$3+0; if (t <= le[k]+0) next; d=$6
+                  if (!(k in zu)) { zu[k]=d; tg[k]=0; fe[k]=0; ok[k]=0; am[k]=0; lg[k]="-"; le[k]=0 }
+                  if (!((k SUBSEP d) in days)) { days[k SUBSEP d]=1; tg[k]++ } if (d > zl[k] || zl[k]=="") zl[k]=d
+                  if ($4=="fail") fe[k]++; else if ($4=="ok") ok[k]++; if (t > le[k]) le[k]=t; next }
+        END { for (k in zu) { if ((k in lgn) && lgn[k]!="-") lg[k]=lgn[k]; if (an[k]+0 > am[k]+0) am[k]=an[k]; print k, zu[k], zl[k], tg[k], fe[k], ok[k], am[k], lg[k], le[k] } }' \
+    | sort > "$WORK/acc_cum.tsv"
+    { echo "$(msg ACC_CUM_HEAD "$HOST" "$(date +'%Y-%m-%d %H:%M')")"; echo "konto	zuerst	zuletzt	tage	fehl_gesamt	erfolg_gesamt	adressen_max	letzte_lage	last_epoch"; cat "$WORK/acc_cum.tsv"; } > "$ACCCUM"; chmod 600 "$ACCCUM" 2>/dev/null
+    # Gelb: Konto mit Fehlversuchen an >= ACC_DAYS_MIN Tagen ohne jeden Erfolg (kumuliert)
+    _acq=$(awk -F'\t' -v m="${ACC_DAYS_MIN:-3}" '$4+0 >= m && $6+0 == 0 && $5+0 > 0 { printf "%s(%s Tage, %s) ", $1, $4, $5 }' "$WORK/acc_cum.tsv")
+    if [ -n "$_acq" ]; then flag_yel "$(msg ACC_NEVER_OK_YEL "$(echo "$_acq" | wc -w | tr -d ' ')" "${ACC_DAYS_MIN:-3}")"; out "          | $(msg ACC_NEVER_OK_DET "$_acq")" 1; fi
+  fi
+  prof_mark accounts
   { echo "$(msg ADDR_IPS_HEAD1)"
     echo "$(msg ADDR_IPS_HEAD2)"
     echo "$(msg ADDR_IPS_HEAD3)"
@@ -2095,7 +2455,7 @@ if [ "$NO_OUT" -eq 0 ]; then
       cat "$WORK/cum.tsv"; } > "$CUM"; chmod 600 "$CUM" 2>/dev/null
   fi
   [ -f "$WORK/hits.tsv" ] || : > "$WORK/hits.tsv"
-  RESULT="$RESULT" HOST="$HOST" TS="$TS" JRED="$JRED" JYEL="$JYEL" JFIND="$JFIND" IPSFILE="$IPSFILE" VER="$VERSION" HITS="$WORK/hits.tsv" perl -e '
+  RESULT="$RESULT" HOST="$HOST" TS="$TS" JRED="$JRED" JYEL="$JYEL" JFIND="$JFIND" IPSFILE="$IPSFILE" VER="$VERSION" HITS="$WORK/hits.tsv" PROFJ="$PROF_JSON" perl -e '
     sub j { my $s=shift; $s =~ s/\\/\\\\/g; $s =~ s/"/\\"/g; $s =~ s/[\x00-\x1f]/ /g; return "\"$s\"" }
     sub lst { my $f=shift; open(my $h,"<",$f) or return "[]"; my @a=map { chomp; j($_) } <$h>; close $h; return "[".join(",",@a)."]" }
     my %kv = map { /^([^=]+)=(.*)$/ ? ($1,$2) : () } split / /, $ENV{RESULT};
@@ -2108,12 +2468,14 @@ if [ "$NO_OUT" -eq 0 ]; then
     my @ips; if (open(my $ih,"<",$ENV{IPSFILE})) { while (<$ih>) { chomp; next if /^#/; my ($k,$ip,$n,$src,$bl)=split /\t/; push @ips, "{\"category\": ".j($k).", \"ip\": ".j($ip).", \"count\": ".($n+0).", \"observed_in\": ".j($src).", \"blocked\": ".j(defined $bl ? $bl : "")."}" if defined $ip } close $ih }
     print "  \"observed_ips\": [".join(",",@ips)."],\n";
     my (@red,@yel,@org,@tru,$cur);
-    if (open(my $fh,"<",$ENV{JFIND})) { while (<$fh>) { chomp; my ($k,$t)=split /\t/,$_,2; next unless defined $t;
-        if ($k eq "R") { $cur={text=>$t,d=>[]}; push @red,$cur } elsif ($k eq "Y") { $cur={text=>$t,d=>[]}; push @yel,$cur } elsif ($k eq "O") { $cur={text=>$t,d=>[]}; push @org,$cur } elsif ($k eq "T") { $cur={text=>$t,d=>[]}; push @tru,$cur } elsif ($k eq "D" && $cur) { push @{$cur->{d}},$t } } close $fh }
-    sub fl { my @a=@_; return "[".join(",", map { "{\"text\": ".j($_->{text}).", \"details\": [".join(",", map { j($_) } @{$_->{d}})."]}" } @a)."]" }
-    print "  \"red\": ".fl(@red).",\n  \"yellow\": ".fl(@yel).",\n  \"orange\": ".fl(@org).",\n  \"trust\": ".fl(@tru).",\n  \"source_url\": \"https://ceterion.com/netscaler-quickcheck\"\n}\n";
+    if (open(my $fh,"<",$ENV{JFIND})) { while (<$fh>) { chomp; my ($k,$t)=split /\t/,$_,2; next unless defined $t; my $c="";
+        if ($k =~ /^[RYOT]$/) { ($c,$t)=split /\t/,$t,2; ($c,$t)=("",$c) unless defined $t }
+        if ($k eq "R") { $cur={code=>$c,text=>$t,d=>[]}; push @red,$cur } elsif ($k eq "Y") { $cur={code=>$c,text=>$t,d=>[]}; push @yel,$cur } elsif ($k eq "O") { $cur={code=>$c,text=>$t,d=>[]}; push @org,$cur } elsif ($k eq "T") { $cur={code=>$c,text=>$t,d=>[]}; push @tru,$cur } elsif ($k eq "D" && $cur) { push @{$cur->{d}},$t } } close $fh }
+    sub fl { my @a=@_; return "[".join(",", map { "{\"code\": ".j($_->{code}).", \"text\": ".j($_->{text}).", \"details\": [".join(",", map { j($_) } @{$_->{d}})."]}" } @a)."]" }
+    print "  \"red\": ".fl(@red).",\n  \"yellow\": ".fl(@yel).",\n  \"orange\": ".fl(@org).",\n  \"trust\": ".fl(@tru).",\n  \"profile\": [".($ENV{PROFJ} =~ s/,$//r)."],\n  \"source_url\": \"https://ceterion.com/netscaler-quickcheck\"\n}\n";
   ' > "$JSONFILE" 2>/dev/null
   chmod 600 "$OUTFILE" "$JSONFILE" 2>/dev/null
+  prof_mark iplist
   anon_map_build
   AHOST=$(awk -F'\t' -v h="$HOST" '$1=="host" && $2==h { print $3; exit }' "$ANON_MAP"); [ -n "$AHOST" ] || AHOST="gw-00"
   ANON_TXT="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_anon.txt"; ANON_JSON="${ANON_TXT%.txt}.json"
@@ -2128,6 +2490,10 @@ if [ "$NO_OUT" -eq 0 ]; then
           if ($i ~ /\|/ && $i !~ /^http/) { n=split($i, g, "|"); $i=(n>=2 ? g[2] : "") } } print }' "$1" > "$WORK/anon_list.tmp"
     anon_apply "$WORK/anon_list.tmp" "$2"; chmod 600 "$2" 2>/dev/null; }
   if [ -f "$IPSFILE" ]; then ANON_IPS="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_ips_anon.tsv"; anon_list "$IPSFILE" "$ANON_IPS"; fi
+  if [ -f "${ACCFILE:-}" ] && [ "${ANON_ACCOUNTS:-0}" = 1 ]; then ANON_ACC="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_accounts_anon.tsv"; anon_apply "$ACCFILE" "$ANON_ACC"; chmod 600 "$ANON_ACC" 2>/dev/null
+    ANON_LOGON="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_logons_anon.tsv"; anon_apply "$LOGONFILE" "$ANON_LOGON"; chmod 600 "$ANON_LOGON" 2>/dev/null
+    ANON_ACCCUM="$(dirname "$OUTFILE")/ns_quickcheck_observed_accounts_anon.tsv"; anon_apply "$ACCCUM" "$ANON_ACCCUM"; chmod 600 "$ANON_ACCCUM" 2>/dev/null; fi
+  prof_mark anon
   if [ -f "${CUM:-}" ]; then ANON_CUM="$(dirname "$OUTFILE")/ns_quickcheck_observed_ips_anon.tsv"; anon_list "$CUM" "$ANON_CUM"
     SHARE="$(dirname "$OUTFILE")/ns_quickcheck_${AHOST}_${TS}_share.tsv"
     { echo "$(msg SHARE_HEAD "$VERSION" "$(date +%Y-%m-%d)")"
@@ -2138,6 +2504,9 @@ if [ "$NO_OUT" -eq 0 ]; then
   fi
   [ "${NIPS:-0}" -gt 0 ] && echo "$(msg ADDR_RUN_SUMMARY "${OUTFILE%.txt}" "$NIPS" "${NEWIPS:-0}" "${BLOCKED_SEEN:-0}" "${SINCE:-$(msg ADDR_SINCE_TODAY)}" "${CUMN:-0}")"
   echo "$(msg FOOT_FILES "$OUTFILE" "$JSONFILE" "$ANON_TXT" "$ANON_JSON")"
+  if [ -f "${ACCFILE:-}" ]; then if [ "${ANON_ACCOUNTS:-0}" = 1 ]; then echo "$(msg FOOT_ACCOUNTS "$ACCFILE" "$(grep -vc '^#\|^konto	' "$ACCFILE")" "$LOGONFILE" "$ACCCUM" "$(grep -vc '^#\|^konto	' "$ACCCUM")")"
+    else echo "$(msg FOOT_ACCOUNTS_NOANON "$ACCFILE" "$(grep -vc '^#\|^konto	' "$ACCFILE")" "$LOGONFILE" "$ACCCUM" "$(grep -vc '^#\|^konto	' "$ACCCUM")" "$0")"; fi; fi
+  prof_total
   [ -n "${ANON_CUM:-}" ] && echo "$(msg SHARE_FILES "${ANON_IPS:-}" "$ANON_CUM" "${SHARE:-}")"
   [ "$MODE" = online ] && find "$REPORT_DIR" -maxdepth 1 -type f -name 'ns_quickcheck_*' -mtime +"$REPORT_KEEP_DAYS" -delete 2>/dev/null
 fi

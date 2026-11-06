@@ -1,0 +1,58 @@
+ns_quickcheck V  host=gw-01  modus=offline  fenster=1000000h  regeln=2026-11-05d  cli=none  TS
+Quelle: REPO/docs/testdata/fixtures/csp
+Whitelist: nicht vorhanden (REPO/ns_quickcheck.whitelist); alle Befunde ungefiltert
+
+== 1 Build ==
+  [OK]    Build 14.1-73.49 enthaelt alle 13 Fix(es) fuer 14.1 der Regeldatei
+  [INFO]  Letzter Boot: 2026-10-06 12:55 (N Tage)
+
+== 2 Exposure ==
+  [OK]    Kein SAML SP/IdP - SAML-abhaengige CVEs nicht relevant
+  [INFO]  DTLS an 1 Gateway-vServer aktiv (CVE-2026-88772-Voraussetzung; auf gefixtem Build mitigiert)
+  [OK]    Enhanced ISN Generation aktiv
+  [INFO]  Management-Portal: NSIP nicht aus der ns.conf bestimmbar, ACL-Mitigation (CTX697263) nicht geprueft
+
+== 3 Mitigation ==
+  [INFO]  Keine Mitigation-Policy gefunden (auf gefixtem Build ohne Spuren nicht erforderlich)
+
+== 4 Angriffsspuren (letzte 1000000h) ==
+  [INFO]  nsprofmon_mgmt.pl-Zeilen (CPU-Momentaufnahmen mit Prozess-Kommandozeilen) vorab abgezweigt: 1; sie werden nur noch auf verdaechtige Prozesse geprueft, damit der Quickcheck sich nicht selbst findet
+  [INFO]  Gelesene Logs im Fenster: ns.log/nsvpn/messages/notice 1, httpaccess 1, httperror 0, auth.log 0, httpaccess.log (Management) 1, cron 0 Datei(en)
+  [ROT]   3 CSP-Report(s) der Logon-Seite mit Injection-Payload im Feld blocked-uri (Scanner-Muster), Oct 7 08:59:06 bis Oct 7 09:00:06:
+          | Oct  7 08:59:06 _local0.info_ 192.0.2.5  2026/10/07:08:59:06 GMT gw-01 0-PPE-0 : default AAA Message 638810 0 :  "CSP Violation: Detected for user , while accessing page hxxps://gateway.example.net/ trying to access blocked page echo abcdef_()\ ghijkl\nz^xyu__a #' _echo abcdef_()\ ghijkl\nz^xyu__a #_" _echo abcdef_()\ ghijkl\nz^xyu__a # which violates script-src directive "
+          | Oct  7 08:59:36 _local0.info_ 192.0.2.5  2026/10/07:08:59:36 GMT gw-01 0-PPE-1 : default AAA Message 638811 0 :  "CSP Violation: Detected for user , while accessing page hxxps://gateway.example.net/ trying to access blocked page echo abcdef_()\ ghijkl\nz^xyu__a #' _echo abcdef_()\ ghijkl\nz^xyu__a #_" _echo abcdef_()\ ghijkl\nz^xyu__a # which violates script-src directive "
+          | Oct  7 09:00:06 _local0.info_ 192.0.2.5  2026/10/07:09:00:06 GMT gw-01 0-PPE-2 : default AAA Message 638812 0 :  "CSP Violation: Detected for user , while accessing page hxxps://gateway.example.net/ trying to access blocked page echo abcdef_()\ ghijkl\nz^xyu__a #' _echo abcdef_()\ ghijkl\nz^xyu__a #_" _echo abcdef_()\ ghijkl\nz^xyu__a # which violates script-src directive "
+          | Was das ist:   Der Browser meldet Verstoesse gegen die Content-Security-Policy der Logon-Seite per POST (application/csp-report) an den im Header genannten report-uri; NetScaler loggt den Bericht als AAA-Meldung. Die Felder des Berichts (document-uri, blocked-uri) kommen vom Client und sind frei beschreibbar; hier steht darin ein OS-Command-Injection-Payload (echo <marker>$()\ <marker>\nz^xyu||a, dreifach fuer ', " und ohne Quoting), das Standardmuster von Burp Scanner und Nuclei. NetScaler hat den Bericht nur geloggt; der Marker erschiene nur bei Erfolg in einer Antwort.
+          | Quelle:        203.0.113.150 (3 POST(s) auf den CSP-Report-Pfad im Access-Log, 120 s um die Reportzeiten)
+          | Zu tun:        1. Intern klaeren, ob im Fenster 07.10. 08:56-09:03 (08:59-09:00 GMT) ein beauftragter Pentest oder Schwachstellenscan lief.
+          |                2. Quelle aus der Firewall: Verbindungen auf <VIP> Port 443 in diesem Fenster je Quelladresse zaehlen; der Scanner hat hunderte kurze Sessions, beginnt kurz vor dem ersten Report und war an den Vortagen nicht zu sehen.
+          |                3. Gegenprobe Access-Log (solange nicht rotiert): zcat -f /var/log/httpaccess.log* | grep -aE '07/Oct/2026:(08|09)' | awk '{print $1}' | sort | uniq -c | sort -rn | head
+          |                4. Ohne Auftrag: Adresse sperren, in ns_quickcheck.blocked_ips eintragen (Bemerkung: Scanner, Burp-Muster); Abuse-Meldung erst nach Punkt 1. Keine Aktion an der Appliance noetig, der Payload wurde nicht ausgefuehrt.
+  [OK]    Keine Injection-Muster in Logon-Zeilen der letzten 1000000h
+  [OK]    Keine Abstuerze im Fenster (Pitboss, Kernel, Apache-Fehlerlog, /var/core)
+  [OK]    Keine verdaechtigen Prozesse in den CPU-Momentaufnahmen
+  [INFO]  Webserver-Fehlerlog nicht geprueft: keine httperror*-Datei im Fenster (1000000h)
+  [OK]    Management-Ebene (NITRO, GUI) nur von internen Adressen angesprochen
+  [INFO]  Anmeldungen nicht geprueft: keine auth.log-Datei im Fenster (1000000h)
+  [OK]    Keine Gateway-Anmeldefehler im Fenster
+
+== 5 Kompromittierungs-Schnellcheck ==
+  [INFO]  Monitor-Script laeuft unter dem Stock-Daemon (PID 4410, Parent: /netscaler/monuploadd monuploadd -P ) - regulaerer Mechanismus
+  [OK]    Keine sicherheitsrelevanten Aenderungen zwischen ns.conf.0 und ns.conf
+  [OK]    Keine Schnellcheck-Treffer (ersetzt keinen vollen IoC-Scan)
+
+== 6 Verdict ==
+ACTION: INVESTIGATE
+Das Geraet ist gepatcht und zeigt keine Kompromittierungszeichen. Es gibt aber Beobachtungen, die jemand einordnen muss; sie stehen oben mit 'Zu tun'.
+Danach diesen Check wiederholen: sind die Punkte geklaert oder in der Whitelist, wird das Ergebnis OK.
+Offene Punkte:
+  - Quell-IPs oben an Firewall/SOC geben; Download-Hosts in Firewall/DNS-Logs suchen.
+  - Offizieller Citrix-IoC-Scan (Console oder Support) als zweite Meinung, falls die Appliance vor dem Fix exponiert war.
+
+Adressen dieses Laufs, aufgenommen in ns_quickcheck_observed_ips.tsv:
+  203.0.113.150      csp_scanner            neu                              Sperrliste: nein
+  1 Eintrag/Eintraege; reine Liste ohne vertraute Adressen: grep -v '^#' ns_quickcheck_observed_ips.tsv | grep -v '^trusted_' | cut -f2 | sort -u
+
+
+Erstellt mit netscaler-quickcheck V (Regelstand 2026-11-05d), Apache 2.0, ceterion AG: ceterion.com/netscaler-quickcheck
+RESULT host=gw-01 build=14.1-73.49 mode=offline cli=none window=1000000h saml=0 vuln96=0 vuln_open=0 vuln63=0 vuln79=0 isn_open=0 traces=1 mitigation=0 unsaved=0 save_missing=0 compromise=0 red=1 yellow=0 orange=0 blocked_seen=0 trusted_seen=0 shell_sessions=0 shell_suspect=0 crashes=0 new=0 gone=0 lang=de coverage=full action=INVESTIGATE rules=2026-11-05d script_sha256=X rules_sha256=16e84e91f227cb1eb8fe173de573a04096e3ddae248665a2b995bfe5dc48cb44 msg_sha256=X custom=none custom_sha256=none cve_custom=0 cve_conflict=0 runtime=Ns
